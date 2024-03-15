@@ -11,15 +11,15 @@ public record Result<T>(
 	Integer code,
 	T data) {
 	public static Result<Void> ok() {
-		return new Result<>(ConstantPool.RESPONSE_SUCCESS_MESSAGE, ConstantPool.RESPONSE_SUCCESS_CODE, null);
+		return new Result<>(ConstantPool.RESPONSE_SUCCESS_MESSAGE, ConstantPool.SUCCESS_RESPONSE_CODE, null);
 	}
 
 	public static Result<Void> okByMessage(String message) {
-		return new Result<>(message, ConstantPool.RESPONSE_SUCCESS_CODE, null);
+		return new Result<>(message, ConstantPool.SUCCESS_RESPONSE_CODE, null);
 	}
 
 	public static <T> Result<T> ok(T data) {
-		return new Result<>(ConstantPool.RESPONSE_SUCCESS_MESSAGE, ConstantPool.RESPONSE_SUCCESS_CODE, data);
+		return new Result<>(ConstantPool.RESPONSE_SUCCESS_MESSAGE, ConstantPool.SUCCESS_RESPONSE_CODE, data);
 	}
 
 	public static <E extends BaseRuntimeException> Result<Void> failByException(E e) {
@@ -27,11 +27,11 @@ public record Result<T>(
 	}
 
 	public static Result<Void> fail() {
-		return new Result<>(ConstantPool.RESPONSE_FAILURE_MESSAGE, ConstantPool.RESPONSE_FAILURE_CODE, null);
+		return new Result<>(ConstantPool.RESPONSE_FAILURE_MESSAGE, ConstantPool.BASE_ERROR_RESPONSE_CODE, null);
 	}
 
 	public static Result<Void> failByMessage(String message) {
-		return new Result<>(message, ConstantPool.RESPONSE_FAILURE_CODE, null);
+		return new Result<>(message, ConstantPool.BASE_ERROR_RESPONSE_CODE, null);
 	}
 
 	public static Result<Void> fail(int code, String message) {
@@ -39,7 +39,7 @@ public record Result<T>(
 	}
 
 	public static <T> Result<T> fail(T data) {
-		return new Result<>(ConstantPool.RESPONSE_FAILURE_MESSAGE, ConstantPool.RESPONSE_FAILURE_CODE, data);
+		return new Result<>(ConstantPool.RESPONSE_FAILURE_MESSAGE, ConstantPool.BASE_ERROR_RESPONSE_CODE, data);
 	}
 
 	public static <T> Result<T> fail(int code, String message, T data) {
