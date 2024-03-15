@@ -58,30 +58,30 @@ public class ResponseUtils {
 	}
 
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response) {
-		writeResponse(Result.ok(bean), response, HttpStatus.OK.value());
+		writeResultToResponse(Result.ok(bean), response, HttpStatus.OK.value());
 	}
 
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final HttpStatus status) {
-		writeResponse(Result.ok(bean), response, status.value());
+		writeResultToResponse(Result.ok(bean), response, status.value());
 	}
 
 	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response) {
-		writeResponse(Result.failByException(exception), response, exception.getHttpStatus());
+		writeResultToResponse(Result.failByException(exception), response, exception.getHttpStatus());
 	}
 
 	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, final HttpStatus httpStatus) {
-		writeResponse(Result.failByException(exception), response, httpStatus.value());
+		writeResultToResponse(Result.failByException(exception), response, httpStatus.value());
 	}
 
 	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, int httpStatus) {
-		writeResponse(Result.failByException(exception), response, httpStatus);
+		writeResultToResponse(Result.failByException(exception), response, httpStatus);
 	}
 
-	public static <T> void writeResponse(final Result<T> data, final HttpServletResponse response, final HttpStatus httpStatus) {
-		writeResponse(data, response, httpStatus.value());
+	public static <T> void writeResultToResponse(final Result<T> data, final HttpServletResponse response, final HttpStatus httpStatus) {
+		writeResultToResponse(data, response, httpStatus.value());
 	}
 
-	public static <T> void writeResponse(final Result<T> data, final HttpServletResponse response, int status) {
+	public static <T> void writeResultToResponse(final Result<T> data, final HttpServletResponse response, int status) {
 		try (OutputStream outputStream = response.getOutputStream()) {
 			response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
 			response.setStatus(status);
