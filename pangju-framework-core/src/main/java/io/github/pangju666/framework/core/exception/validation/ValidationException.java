@@ -6,15 +6,15 @@ import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 
 public class ValidationException extends ServiceException {
 	public ValidationException() {
-		super(ConstantPool.ERROR_VALIDATION_CODE, "参数校验失败");
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, "参数校验失败");
 	}
 
 	public ValidationException(String message) {
-		super(ConstantPool.ERROR_VALIDATION_CODE, message);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message);
 	}
 
 	public ValidationException(String message, Throwable cause) {
-		super(ConstantPool.ERROR_VALIDATION_CODE, message, cause);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	public ValidationException(int code, String message) {

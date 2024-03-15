@@ -1,16 +1,18 @@
 package io.github.pangju666.framework.core.exception.data.operation;
 
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+
 public class DataUpdateFailureException extends DataOperationFailureException {
 	public DataUpdateFailureException() {
-		super(-51230, "数据更新失败");
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, "数据更新失败");
 	}
 
 	public DataUpdateFailureException(String message) {
-		super(-51230, message);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message);
 	}
 
 	public DataUpdateFailureException(String message, Throwable cause) {
-		super(-51230, message, cause);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected DataUpdateFailureException(int code, String message) {

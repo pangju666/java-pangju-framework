@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.core.exception.web;
+package io.github.pangju666.framework.web.exception;
 
 import io.github.pangju666.framework.core.exception.base.ServiceException;
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
@@ -6,15 +6,15 @@ import org.springframework.http.HttpStatus;
 
 public class AuthenticationException extends ServiceException {
 	public AuthenticationException() {
-		super(ConstantPool.ERROR_SECURITY_CODE, "身份认证异常", HttpStatus.UNAUTHORIZED.value());
+		super(ConstantPool.SECURITY_ERROR_RESPONSE_CODE, "身份认证异常", HttpStatus.UNAUTHORIZED.value());
 	}
 
 	public AuthenticationException(String message) {
-		super(ConstantPool.ERROR_SECURITY_CODE, message, HttpStatus.UNAUTHORIZED.value());
+		super(ConstantPool.SECURITY_ERROR_RESPONSE_CODE, message, HttpStatus.UNAUTHORIZED.value());
 	}
 
 	public AuthenticationException(String message, Throwable cause) {
-		super(ConstantPool.ERROR_SECURITY_CODE, message, HttpStatus.UNAUTHORIZED.value(), cause);
+		super(ConstantPool.SECURITY_ERROR_RESPONSE_CODE, message, HttpStatus.UNAUTHORIZED.value(), cause);
 	}
 
 	protected AuthenticationException(int code, String message) {

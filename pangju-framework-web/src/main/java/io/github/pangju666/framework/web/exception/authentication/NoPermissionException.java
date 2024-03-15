@@ -1,20 +1,21 @@
-package io.github.pangju666.framework.core.exception.web.authentication;
+package io.github.pangju666.framework.web.exception.authentication;
 
-import io.github.pangju666.framework.core.exception.web.AuthenticationException;
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+import io.github.pangju666.framework.web.exception.AuthenticationException;
 import org.springframework.http.HttpStatus;
 
 public class NoPermissionException extends AuthenticationException {
 	// 无权限状态码应该为403
 	public NoPermissionException() {
-		super(-42300, "无权限异常", HttpStatus.OK.value());
+		super(ConstantPool.SECURITY_ERROR_RESPONSE_CODE, "无权限异常", HttpStatus.OK.value());
 	}
 
 	public NoPermissionException(String message) {
-		super(-42300, message, HttpStatus.OK.value());
+		super(ConstantPool.SECURITY_ERROR_RESPONSE_CODE, message, HttpStatus.OK.value());
 	}
 
 	public NoPermissionException(String message, Throwable cause) {
-		super(-42300, message, HttpStatus.OK.value(), cause);
+		super(ConstantPool.SECURITY_ERROR_RESPONSE_CODE, message, HttpStatus.OK.value(), cause);
 	}
 
 	protected NoPermissionException(int code, String message) {

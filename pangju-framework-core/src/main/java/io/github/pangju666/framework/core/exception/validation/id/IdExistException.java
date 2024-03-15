@@ -1,16 +1,18 @@
 package io.github.pangju666.framework.core.exception.validation.id;
 
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+
 public class IdExistException extends InvalidIdException {
 	public IdExistException() {
-		super(-43810, "id已存在");
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, "id已存在");
 	}
 
 	public IdExistException(String message) {
-		super(-43810, message);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message);
 	}
 
 	public IdExistException(String message, Throwable cause) {
-		super(-43810, message, cause);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected IdExistException(int code, String message) {

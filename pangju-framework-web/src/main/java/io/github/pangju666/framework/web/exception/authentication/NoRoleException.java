@@ -1,20 +1,21 @@
-package io.github.pangju666.framework.core.exception.web.authentication;
+package io.github.pangju666.framework.web.exception.authentication;
 
-import io.github.pangju666.framework.core.exception.web.AuthenticationException;
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+import io.github.pangju666.framework.web.exception.AuthenticationException;
 import org.springframework.http.HttpStatus;
 
 public class NoRoleException extends AuthenticationException {
 	// 无角色状态码应该为403
 	public NoRoleException() {
-		super(-42200, "无角色异常", HttpStatus.OK.value());
+		super(ConstantPool.SECURITY_ERROR_RESPONSE_CODE, "无角色异常", HttpStatus.OK.value());
 	}
 
 	public NoRoleException(String message) {
-		super(-42200, message, HttpStatus.OK.value());
+		super(ConstantPool.SECURITY_ERROR_RESPONSE_CODE, message, HttpStatus.OK.value());
 	}
 
 	public NoRoleException(String message, Throwable cause) {
-		super(-42200, message, HttpStatus.OK.value(), cause);
+		super(ConstantPool.SECURITY_ERROR_RESPONSE_CODE, message, HttpStatus.OK.value(), cause);
 	}
 
 	protected NoRoleException(int code, String message) {

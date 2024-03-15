@@ -1,18 +1,19 @@
 package io.github.pangju666.framework.core.exception.data.operation;
 
 import io.github.pangju666.framework.core.exception.data.DataAccessException;
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 
 public class DataOperationFailureException extends DataAccessException {
 	public DataOperationFailureException() {
-		super(-51200, "数据操作失败");
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, "数据操作失败");
 	}
 
 	public DataOperationFailureException(String message) {
-		super(-51200, message);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message);
 	}
 
 	public DataOperationFailureException(String message, Throwable cause) {
-		super(-51200, message, cause);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected DataOperationFailureException(int code, String message) {

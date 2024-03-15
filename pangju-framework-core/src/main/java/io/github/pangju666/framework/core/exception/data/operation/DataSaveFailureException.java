@@ -1,16 +1,18 @@
 package io.github.pangju666.framework.core.exception.data.operation;
 
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+
 public class DataSaveFailureException extends DataOperationFailureException {
 	public DataSaveFailureException() {
-		super(-51240, "数据保存失败");
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, "数据保存失败");
 	}
 
 	public DataSaveFailureException(String message) {
-		super(-51240, message);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message);
 	}
 
 	public DataSaveFailureException(String message, Throwable cause) {
-		super(-51240, message, cause);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected DataSaveFailureException(int code, String message) {

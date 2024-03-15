@@ -21,7 +21,7 @@ public final class SimpleRuntimeException extends BaseRuntimeException {
 	}
 
 	public SimpleRuntimeException(String message, Throwable cause) {
-		super(ConstantPool.ERROR_BASE_CODE, message, cause);
+		super(ConstantPool.BASE_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	public <E extends BaseRuntimeException> void rethrow(Function<SimpleRuntimeException, E> mapper) {

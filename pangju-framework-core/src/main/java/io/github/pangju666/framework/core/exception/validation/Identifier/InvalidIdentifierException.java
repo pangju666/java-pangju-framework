@@ -1,18 +1,19 @@
 package io.github.pangju666.framework.core.exception.validation.Identifier;
 
 import io.github.pangju666.framework.core.exception.validation.ValidationException;
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 
 public class InvalidIdentifierException extends ValidationException {
 	public InvalidIdentifierException() {
-		super(-43700, "不是合法的标识符");
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, "不是合法的标识符");
 	}
 
 	public InvalidIdentifierException(String message) {
-		super(-43700, message);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message);
 	}
 
 	public InvalidIdentifierException(String message, Throwable cause) {
-		super(-43700, message, cause);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected InvalidIdentifierException(int code, String message) {

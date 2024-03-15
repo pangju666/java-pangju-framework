@@ -4,11 +4,11 @@ import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 
 public class ServiceException extends BaseRuntimeException {
 	public ServiceException(String message) {
-		super(ConstantPool.ERROR_SERVICE_CODE, message);
+		super(ConstantPool.SERVICE_ERROR_RESPONSE_CODE, message);
 	}
 
 	public ServiceException(String message, Throwable cause) {
-		super(ConstantPool.ERROR_SERVICE_CODE, message, cause);
+		super(ConstantPool.SERVICE_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected ServiceException(int code, String message) {

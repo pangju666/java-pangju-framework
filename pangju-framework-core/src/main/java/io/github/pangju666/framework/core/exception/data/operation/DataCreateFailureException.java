@@ -1,16 +1,18 @@
 package io.github.pangju666.framework.core.exception.data.operation;
 
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+
 public class DataCreateFailureException extends DataOperationFailureException {
 	public DataCreateFailureException() {
-		super(-51210, "数据创建失败");
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, "数据创建失败");
 	}
 
 	public DataCreateFailureException(String message) {
-		super(-51210, message);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message);
 	}
 
 	public DataCreateFailureException(String message, Throwable cause) {
-		super(-51210, message, cause);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected DataCreateFailureException(int code, String message) {

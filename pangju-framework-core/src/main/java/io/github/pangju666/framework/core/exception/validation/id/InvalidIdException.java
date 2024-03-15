@@ -1,18 +1,19 @@
 package io.github.pangju666.framework.core.exception.validation.id;
 
 import io.github.pangju666.framework.core.exception.validation.ValidationException;
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 
 public class InvalidIdException extends ValidationException {
 	public InvalidIdException() {
-		super(-43800, "不是合法的id");
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, "不是合法的id");
 	}
 
 	public InvalidIdException(String message) {
-		super(-43800, message);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message);
 	}
 
 	public InvalidIdException(String message, Throwable cause) {
-		super(-43800, message, cause);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected InvalidIdException(int code, String message) {

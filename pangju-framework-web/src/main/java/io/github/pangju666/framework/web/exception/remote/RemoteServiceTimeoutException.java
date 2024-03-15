@@ -1,18 +1,19 @@
-package io.github.pangju666.framework.core.exception.web.remote;
+package io.github.pangju666.framework.web.exception.remote;
 
-import io.github.pangju666.framework.core.exception.web.RemoteServiceException;
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+import io.github.pangju666.framework.web.exception.RemoteServiceException;
 
 public class RemoteServiceTimeoutException extends RemoteServiceException {
 	public RemoteServiceTimeoutException() {
-		super(-44100, "远程服务连接超时");
+		super(ConstantPool.REMOTE_ERROR_RESPONSE_CODE, "远程服务连接超时");
 	}
 
 	public RemoteServiceTimeoutException(String message) {
-		super(-44100, message);
+		super(ConstantPool.REMOTE_ERROR_RESPONSE_CODE, message);
 	}
 
 	public RemoteServiceTimeoutException(String message, Throwable cause) {
-		super(-44100, message, cause);
+		super(ConstantPool.REMOTE_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected RemoteServiceTimeoutException(int code, String message) {

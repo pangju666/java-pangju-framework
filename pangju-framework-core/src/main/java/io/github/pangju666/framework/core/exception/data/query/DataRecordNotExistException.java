@@ -1,16 +1,18 @@
 package io.github.pangju666.framework.core.exception.data.query;
 
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+
 public class DataRecordNotExistException extends DataQueryFailureException {
 	public DataRecordNotExistException() {
-		super(-51120, "数据记录不存在");
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, "数据记录不存在");
 	}
 
 	public DataRecordNotExistException(String message) {
-		super(-51120, message);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message);
 	}
 
 	public DataRecordNotExistException(String message, Throwable cause) {
-		super(-51120, message, cause);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected DataRecordNotExistException(int code, String message) {

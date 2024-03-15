@@ -1,18 +1,19 @@
 package io.github.pangju666.framework.core.exception.data.query;
 
 import io.github.pangju666.framework.core.exception.data.DataAccessException;
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 
 public class DataQueryFailureException extends DataAccessException {
 	public DataQueryFailureException() {
-		super(-51100, "数据查询失败");
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, "数据查询失败");
 	}
 
 	public DataQueryFailureException(String message) {
-		super(-51100, message);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message);
 	}
 
 	public DataQueryFailureException(String message, Throwable cause) {
-		super(-51100, message, cause);
+		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected DataQueryFailureException(int code, String message) {

@@ -1,16 +1,18 @@
 package io.github.pangju666.framework.core.exception.validation.Identifier;
 
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+
 public class IdentifierNotExistException extends InvalidIdentifierException {
 	public IdentifierNotExistException() {
-		super(-43720, "标识符不存在");
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, "标识符不存在");
 	}
 
 	public IdentifierNotExistException(String message) {
-		super(-43720, message);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message);
 	}
 
 	public IdentifierNotExistException(String message, Throwable cause) {
-		super(-43720, message, cause);
+		super(ConstantPool.VALIDATION_ERROR_RESPONSE_CODE, message, cause);
 	}
 
 	protected IdentifierNotExistException(int code, String message) {

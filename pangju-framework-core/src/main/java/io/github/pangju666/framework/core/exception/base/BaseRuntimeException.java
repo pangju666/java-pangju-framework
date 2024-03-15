@@ -1,7 +1,6 @@
 package io.github.pangju666.framework.core.exception.base;
 
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
-import org.springframework.http.HttpStatus;
 
 public abstract class BaseRuntimeException extends RuntimeException {
 	protected final int code;
@@ -9,32 +8,32 @@ public abstract class BaseRuntimeException extends RuntimeException {
 
 	protected BaseRuntimeException() {
 		super();
-		this.code = ConstantPool.ERROR_BASE_CODE;
-		this.httpStatus = HttpStatus.OK.value();
+		this.code = ConstantPool.BASE_ERROR_RESPONSE_CODE;
+		this.httpStatus = ConstantPool.OK_STATUS_code;
 	}
 
 	protected BaseRuntimeException(String message) {
 		super(message);
-		this.code = ConstantPool.ERROR_BASE_CODE;
-		this.httpStatus = HttpStatus.OK.value();
+		this.code = ConstantPool.BASE_ERROR_RESPONSE_CODE;
+		this.httpStatus = ConstantPool.OK_STATUS_code;
 	}
 
 	protected BaseRuntimeException(Throwable cause) {
 		super(cause);
-		this.code = ConstantPool.ERROR_BASE_CODE;
-		this.httpStatus = HttpStatus.OK.value();
+		this.code = ConstantPool.BASE_ERROR_RESPONSE_CODE;
+		this.httpStatus = ConstantPool.OK_STATUS_code;
 	}
 
 	protected BaseRuntimeException(int code, String message) {
 		super(message);
 		this.code = code;
-		this.httpStatus = HttpStatus.OK.value();
+		this.httpStatus = ConstantPool.OK_STATUS_code;
 	}
 
 	protected BaseRuntimeException(int code, String message, Throwable cause) {
 		super(message, cause);
 		this.code = code;
-		this.httpStatus = HttpStatus.OK.value();
+		this.httpStatus = ConstantPool.OK_STATUS_code;
 	}
 
 	protected BaseRuntimeException(int code, String message, int status) {
