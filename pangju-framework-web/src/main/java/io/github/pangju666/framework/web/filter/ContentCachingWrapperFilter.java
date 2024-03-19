@@ -9,6 +9,7 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Set;
 
 public class ContentCachingWrapperFilter extends BaseRequestFilter {
@@ -22,6 +23,9 @@ public class ContentCachingWrapperFilter extends BaseRequestFilter {
 		ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 		filterChain.doFilter(requestWrapper, responseWrapper);
 		try (ServletOutputStream outputStream = response.getOutputStream()) {
+			if (Objects.nonNull(requestWrapper.getContentType())) {
+				response.setContentType(responseWrapper.getContentType());
+			}
 			responseWrapper.getContentInputStream().transferTo(outputStream);
 		}
 	}
