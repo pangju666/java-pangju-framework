@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class BaseRepository<M extends BaseMapper<T>, T> extends ServiceImpl<M, T> {
 	protected static final int DEFAULT_ID_LIST_SIZE = 500;
@@ -31,6 +32,28 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
 			.eq(column, val)
 			.list()
 			.isEmpty();
+	}
+
+	public List<?> listColumnValue(SFunction<T, ?> column) {
+		return listColumnValue(column, false, true);
+	}
+
+	public List<?> listUniqueColumnValue(SFunction<T, ?> column) {
+		return listColumnValue(column, true, true);
+	}
+
+	public List<?> listColumnValue(SFunction<T, ?> column, boolean unique, boolean nonNull) {
+		var queryWrapper = lambdaQuery().select(column);
+		if (nonNull) {
+			queryWrapper = queryWrapper.isNotNull(column);
+		}
+		var stream = queryWrapper.list()
+			.stream()
+			.map(column);
+		if (unique) {
+			stream = stream.distinct();
+		}
+		return stream.collect(Collectors.toList());
 	}
 
 	@Override
