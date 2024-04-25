@@ -32,7 +32,7 @@ public abstract class BaseRequestFilter extends OncePerRequestFilter {
 			return;
 		}
 		for (String excludePathPattern : excludePathPatterns) {
-			if (pathMatcher.matchStart(excludePathPattern, request.getServletPath())) {
+			if (pathMatcher.match(excludePathPattern, request.getServletPath())) {
 				filterChain.doFilter(request, response);
 				return;
 			}
