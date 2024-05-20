@@ -5,30 +5,17 @@ import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 
 public class DataAccessException extends ServerException {
 	public DataAccessException() {
-		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, "数据访问异常");
+		super("数据访问异常");
+		setCode(ConstantPool.DATA_ERROR_RESPONSE_CODE);
 	}
 
 	public DataAccessException(String message) {
-		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message);
+		super(message);
+		setCode(ConstantPool.DATA_ERROR_RESPONSE_CODE);
 	}
 
 	public DataAccessException(String message, Throwable cause) {
-		super(ConstantPool.DATA_ERROR_RESPONSE_CODE, message, cause);
-	}
-
-	protected DataAccessException(int code, String message) {
-		super(code, message);
-	}
-
-	protected DataAccessException(int code, String message, Throwable cause) {
-		super(code, message, cause);
-	}
-
-	protected DataAccessException(int code, String message, int status) {
-		super(code, message, status);
-	}
-
-	protected DataAccessException(int code, String message, int status, Throwable cause) {
-		super(code, message, status, cause);
+		super(message, cause);
+		setCode(ConstantPool.DATA_ERROR_RESPONSE_CODE);
 	}
 }

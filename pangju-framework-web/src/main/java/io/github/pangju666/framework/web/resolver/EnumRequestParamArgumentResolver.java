@@ -1,6 +1,6 @@
 package io.github.pangju666.framework.web.resolver;
 
-import io.github.pangju666.framework.core.exception.validation.ValidationException;
+import io.github.pangju666.framework.core.exception.base.ValidationException;
 import io.github.pangju666.framework.web.annotation.EnumRequestParam;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;

@@ -1,6 +1,6 @@
 package io.github.pangju666.framework.core.utils;
 
-import io.github.pangju666.framework.core.exception.validation.ValidationException;
+import io.github.pangju666.framework.core.exception.base.ValidationException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;

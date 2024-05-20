@@ -1,51 +1,35 @@
 package io.github.pangju666.framework.core.exception.base;
 
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+import org.slf4j.Logger;
+import org.slf4j.event.Level;
 
 public abstract class BaseRuntimeException extends RuntimeException {
-	protected final int code;
-	protected final int httpStatus;
-
-	protected BaseRuntimeException() {
-		super();
-		this.code = ConstantPool.BASE_ERROR_RESPONSE_CODE;
-		this.httpStatus = ConstantPool.OK_STATUS_code;
-	}
+	private int code;
+	private int httpStatus;
 
 	protected BaseRuntimeException(String message) {
 		super(message);
 		this.code = ConstantPool.BASE_ERROR_RESPONSE_CODE;
-		this.httpStatus = ConstantPool.OK_STATUS_code;
-	}
-
-	protected BaseRuntimeException(Throwable cause) {
-		super(cause);
-		this.code = ConstantPool.BASE_ERROR_RESPONSE_CODE;
-		this.httpStatus = ConstantPool.OK_STATUS_code;
+		this.httpStatus = ConstantPool.OK_HTTP_STATUS_CODE;
 	}
 
 	protected BaseRuntimeException(int code, String message) {
 		super(message);
 		this.code = code;
-		this.httpStatus = ConstantPool.OK_STATUS_code;
+		this.httpStatus = ConstantPool.OK_HTTP_STATUS_CODE;
+	}
+
+	protected BaseRuntimeException(String message, Throwable cause) {
+		super(message, cause);
+		this.code = ConstantPool.BASE_ERROR_RESPONSE_CODE;
+		this.httpStatus = ConstantPool.OK_HTTP_STATUS_CODE;
 	}
 
 	protected BaseRuntimeException(int code, String message, Throwable cause) {
 		super(message, cause);
 		this.code = code;
-		this.httpStatus = ConstantPool.OK_STATUS_code;
-	}
-
-	protected BaseRuntimeException(int code, String message, int status) {
-		super(message);
-		this.httpStatus = status;
-		this.code = code;
-	}
-
-	protected BaseRuntimeException(int code, String message, int status, Throwable cause) {
-		super(message, cause);
-		this.code = code;
-		this.httpStatus = status;
+		this.httpStatus = ConstantPool.OK_HTTP_STATUS_CODE;
 	}
 
 	public int getCode() {
@@ -56,19 +40,22 @@ public abstract class BaseRuntimeException extends RuntimeException {
 		return httpStatus;
 	}
 
-	@Override
-	public String getMessage() {
-		Throwable cause = getCause();
-		String message = super.getMessage();
-		if (cause == null) {
-			return message;
-		}
-		StringBuilder sb = new StringBuilder(64);
-		if (message != null) {
-			sb.append(message).append("; ");
-		}
-		sb.append("base runtime exception is ").append(cause);
-		return sb.toString();
+	protected void setCode(int code) {
+		this.code = code;
+	}
+
+	protected void setHttpStatus(int httpStatus) {
+		this.httpStatus = httpStatus;
+	}
+
+	public void log(Logger logger) {
+		logger.error(this.getMessage(), this);
+	}
+
+	public void log(Logger logger, Level level) {
+		logger.atLevel(level)
+			.setCause(this)
+			.log(this.getMessage());
 	}
 
 	public Throwable getRootCause() {

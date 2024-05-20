@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.pangju666.framework.core.exception.base.SimpleRuntimeException;
+import io.github.pangju666.framework.core.exception.base.ServerException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
@@ -57,7 +57,7 @@ public abstract class GenericsJsonListTypeHandler<T> extends BaseTypeHandler<Lis
 		try {
 			return OBJECT_MAPPER.readValue(json, typeReference);
 		} catch (IOException e) {
-			throw new SimpleRuntimeException(e);
+			throw new ServerException(e);
 		}
 	}
 
@@ -65,7 +65,7 @@ public abstract class GenericsJsonListTypeHandler<T> extends BaseTypeHandler<Lis
 		try {
 			return OBJECT_MAPPER.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
-			throw new SimpleRuntimeException(e);
+			throw new ServerException(e);
 		}
 	}
 }
