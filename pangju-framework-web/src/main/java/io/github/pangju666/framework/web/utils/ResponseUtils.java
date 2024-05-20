@@ -5,6 +5,8 @@ import io.github.pangju666.framework.core.exception.base.BaseRuntimeException;
 import io.github.pangju666.framework.core.exception.base.ServerException;
 import io.github.pangju666.framework.web.model.Result;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,6 +18,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 public class ResponseUtils {
+	protected static final Logger logger = LoggerFactory.getLogger(ResponseUtils.class);
+
 	protected ResponseUtils() {
 	}
 
@@ -66,14 +70,17 @@ public class ResponseUtils {
 	}
 
 	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response) {
+		exception.log(logger);
 		writeResultToResponse(Result.failByException(exception), response, exception.getHttpStatus());
 	}
 
 	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, final HttpStatus httpStatus) {
+		exception.log(logger);
 		writeResultToResponse(Result.failByException(exception), response, httpStatus.value());
 	}
 
 	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, int httpStatus) {
+		exception.log(logger);
 		writeResultToResponse(Result.failByException(exception), response, httpStatus);
 	}
 
