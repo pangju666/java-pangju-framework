@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
 public class ServiceException extends BaseRuntimeException {
-	private String reason;
+	private final String reason;
 
 	public ServiceException(String message) {
 		super(ConstantPool.SERVICE_ERROR_RESPONSE_CODE, message);
@@ -31,19 +31,15 @@ public class ServiceException extends BaseRuntimeException {
 		return reason;
 	}
 
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
 	@Override
 	public void log(Logger logger) {
-		logger.error("错误码：{}，原因：{}", this.getCode(), this.reason, this);
+		logger.error(this.reason, this);
 	}
 
 	@Override
 	public void log(Logger logger, Level level) {
 		logger.atLevel(level)
 			.setCause(this)
-			.log("错误码：｛}，原因：｛｝", this.getCode(), this.reason);
+			.log(this.reason);
 	}
 }
