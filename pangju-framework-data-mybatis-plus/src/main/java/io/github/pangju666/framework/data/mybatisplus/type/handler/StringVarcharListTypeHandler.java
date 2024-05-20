@@ -9,7 +9,7 @@ import java.util.List;
 
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
-public final class StringVarcharListTypeHandler extends GenericsVarcharListTypeHandler<String> {
+public class StringVarcharListTypeHandler extends GenericsVarcharListTypeHandler<String> {
 	public StringVarcharListTypeHandler() {
 		super((value) -> value);
 	}

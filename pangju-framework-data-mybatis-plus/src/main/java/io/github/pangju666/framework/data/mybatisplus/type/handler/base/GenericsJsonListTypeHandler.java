@@ -57,7 +57,7 @@ public abstract class GenericsJsonListTypeHandler<T> extends BaseTypeHandler<Lis
 		try {
 			return OBJECT_MAPPER.readValue(json, typeReference);
 		} catch (IOException e) {
-			throw new ServerException(e);
+			throw new ServerException("json字符串解析失败", e);
 		}
 	}
 
@@ -65,7 +65,7 @@ public abstract class GenericsJsonListTypeHandler<T> extends BaseTypeHandler<Lis
 		try {
 			return OBJECT_MAPPER.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
-			throw new ServerException(e);
+			throw new ServerException("json字符串转换失败", e);
 		}
 	}
 }

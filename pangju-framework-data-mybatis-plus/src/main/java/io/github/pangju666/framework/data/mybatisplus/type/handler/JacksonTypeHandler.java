@@ -55,7 +55,7 @@ public class JacksonTypeHandler extends BaseTypeHandler<Object> {
 		try {
 			return OBJECT_MAPPER.readValue(json, type);
 		} catch (IOException e) {
-			throw new ServerException(e);
+			throw new ServerException("json字符串解析失败", e);
 		}
 	}
 
@@ -63,7 +63,7 @@ public class JacksonTypeHandler extends BaseTypeHandler<Object> {
 		try {
 			return OBJECT_MAPPER.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
-			throw new ServerException(e);
+			throw new ServerException("json字符串转换失败", e);
 		}
 	}
 
