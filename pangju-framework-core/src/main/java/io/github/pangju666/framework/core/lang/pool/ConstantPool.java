@@ -9,8 +9,8 @@ public class ConstantPool extends io.github.pangju666.commons.lang.pool.Constant
 
 	// HTTP常量
 	public static final int OK_HTTP_STATUS_CODE = 200;
-	public static final int AUTHENTICATION_HTTP_STATUS_CODE = 401;
-	public static final int AUTHENTICATION_EXPIRE_HTTP_STATUS_CODE = 403;
+	public static final int UNAUTHORIZED_HTTP_STATUS_CODE = 401;
+	public static final int FORBIDDEN_HTTP_STATUS_CODE = 403;
 	public static final int INTERNAL_SERVER_ERROR_HTTP_STATUS_CODE = 500;
 
 	// 响应信息相关常量

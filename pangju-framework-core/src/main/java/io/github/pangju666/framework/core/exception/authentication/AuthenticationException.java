@@ -7,24 +7,24 @@ public class AuthenticationException extends ServiceException {
 	public AuthenticationException(String message) {
 		super(message);
 		this.setCode(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE);
-		this.setHttpStatus(ConstantPool.AUTHENTICATION_HTTP_STATUS_CODE);
+		this.setHttpStatus(ConstantPool.UNAUTHORIZED_HTTP_STATUS_CODE);
 	}
 
 	public AuthenticationException(String message, String reason) {
 		super(message, reason);
 		this.setCode(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE);
-		this.setHttpStatus(ConstantPool.AUTHENTICATION_HTTP_STATUS_CODE);
+		this.setHttpStatus(ConstantPool.UNAUTHORIZED_HTTP_STATUS_CODE);
 	}
 
 	public AuthenticationException(String message, Throwable cause) {
 		super(message, cause);
 		this.setCode(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE);
-		this.setHttpStatus(ConstantPool.AUTHENTICATION_HTTP_STATUS_CODE);
+		this.setHttpStatus(ConstantPool.UNAUTHORIZED_HTTP_STATUS_CODE);
 	}
 
 	public AuthenticationException(String message, String reason, Throwable cause) {
 		super(message, reason, cause);
 		this.setCode(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE);
-		this.setHttpStatus(ConstantPool.AUTHENTICATION_HTTP_STATUS_CODE);
+		this.setHttpStatus(ConstantPool.UNAUTHORIZED_HTTP_STATUS_CODE);
 	}
 }

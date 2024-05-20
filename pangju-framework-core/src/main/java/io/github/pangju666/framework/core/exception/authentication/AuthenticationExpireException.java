@@ -6,24 +6,20 @@ public class AuthenticationExpireException extends AuthenticationException {
 	public AuthenticationExpireException(String message) {
 		super(message);
 		this.setCode(ConstantPool.AUTHENTICATION_EXPIRE_ERROR_RESPONSE_CODE);
-		this.setHttpStatus(ConstantPool.AUTHENTICATION_EXPIRE_HTTP_STATUS_CODE);
 	}
 
 	public AuthenticationExpireException(String message, String reason) {
 		super(message, reason);
 		this.setCode(ConstantPool.AUTHENTICATION_EXPIRE_ERROR_RESPONSE_CODE);
-		this.setHttpStatus(ConstantPool.AUTHENTICATION_EXPIRE_HTTP_STATUS_CODE);
 	}
 
 	public AuthenticationExpireException(String message, Throwable cause) {
 		super(message, cause);
 		this.setCode(ConstantPool.AUTHENTICATION_EXPIRE_ERROR_RESPONSE_CODE);
-		this.setHttpStatus(ConstantPool.AUTHENTICATION_EXPIRE_HTTP_STATUS_CODE);
 	}
 
 	public AuthenticationExpireException(String message, String reason, Throwable cause) {
 		super(message, reason, cause);
 		this.setCode(ConstantPool.AUTHENTICATION_EXPIRE_ERROR_RESPONSE_CODE);
-		this.setHttpStatus(ConstantPool.AUTHENTICATION_EXPIRE_HTTP_STATUS_CODE);
 	}
 }
