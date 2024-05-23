@@ -6,14 +6,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.github.pangju666.commons.lang.utils.StreamUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class BaseRepository<M extends BaseMapper<T>, T> extends ServiceImpl<M, T> {
-	protected static final int DEFAULT_ID_LIST_SIZE = 500;
+	protected static final int DEFAULT_LIST_BATCH_SIZE = 500;
 
 	public boolean existById(Serializable id) {
 		return Objects.nonNull(getById(id));
@@ -23,26 +25,40 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
 		return Objects.isNull(getById(id));
 	}
 
-	public boolean existByColumn(SFunction<T, ?> column, Object val) {
-		return !notExistByColumn(column, val);
-	}
-
-	public boolean notExistByColumn(SFunction<T, ?> column, Object val) {
+	public <V> boolean existByColumn(SFunction<T, V> column, @Nullable V value) {
+		Assert.notNull(column, "column 不可为空");
+		if (Objects.isNull(value)) {
+			return lambdaQuery()
+				.isNull(column)
+				.exists();
+		}
 		return lambdaQuery()
-			.eq(column, val)
-			.list()
-			.isEmpty();
+			.eq(column, value)
+			.exists();
 	}
 
-	public List<?> listColumnValue(SFunction<T, ?> column) {
+	public <V> boolean notExistByColumn(SFunction<T, V> column, @Nullable V value) {
+		Assert.notNull(column, "column 不可为空");
+		if (Objects.isNull(value)) {
+			return lambdaQuery()
+				.isNotNull(column)
+				.exists();
+		}
+		return !lambdaQuery()
+			.eq(column, value)
+			.exists();
+	}
+
+	public <V> List<?> listColumnValue(SFunction<T, V> column) {
 		return listColumnValue(column, false, true);
 	}
 
-	public List<?> listUniqueColumnValue(SFunction<T, ?> column) {
+	public <V> List<?> listUniqueColumnValue(SFunction<T, V> column) {
 		return listColumnValue(column, true, true);
 	}
 
-	public List<?> listColumnValue(SFunction<T, ?> column, boolean unique, boolean nonNull) {
+	public <V> List<?> listColumnValue(SFunction<T, V> column, boolean unique, boolean nonNull) {
+		Assert.notNull(column, "column 不可为空");
 		var queryWrapper = lambdaQuery().select(column);
 		if (nonNull) {
 			queryWrapper = queryWrapper.isNotNull(column);
@@ -57,8 +73,8 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
 	}
 
 	@Override
-	public List<T> listByIds(Collection<? extends Serializable> idCollection) {
-		return listByIds(idCollection, DEFAULT_ID_LIST_SIZE);
+	public List<T> listByIds(Collection<? extends Serializable> ids) {
+		return listByIds(ids, DEFAULT_LIST_BATCH_SIZE);
 	}
 
 	public List<T> listByIds(Collection<? extends Serializable> ids, int batchSize) {
@@ -76,15 +92,40 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
 			.toList();
 	}
 
-	public List<T> listByColumn(SFunction<T, ?> column, Collection<? extends Serializable> collection) {
-		return listByColumn(column, collection, DEFAULT_ID_LIST_SIZE);
+	public <V> T getByColumnValue(SFunction<T, V> column, @Nullable V value) {
+		Assert.notNull(column, "column 不可为空");
+		if (Objects.isNull(value)) {
+			return lambdaQuery()
+				.isNull(column)
+				.one();
+		}
+		return lambdaQuery()
+			.eq(column, value)
+			.one();
 	}
 
-	public List<T> listByColumn(SFunction<T, ?> column, Collection<? extends Serializable> collection, int batchSize) {
-		if (CollectionUtils.isEmpty(collection)) {
+	public <V> List<T> listByColumnValue(SFunction<T, V> column, @Nullable V value) {
+		Assert.notNull(column, "column 不可为空");
+		if (Objects.isNull(value)) {
+			return lambdaQuery()
+				.isNull(column)
+				.list();
+		}
+		return lambdaQuery()
+			.eq(column, value)
+			.list();
+	}
+
+	public <V> List<T> listByColumnValues(SFunction<T, V> column, Collection<V> values) {
+		return listByColumnValues(column, values, DEFAULT_LIST_BATCH_SIZE);
+	}
+
+	public <V> List<T> listByColumnValues(SFunction<T, V> column, Collection<V> values, int batchSize) {
+		Assert.notNull(column, "column 不可为空");
+		if (CollectionUtils.isEmpty(values)) {
 			return Collections.emptyList();
 		}
-		List<? extends Serializable> validList = StreamUtils.toNonNullList(collection);
+		List<?> validList = StreamUtils.toNonNullList(values);
 		if (validList.size() <= batchSize) {
 			return lambdaQuery()
 				.in(column, validList)
@@ -187,5 +228,41 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
 		}
 		List<?> validList = StreamUtils.toNonNullList(list);
 		return super.removeBatchByIds(validList, batchSize);
+	}
+
+	public <V> boolean removeByColumnValue(SFunction<T, V> column, @Nullable V value) {
+		Assert.notNull(column, "column 不可为空");
+		if (Objects.isNull(value)) {
+			return lambdaUpdate()
+				.isNull(column)
+				.remove();
+		}
+		return lambdaUpdate()
+			.eq(column, value)
+			.remove();
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public <V> boolean removeBatchByColumns(SFunction<T, V> column, Collection<V> values) {
+		return removeBatchByColumns(column, values, DEFAULT_BATCH_SIZE);
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public <V> boolean removeBatchByColumns(SFunction<T, V> column, Collection<V> values, int batchSize) {
+		Assert.notNull(column, "column 不可为空");
+		if (CollectionUtils.isEmpty(values)) {
+			return false;
+		}
+		List<V> validList = StreamUtils.toNonNullList(values);
+		if (validList.size() <= batchSize) {
+			return lambdaUpdate()
+				.in(column, validList)
+				.remove();
+		}
+		return ListUtils.partition(new ArrayList<>(validList), batchSize)
+			.stream()
+			.allMatch(part -> lambdaUpdate()
+				.in(column, part)
+				.remove());
 	}
 }
