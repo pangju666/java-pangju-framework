@@ -7,29 +7,38 @@ import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
 public class RemoteServiceTimeoutException extends RemoteServiceException {
-	public RemoteServiceTimeoutException(String service, String apiPath, String message) {
-		super(service, apiPath, message);
-		this.setCode(ConstantPool.REMOTE_SERVICE_TIMEOUT_ERROR_RESPONSE_CODE);
+	public RemoteServiceTimeoutException(String service, String api, String message) {
+		super(service, api, ConstantPool.REMOTE_SERVICE_TIMEOUT_ERROR_RESPONSE_CODE, message);
 	}
 
-	public RemoteServiceTimeoutException(String service, String apiPath, String message, Throwable cause) {
-		super(service, apiPath, message, cause);
-		this.setCode(ConstantPool.REMOTE_SERVICE_TIMEOUT_ERROR_RESPONSE_CODE);
+	public RemoteServiceTimeoutException(String service, String api, int code, String message) {
+		super(service, api, code, message);
+	}
+
+	public RemoteServiceTimeoutException(String service, String api, String message, Throwable cause) {
+		super(service, api, ConstantPool.REMOTE_SERVICE_TIMEOUT_ERROR_RESPONSE_CODE, message, cause);
+	}
+
+	public RemoteServiceTimeoutException(String service, String api, int code, String message, Throwable cause) {
+		super(service, api, code, message, cause);
 	}
 
 	@Override
 	public void log(Logger logger) {
-		logger.error("服务：{}，接口路径：{}请求超时",
-			StringUtils.defaultString(this.getService()),
-			StringUtils.defaultString(this.getApiPath()));
+		log(logger, Level.ERROR);
 	}
 
 	@Override
 	public void log(Logger logger, Level level) {
-		logger.atLevel(level)
-			.log("服务：{}，接口路径：{}请求超时",
-				StringUtils.defaultString(this.getService()),
-				StringUtils.defaultString(this.getApiPath())
-			);
+		StringBuilder builder = new StringBuilder()
+			.append("服务：")
+			.append(this.getService())
+			.append(" 接口：")
+			.append(this.getApi());
+		if (StringUtils.isNotBlank(getPath())) {
+			builder.append(" 路径：").append(getPath());
+		}
+		builder.append(" 请求超时");
+		logger.atLevel(level).log(builder.toString());
 	}
 }
