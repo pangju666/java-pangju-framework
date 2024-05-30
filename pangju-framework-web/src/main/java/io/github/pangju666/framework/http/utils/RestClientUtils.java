@@ -6,7 +6,6 @@ import io.github.pangju666.framework.core.exception.base.RemoteServiceException;
 import io.github.pangju666.framework.core.exception.remote.RemoteServiceTimeoutException;
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 import io.github.pangju666.framework.web.model.Result;
-import io.github.pangju666.framework.web.utils.UriUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.web.utils;
+package io.github.pangju666.framework.http.utils;
 
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
