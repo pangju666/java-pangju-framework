@@ -7,19 +7,29 @@ import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
 public class RemoteServiceTimeoutException extends RemoteServiceException {
+	private static final String DEFAULT_MESSAGE = "远程服务调用超时";
+
+	public RemoteServiceTimeoutException(String service, String api) {
+		super(service, api, ConstantPool.REMOTE_SERVICE_TIMEOUT_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE);
+	}
+
 	public RemoteServiceTimeoutException(String service, String api, String message) {
 		super(service, api, ConstantPool.REMOTE_SERVICE_TIMEOUT_ERROR_RESPONSE_CODE, message);
 	}
 
-	public RemoteServiceTimeoutException(String service, String api, int code, String message) {
-		super(service, api, code, message);
+	public RemoteServiceTimeoutException(String service, String api, Throwable cause) {
+		super(service, api, ConstantPool.REMOTE_SERVICE_TIMEOUT_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE, cause);
 	}
 
 	public RemoteServiceTimeoutException(String service, String api, String message, Throwable cause) {
 		super(service, api, ConstantPool.REMOTE_SERVICE_TIMEOUT_ERROR_RESPONSE_CODE, message, cause);
 	}
 
-	public RemoteServiceTimeoutException(String service, String api, int code, String message, Throwable cause) {
+	protected RemoteServiceTimeoutException(String service, String api, int code, String message) {
+		super(service, api, code, message);
+	}
+
+	protected RemoteServiceTimeoutException(String service, String api, int code, String message, Throwable cause) {
 		super(service, api, code, message, cause);
 	}
 

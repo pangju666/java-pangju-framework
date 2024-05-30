@@ -8,11 +8,19 @@ import org.slf4j.event.Level;
 import java.util.Objects;
 
 public class RemoteServiceException extends BaseRuntimeException {
+	private static final String DEFAULT_MESSAGE = "远程服务调用失败";
+
 	private final String service;
 	private final String api;
 	private String path;
 	private String responseMessage;
 	private Integer responseCode;
+
+	public RemoteServiceException(String service, String api) {
+		super(ConstantPool.REMOTE_SERVICE_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE);
+		this.service = service;
+		this.api = api;
+	}
 
 	public RemoteServiceException(String service, String api, String message) {
 		super(ConstantPool.REMOTE_SERVICE_ERROR_RESPONSE_CODE, message);
@@ -20,8 +28,8 @@ public class RemoteServiceException extends BaseRuntimeException {
 		this.api = api;
 	}
 
-	public RemoteServiceException(String service, String api, int code, String message) {
-		super(code, message);
+	public RemoteServiceException(String service, String api, Throwable cause) {
+		super(ConstantPool.REMOTE_SERVICE_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE, cause);
 		this.service = service;
 		this.api = api;
 	}
@@ -32,7 +40,13 @@ public class RemoteServiceException extends BaseRuntimeException {
 		this.api = api;
 	}
 
-	public RemoteServiceException(String service, String api, int code, String message, Throwable cause) {
+	protected RemoteServiceException(String service, String api, int code, String message) {
+		super(code, message);
+		this.service = service;
+		this.api = api;
+	}
+
+	protected RemoteServiceException(String service, String api, int code, String message, Throwable cause) {
 		super(code, message, cause);
 		this.service = service;
 		this.api = api;
