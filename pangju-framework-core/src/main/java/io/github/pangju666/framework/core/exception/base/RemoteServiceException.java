@@ -106,6 +106,9 @@ public class RemoteServiceException extends BaseRuntimeException {
 		if (StringUtils.isNotBlank(responseMessage)) {
 			builder.append(" 错误信息：").append(this.responseMessage).append("，");
 		}
-		logger.atLevel(level).log(builder.toString());
+		logger
+			.atLevel(level)
+			.setCause(this)
+			.log(builder.toString());
 	}
 }
