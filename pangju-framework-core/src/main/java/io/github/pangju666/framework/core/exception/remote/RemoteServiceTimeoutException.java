@@ -51,7 +51,6 @@ public class RemoteServiceTimeoutException extends RemoteServiceException {
 		builder.append(" 请求超时");
 		logger
 			.atLevel(level)
-			.setCause(this)
 			.log(builder.toString());
 	}
 }
