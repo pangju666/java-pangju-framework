@@ -1,6 +1,8 @@
 package io.github.pangju666.framework.core.exception.data.operation;
 
-public class DataRemoveFailureException extends DataOperationFailureException {
+import io.github.pangju666.framework.core.exception.data.DataAccessException;
+
+public class DataRemoveFailureException extends DataAccessException {
 	public DataRemoveFailureException() {
 		super("数据删除失败");
 	}

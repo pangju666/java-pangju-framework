@@ -1,6 +1,8 @@
 package io.github.pangju666.framework.core.exception.data.operation;
 
-public class DataCreateFailureException extends DataOperationFailureException {
+import io.github.pangju666.framework.core.exception.data.DataAccessException;
+
+public class DataCreateFailureException extends DataAccessException {
 	public DataCreateFailureException() {
 		super("数据创建失败");
 	}

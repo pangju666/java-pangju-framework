@@ -33,6 +33,18 @@ public class ServerException extends BaseRuntimeException {
 		this.setHttpStatus(ConstantPool.INTERNAL_SERVER_ERROR_HTTP_STATUS_CODE);
 	}
 
+	protected ServerException(int code, String reason) {
+		super(code, MESSAGE);
+		this.reason = reason;
+		this.setHttpStatus(ConstantPool.INTERNAL_SERVER_ERROR_HTTP_STATUS_CODE);
+	}
+
+	protected ServerException(int code, String reason, Throwable cause) {
+		super(code, MESSAGE, cause);
+		this.reason = reason;
+		this.setHttpStatus(ConstantPool.INTERNAL_SERVER_ERROR_HTTP_STATUS_CODE);
+	}
+
 	public String getReason() {
 		return reason;
 	}

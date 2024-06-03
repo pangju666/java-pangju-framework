@@ -1,5 +1,6 @@
-package io.github.pangju666.framework.core.exception.base;
+package io.github.pangju666.framework.core.exception.remote;
 
+import io.github.pangju666.framework.core.exception.base.ServiceException;
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -7,7 +8,7 @@ import org.slf4j.event.Level;
 
 import java.util.Objects;
 
-public class RemoteServiceException extends BaseRuntimeException {
+public class RemoteServiceException extends ServiceException {
 	private static final String DEFAULT_MESSAGE = "远程服务调用失败";
 
 	private final String service;
@@ -106,9 +107,6 @@ public class RemoteServiceException extends BaseRuntimeException {
 		if (StringUtils.isNotBlank(responseMessage)) {
 			builder.append(" 错误信息：").append(this.responseMessage).append("，");
 		}
-		logger
-			.atLevel(level)
-			.setCause(this)
-			.log(builder.toString());
+		logger.atLevel(level).setCause(this).log(builder.toString());
 	}
 }

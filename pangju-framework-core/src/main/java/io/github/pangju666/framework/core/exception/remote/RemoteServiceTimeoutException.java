@@ -1,6 +1,5 @@
 package io.github.pangju666.framework.core.exception.remote;
 
-import io.github.pangju666.framework.core.exception.base.RemoteServiceException;
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -49,8 +48,6 @@ public class RemoteServiceTimeoutException extends RemoteServiceException {
 			builder.append(" 路径：").append(getPath());
 		}
 		builder.append(" 请求超时");
-		logger
-			.atLevel(level)
-			.log(builder.toString());
+		logger.atLevel(level).log(builder.toString());
 	}
 }

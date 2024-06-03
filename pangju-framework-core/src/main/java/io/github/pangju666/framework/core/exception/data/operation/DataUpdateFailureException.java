@@ -1,6 +1,8 @@
 package io.github.pangju666.framework.core.exception.data.operation;
 
-public class DataUpdateFailureException extends DataOperationFailureException {
+import io.github.pangju666.framework.core.exception.data.DataAccessException;
+
+public class DataUpdateFailureException extends DataAccessException {
 	public DataUpdateFailureException() {
 		super("数据更新失败");
 	}

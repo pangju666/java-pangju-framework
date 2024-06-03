@@ -27,6 +27,26 @@ public class ServiceException extends BaseRuntimeException {
 		this.reason = reason;
 	}
 
+	protected ServiceException(int code, String message) {
+		super(code, message);
+		this.reason = message;
+	}
+
+	protected ServiceException(int code, String message, String reason) {
+		super(code, message);
+		this.reason = reason;
+	}
+
+	protected ServiceException(int code, String message, Throwable cause) {
+		super(code, message, cause);
+		this.reason = message;
+	}
+
+	protected ServiceException(int code, String message, String reason, Throwable cause) {
+		super(code, message, cause);
+		this.reason = reason;
+	}
+
 	public String getReason() {
 		return reason;
 	}

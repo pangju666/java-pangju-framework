@@ -1,6 +1,8 @@
 package io.github.pangju666.framework.core.exception.data.operation;
 
-public class DataSaveFailureException extends DataOperationFailureException {
+import io.github.pangju666.framework.core.exception.data.DataAccessException;
+
+public class DataSaveFailureException extends DataAccessException {
 	public DataSaveFailureException() {
 		super("数据保存失败");
 	}
