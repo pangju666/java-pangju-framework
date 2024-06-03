@@ -1,6 +1,7 @@
 package io.github.pangju666.framework.core.exception.remote;
 
 import io.github.pangju666.framework.core.exception.base.ServiceException;
+import io.github.pangju666.framework.core.exception.remote.model.RemoteServiceError;
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -9,80 +10,42 @@ import org.slf4j.event.Level;
 import java.util.Objects;
 
 public class RemoteServiceException extends ServiceException {
-	private static final String DEFAULT_MESSAGE = "远程服务调用失败";
+	protected static final String DEFAULT_MESSAGE = "远程服务调用失败";
 
-	private final String service;
-	private final String api;
-	private String path;
-	private String responseMessage;
-	private Integer responseCode;
+	protected final RemoteServiceError remoteServiceError;
 
-	public RemoteServiceException(String service, String api) {
+	public RemoteServiceException(RemoteServiceError remoteServiceError) {
 		super(ConstantPool.REMOTE_SERVICE_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE);
-		this.service = service;
-		this.api = api;
+		this.remoteServiceError = remoteServiceError;
 	}
 
-	public RemoteServiceException(String service, String api, String message) {
+	public RemoteServiceException(RemoteServiceError remoteServiceError, String message) {
 		super(ConstantPool.REMOTE_SERVICE_ERROR_RESPONSE_CODE, message);
-		this.service = service;
-		this.api = api;
+		this.remoteServiceError = remoteServiceError;
 	}
 
-	public RemoteServiceException(String service, String api, Throwable cause) {
+	public RemoteServiceException(RemoteServiceError remoteServiceError, Throwable cause) {
 		super(ConstantPool.REMOTE_SERVICE_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE, cause);
-		this.service = service;
-		this.api = api;
+		this.remoteServiceError = remoteServiceError;
 	}
 
-	public RemoteServiceException(String service, String api, String message, Throwable cause) {
+	public RemoteServiceException(RemoteServiceError remoteServiceError, String message, Throwable cause) {
 		super(ConstantPool.REMOTE_SERVICE_ERROR_RESPONSE_CODE, message, cause);
-		this.service = service;
-		this.api = api;
+		this.remoteServiceError = remoteServiceError;
 	}
 
-	protected RemoteServiceException(String service, String api, int code, String message) {
+	protected RemoteServiceException(RemoteServiceError remoteServiceError, int code, String message) {
 		super(code, message);
-		this.service = service;
-		this.api = api;
+		this.remoteServiceError = remoteServiceError;
 	}
 
-	protected RemoteServiceException(String service, String api, int code, String message, Throwable cause) {
+	protected RemoteServiceException(RemoteServiceError remoteServiceError, int code, String message, Throwable cause) {
 		super(code, message, cause);
-		this.service = service;
-		this.api = api;
+		this.remoteServiceError = remoteServiceError;
 	}
 
-	public String getService() {
-		return service;
-	}
-
-	public String getApi() {
-		return api;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-	public String getResponseMessage() {
-		return responseMessage;
-	}
-
-	public Integer getResponseCode() {
-		return responseCode;
-	}
-
-	public void setResponseMessage(String responseMessage) {
-		this.responseMessage = responseMessage;
-	}
-
-	public void setResponseCode(Integer responseCode) {
-		this.responseCode = responseCode;
+	public RemoteServiceError getRemoteService() {
+		return remoteServiceError;
 	}
 
 	@Override
@@ -92,20 +55,16 @@ public class RemoteServiceException extends ServiceException {
 
 	@Override
 	public void log(Logger logger, Level level) {
-		StringBuilder builder = new StringBuilder()
-			.append("服务：")
-			.append(this.service)
-			.append(" 接口：")
-			.append(this.api);
-		if (StringUtils.isNotBlank(path)) {
-			builder.append(" 路径：").append(this.path);
-		}
+		StringBuilder builder = new StringBuilder(this.remoteServiceError.getRemoteServiceInfo());
 		builder.append(" 请求失败");
-		if (Objects.nonNull(responseCode)) {
-			builder.append(" 错误码：").append(this.responseCode).append("，");
+		if (Objects.nonNull(this.getRemoteService().httpStatus())) {
+			builder.append(" http状态码：").append(this.getRemoteService().httpStatus()).append("，");
 		}
-		if (StringUtils.isNotBlank(responseMessage)) {
-			builder.append(" 错误信息：").append(this.responseMessage).append("，");
+		if (Objects.nonNull(this.getRemoteService().code())) {
+			builder.append(" 错误码：").append(this.getRemoteService().code()).append("，");
+		}
+		if (StringUtils.isNotBlank(this.getRemoteService().message())) {
+			builder.append(" 错误信息：").append(this.getRemoteService().message());
 		}
 		logger.atLevel(level).setCause(this).log(builder.toString());
 	}

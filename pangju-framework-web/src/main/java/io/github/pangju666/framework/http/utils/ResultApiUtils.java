@@ -4,6 +4,8 @@ import com.google.gson.reflect.TypeToken;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.core.exception.remote.RemoteServiceException;
 import io.github.pangju666.framework.core.exception.remote.RemoteServiceTimeoutException;
+import io.github.pangju666.framework.core.exception.remote.model.RemoteServiceError;
+import io.github.pangju666.framework.core.exception.remote.model.RemoteServiceErrorBuilder;
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 import io.github.pangju666.framework.web.model.Result;
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
@@ -324,19 +327,21 @@ public class ResultApiUtils {
 			if (Objects.nonNull(body)) {
 				requestBodySpec.body(JsonUtils.toString(body));
 			}
-			String response = requestBodySpec
+			ResponseEntity<String> responseEntity = requestBodySpec
 				.accept(MediaType.APPLICATION_JSON)
 				.retrieve()
-				.body(String.class);
-			Result<R> result = JsonUtils.fromString(response, typeToken);
+				.toEntity(String.class);
+			Result<R> result = JsonUtils.fromString(responseEntity.getBody(), typeToken);
 			if (result.code() != ConstantPool.SUCCESS_RESPONSE_CODE) {
 				String message = StringUtils.defaultIfBlank(result.message(), "无");
 				if (throwError) {
-					RemoteServiceException exception = new RemoteServiceException(service, api, message);
-					exception.setPath(uri.getPath());
-					exception.setResponseCode(result.code());
-					exception.setResponseMessage(result.message());
-					throw exception;
+					RemoteServiceError remoteServiceError = RemoteServiceErrorBuilder.newInstance(service, api)
+						.path(uri.getPath())
+						.code(result.code())
+						.message(result.message())
+						.httpStatus(responseEntity.getStatusCode().value())
+						.build();
+					throw new RemoteServiceException(remoteServiceError);
 				} else {
 					LOGGER.error("服务：{}，接口：{}，路径：{} 请求失败，错误码：{}，错误信息：{}", service, api, uri, result.code(), message);
 					return null;
@@ -344,17 +349,20 @@ public class ResultApiUtils {
 			}
 			return result;
 		} catch (HttpServerErrorException.GatewayTimeout e) {
-			RemoteServiceTimeoutException exception = new RemoteServiceTimeoutException(service, api);
-			exception.setPath(uri.getPath());
-			throw exception;
+			RemoteServiceError remoteServiceError = RemoteServiceErrorBuilder.newInstance(service, api)
+				.path(uri.getPath())
+				.build();
+			throw new RemoteServiceTimeoutException(remoteServiceError);
 		} catch (RestClientResponseException e) {
 			Result<Void> result = JsonUtils.fromString(e.getResponseBodyAsString(), new TypeToken<Result<Void>>() {
 			});
-			RemoteServiceException exception = new RemoteServiceException(service, api);
-			exception.setPath(uri.getPath());
-			exception.setResponseCode(result.code());
-			exception.setResponseMessage(result.message());
-			throw exception;
+			RemoteServiceError remoteServiceError = RemoteServiceErrorBuilder.newInstance(service, api)
+				.path(uri.getPath())
+				.code(result.code())
+				.message(result.message())
+				.httpStatus(e.getStatusCode().value())
+				.build();
+			throw new RemoteServiceException(remoteServiceError);
 		}
 	}
 }
