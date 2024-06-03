@@ -1,5 +1,7 @@
 package io.github.pangju666.framework.core.exception.remote.model;
 
+import java.text.MessageFormat;
+
 public final class RemoteServiceErrorBuilder {
 	private final String service;
 	private final String api;
@@ -13,8 +15,17 @@ public final class RemoteServiceErrorBuilder {
 		this.api = api;
 	}
 
+	private RemoteServiceErrorBuilder(String service, String apiPattern, Object... args) {
+		this.service = service;
+		this.api = MessageFormat.format(apiPattern, args);
+	}
+
 	public static RemoteServiceErrorBuilder newInstance(String service, String api) {
 		return new RemoteServiceErrorBuilder(service, api);
+	}
+
+	public static RemoteServiceErrorBuilder newInstance(String service, String apiPattern, Object... args) {
+		return new RemoteServiceErrorBuilder(service, apiPattern, args);
 	}
 
 	public RemoteServiceErrorBuilder path(String path) {
@@ -22,8 +33,18 @@ public final class RemoteServiceErrorBuilder {
 		return this;
 	}
 
+	public RemoteServiceErrorBuilder path(String pathPattern, Object... args) {
+		this.message = MessageFormat.format(pathPattern, args);
+		return this;
+	}
+
 	public RemoteServiceErrorBuilder message(String message) {
 		this.message = message;
+		return this;
+	}
+
+	public RemoteServiceErrorBuilder message(String messagePattern, Object... args) {
+		this.message = MessageFormat.format(messagePattern, args);
 		return this;
 	}
 
