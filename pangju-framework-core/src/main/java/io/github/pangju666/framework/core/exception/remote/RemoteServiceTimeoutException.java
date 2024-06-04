@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
 public class RemoteServiceTimeoutException extends RemoteServiceException {
-	protected static final String DEFAULT_MESSAGE = "远程服务调用超时";
+	protected static final String DEFAULT_MESSAGE = "远程服务请求超时";
 
 	public RemoteServiceTimeoutException(RemoteServiceError remoteServiceError) {
 		super(remoteServiceError, ConstantPool.REMOTE_SERVICE_TIMEOUT_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE);
@@ -33,12 +33,8 @@ public class RemoteServiceTimeoutException extends RemoteServiceException {
 	}
 
 	@Override
-	public void log(Logger logger) {
-		log(logger, Level.ERROR);
-	}
-
-	@Override
 	public void log(Logger logger, Level level) {
-		logger.atLevel(level).log(this.remoteServiceError.getRemoteServiceInfo() + " 请求超时");
+		logger.atLevel(level).log("服务：{} 接口：｛｝ url：｛｝ 请求超时",
+			this.getRemoteService().service(), this.getRemoteService().api(), this.getRemoteService().uri());
 	}
 }

@@ -335,11 +335,10 @@ public class ResultApiUtils {
 			if (result.code() != ConstantPool.SUCCESS_RESPONSE_CODE) {
 				String message = StringUtils.defaultIfBlank(result.message(), "无");
 				if (throwError) {
-					RemoteServiceError remoteServiceError = RemoteServiceErrorBuilder.newInstance(service, api)
-						.path(uri.getPath())
+					RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api)
+						.uri(uri)
 						.code(result.code())
 						.message(result.message())
-						.httpStatus(responseEntity.getStatusCode().value())
 						.build();
 					throw new RemoteServiceException(remoteServiceError);
 				} else {
@@ -349,15 +348,16 @@ public class ResultApiUtils {
 			}
 			return result;
 		} catch (HttpServerErrorException.GatewayTimeout e) {
-			RemoteServiceError remoteServiceError = RemoteServiceErrorBuilder.newInstance(service, api)
-				.path(uri.getPath())
+			RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api)
+				.uri(uri)
+				.httpStatus(e.getStatusCode().value())
 				.build();
 			throw new RemoteServiceTimeoutException(remoteServiceError);
 		} catch (RestClientResponseException e) {
 			Result<Void> result = JsonUtils.fromString(e.getResponseBodyAsString(), new TypeToken<Result<Void>>() {
 			});
-			RemoteServiceError remoteServiceError = RemoteServiceErrorBuilder.newInstance(service, api)
-				.path(uri.getPath())
+			RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api)
+				.uri(uri)
 				.code(result.code())
 				.message(result.message())
 				.httpStatus(e.getStatusCode().value())

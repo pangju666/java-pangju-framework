@@ -1,40 +1,38 @@
 package io.github.pangju666.framework.core.exception.remote.model;
 
+import java.net.URI;
 import java.text.MessageFormat;
 
 public final class RemoteServiceErrorBuilder {
 	private final String service;
 	private final String api;
-	private String path;
+	private URI uri;
 	private String message;
 	private Integer code;
 	private Integer httpStatus;
 
-	private RemoteServiceErrorBuilder(String service, String api) {
+	public RemoteServiceErrorBuilder(String service, String api) {
 		this.service = service;
 		this.api = api;
 	}
 
-	private RemoteServiceErrorBuilder(String service, String apiPattern, Object... args) {
+	public RemoteServiceErrorBuilder(String service, String apiPattern, Object... args) {
 		this.service = service;
 		this.api = MessageFormat.format(apiPattern, args);
 	}
 
-	public static RemoteServiceErrorBuilder newInstance(String service, String api) {
-		return new RemoteServiceErrorBuilder(service, api);
-	}
-
-	public static RemoteServiceErrorBuilder newInstance(String service, String apiPattern, Object... args) {
-		return new RemoteServiceErrorBuilder(service, apiPattern, args);
-	}
-
-	public RemoteServiceErrorBuilder path(String path) {
-		this.path = path;
+	public RemoteServiceErrorBuilder uri(String uri) {
+		this.uri = URI.create(uri);
 		return this;
 	}
 
-	public RemoteServiceErrorBuilder path(String pathPattern, Object... args) {
-		this.message = MessageFormat.format(pathPattern, args);
+	public RemoteServiceErrorBuilder uri(URI uri) {
+		this.uri = uri;
+		return this;
+	}
+
+	public RemoteServiceErrorBuilder uri(String uriPattern, Object... args) {
+		this.message = MessageFormat.format(uriPattern, args);
 		return this;
 	}
 
@@ -59,6 +57,6 @@ public final class RemoteServiceErrorBuilder {
 	}
 
 	public RemoteServiceError build() {
-		return new RemoteServiceError(service, api, path, message, code, httpStatus);
+		return new RemoteServiceError(service, api, uri, message, code, httpStatus);
 	}
 }

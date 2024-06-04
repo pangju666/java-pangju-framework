@@ -10,9 +10,9 @@ import org.slf4j.event.Level;
 import java.util.Objects;
 
 public class RemoteServiceException extends ServiceException {
-	protected static final String DEFAULT_MESSAGE = "远程服务调用失败";
+	protected static final String DEFAULT_MESSAGE = "远程服务请求失败";
 
-	protected final RemoteServiceError remoteServiceError;
+	private final RemoteServiceError remoteServiceError;
 
 	public RemoteServiceException(RemoteServiceError remoteServiceError) {
 		super(ConstantPool.REMOTE_SERVICE_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE);
@@ -55,7 +55,14 @@ public class RemoteServiceException extends ServiceException {
 
 	@Override
 	public void log(Logger logger, Level level) {
-		StringBuilder builder = new StringBuilder(this.remoteServiceError.getRemoteServiceInfo());
+		StringBuilder builder = new StringBuilder()
+			.append("服务：")
+			.append(this.remoteServiceError.service())
+			.append(" 接口：")
+			.append(this.remoteServiceError.api());
+		if (Objects.nonNull(this.remoteServiceError.uri())) {
+			builder.append(" url：").append(this.remoteServiceError.uri());
+		}
 		builder.append(" 请求失败");
 		if (Objects.nonNull(this.getRemoteService().httpStatus())) {
 			builder.append(" http状态码：").append(this.getRemoteService().httpStatus()).append("，");
