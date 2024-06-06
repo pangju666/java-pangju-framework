@@ -1,5 +1,6 @@
 package io.github.pangju666.framework.http.utils;
 
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.core.exception.remote.RemoteServiceException;
@@ -325,7 +326,11 @@ public class ResultApiUtils {
 					.body(ConstantPool.EMPTY_JSON_OBJECT_STR);
 			}
 			if (Objects.nonNull(body)) {
-				requestBodySpec.body(JsonUtils.toString(body));
+				if (body instanceof JsonObject jsonBody) {
+					requestBodySpec.body(jsonBody.toString());
+				} else {
+					requestBodySpec.body(JsonUtils.toString(body));
+				}
 			}
 			ResponseEntity<String> responseEntity = requestBodySpec
 				.accept(MediaType.APPLICATION_JSON)
