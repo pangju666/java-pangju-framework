@@ -24,6 +24,14 @@ public class UriUtils {
 			.toUri();
 	}
 
+	public static URI fromUri(URI uri, MultiValueMap<String, String> queryParams) {
+		return UriComponentsBuilder.fromUri(uri)
+			.queryParams(queryParams)
+			.build()
+			.encode()
+			.toUri();
+	}
+
 	public static URI fromHttpUrl(String httpUrl, MultiValueMap<String, String> queryParams) {
 		return UriComponentsBuilder.fromHttpUrl(httpUrl)
 			.queryParams(queryParams)
