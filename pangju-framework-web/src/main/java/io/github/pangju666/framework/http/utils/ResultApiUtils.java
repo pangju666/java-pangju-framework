@@ -9,12 +9,14 @@ import io.github.pangju666.framework.core.exception.remote.model.RemoteServiceEr
 import io.github.pangju666.framework.core.exception.remote.model.RemoteServiceErrorBuilder;
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 import io.github.pangju666.framework.web.model.Result;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
@@ -22,6 +24,8 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.net.URI;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 
 public class ResultApiUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResultApiUtils.class);
@@ -30,290 +34,192 @@ public class ResultApiUtils {
 	protected ResultApiUtils() {
 	}
 
-	public static <R> R get(String service, String api, String httpUrl,
-							MultiValueMap<String, String> headers,
-							MultiValueMap<String, String> queryParams,
-							TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.GET,
-			headers, null, true, typeToken).data();
+	public static <R> Optional<R> get(String service, String api, String httpUrl,
+									  @Nullable MultiValueMap<String, String> queryParams,
+									  @Nullable MultiValueMap<String, String> headers,
+									  TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.GET, headers, null, true, typeToken);
 	}
 
-	public static <R> R get(String service, String api, URI uri, MultiValueMap<String, String> headers,
-							TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.GET, headers, null, true, typeToken).data();
+	public static <R> Optional<R> get(String service, String api, URI uri,
+									  @Nullable MultiValueMap<String, String> headers,
+									  TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.GET, headers, null, true, typeToken);
 	}
 
-	public static <R> R get(String service, String api, String httpUrl,
-							MultiValueMap<String, String> headers,
-							MultiValueMap<String, String> queryParams,
-							boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.GET,
-			headers, null, throwError, typeToken).data();
+	public static <R> Optional<R> get(String service, String api, String httpUrl,
+									  @Nullable MultiValueMap<String, String> queryParams,
+									  @Nullable MultiValueMap<String, String> headers,
+									  boolean throwError, TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.GET, headers, null, throwError, typeToken);
 	}
 
-	public static <R> R get(String service, String api, URI uri, MultiValueMap<String, String> headers,
-							boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.GET, headers, null, throwError, typeToken).data();
+	public static <R> Optional<R> get(String service, String api, URI uri,
+									  @Nullable MultiValueMap<String, String> headers,
+									  boolean throwError, TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.GET, headers, null, throwError, typeToken);
 	}
 
-	public static <R> Result<R> getForResult(String service, String api, String httpUrl,
-											 MultiValueMap<String, String> headers,
-											 MultiValueMap<String, String> queryParams,
+	public static <T, R> Optional<R> post(String service, String api, String httpUrl,
+										  @Nullable MultiValueMap<String, String> queryParams,
+										  @Nullable MultiValueMap<String, String> headers,
+										  @Nullable T requestBody,
+										  TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.POST, headers, requestBody, true, typeToken);
+	}
+
+	public static <T, R> Optional<R> post(String service, String api, URI uri,
+										  @Nullable MultiValueMap<String, String> headers,
+										  @Nullable T requestBody,
+										  TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.POST, headers, requestBody, true, typeToken);
+	}
+
+	public static <T, R> Optional<R> post(String service, String api, String httpUrl,
+										  @Nullable MultiValueMap<String, String> queryParams,
+										  @Nullable MultiValueMap<String, String> headers,
+										  @Nullable T requestBody,
+										  boolean throwError, TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.POST, headers, requestBody, throwError, typeToken);
+	}
+
+	public static <T, R> Optional<R> post(String service, String api, URI uri,
+										  @Nullable MultiValueMap<String, String> headers,
+										  @Nullable T requestBody,
+										  boolean throwError, TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.POST, headers, requestBody, throwError, typeToken);
+	}
+
+	public static <T, R> Optional<R> put(String service, String api, String httpUrl,
+										 @Nullable MultiValueMap<String, String> queryParams,
+										 @Nullable MultiValueMap<String, String> headers,
+										 @Nullable T requestBody,
+										 TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.PUT, headers, requestBody, true, typeToken);
+	}
+
+	public static <T, R> Optional<R> put(String service, String api, URI uri,
+										 @Nullable MultiValueMap<String, String> headers,
+										 @Nullable T requestBody,
+										 TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.PUT, headers, requestBody, true, typeToken);
+	}
+
+	public static <T, R> Optional<R> put(String service, String api, String httpUrl,
+										 @Nullable MultiValueMap<String, String> queryParams,
+										 @Nullable MultiValueMap<String, String> headers,
+										 @Nullable T requestBody,
+										 boolean throwError, TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.PUT, headers, requestBody, throwError, typeToken);
+	}
+
+	public static <T, R> Optional<R> put(String service, String api, URI uri,
+										 @Nullable MultiValueMap<String, String> headers,
+										 @Nullable T requestBody,
+										 boolean throwError, TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.PUT, headers, requestBody, throwError, typeToken);
+	}
+
+	public static <T, R> Optional<R> patch(String service, String api, String httpUrl,
+										   @Nullable MultiValueMap<String, String> queryParams,
+										   @Nullable MultiValueMap<String, String> headers,
+										   @Nullable T requestBody,
+										   TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.PATCH, headers, requestBody, true, typeToken);
+	}
+
+	public static <T, R> Optional<R> patch(String service, String api, URI uri,
+										   @Nullable MultiValueMap<String, String> headers,
+										   @Nullable T requestBody,
+										   TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.PATCH, headers, requestBody, true, typeToken);
+	}
+
+	public static <T, R> Optional<R> patch(String service, String api, String httpUrl,
+										   @Nullable MultiValueMap<String, String> queryParams,
+										   @Nullable MultiValueMap<String, String> headers,
+										   @Nullable T requestBody,
+										   boolean throwError, TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.PATCH, headers, requestBody, throwError, typeToken);
+	}
+
+	public static <T, R> Optional<R> patch(String service, String api, URI uri,
+										   @Nullable MultiValueMap<String, String> headers,
+										   @Nullable T requestBody,
+										   boolean throwError, TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.PATCH, headers, requestBody, throwError, typeToken);
+	}
+
+	public static <T, R> Optional<R> delete(String service, String api, String httpUrl,
+											@Nullable MultiValueMap<String, String> queryParams,
+											@Nullable MultiValueMap<String, String> headers,
+											@Nullable T requestBody,
+											TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.DELETE, headers, requestBody, true, typeToken);
+	}
+
+	public static <T, R> Optional<R> delete(String service, String api, URI uri,
+											@Nullable MultiValueMap<String, String> headers,
+											@Nullable T requestBody,
+											TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.DELETE, headers, requestBody, true, typeToken);
+	}
+
+	public static <T, R> Optional<R> delete(String service, String api, String httpUrl,
+											@Nullable MultiValueMap<String, String> queryParams,
+											@Nullable MultiValueMap<String, String> headers,
+											@Nullable T requestBody,
+											boolean throwError, TypeToken<Result<R>> typeToken) {
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, HttpMethod.DELETE, headers, requestBody, throwError, typeToken);
+	}
+
+	public static <T, R> Optional<R> delete(String service, String api, URI uri,
+											@Nullable MultiValueMap<String, String> headers,
+											@Nullable T requestBody,
+											boolean throwError, TypeToken<Result<R>> typeToken) {
+		return request(service, api, uri, HttpMethod.DELETE, headers, requestBody, throwError, typeToken);
+	}
+
+	public static <T, R> Optional<R> request(String service, String api, String httpUrl, HttpMethod httpMethod,
+											 @Nullable MultiValueMap<String, String> queryParams,
+											 @Nullable MultiValueMap<String, String> headers,
+											 @Nullable T requestBody,
 											 TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.GET,
-			headers, null, true, typeToken);
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, httpMethod, headers, requestBody, true, typeToken);
 	}
 
-	public static <R> Result<R> getForResult(String service, String api, URI uri, MultiValueMap<String, String> headers,
+	public static <T, R> Optional<R> request(String service, String api, URI uri, HttpMethod httpMethod,
+											 @Nullable MultiValueMap<String, String> headers,
+											 @Nullable T requestBody,
 											 TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.GET, headers, null, true, typeToken);
+		return request(service, api, uri, httpMethod, headers, requestBody, true, typeToken);
 	}
 
-	public static <R> Result<R> getForResult(String service, String api, String httpUrl,
-											 MultiValueMap<String, String> headers,
-											 MultiValueMap<String, String> queryParams,
+	public static <T, R> Optional<R> request(String service, String api, String httpUrl, HttpMethod httpMethod,
+											 @Nullable MultiValueMap<String, String> queryParams,
+											 @Nullable MultiValueMap<String, String> headers,
+											 @Nullable T requestBody,
 											 boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.GET,
-			headers, null, throwError, typeToken);
+		URI uri = UriUtils.fromHttpUrl(httpUrl, ObjectUtils.defaultIfNull(queryParams, new LinkedMultiValueMap<>()));
+		return request(service, api, uri, httpMethod, headers, requestBody, throwError, typeToken);
 	}
 
-	public static <R> Result<R> getForResult(String service, String api, URI uri, MultiValueMap<String, String> headers,
+	public static <T, R> Optional<R> request(String service, String api, URI uri, HttpMethod httpMethod,
+											 @Nullable MultiValueMap<String, String> headers,
+											 @Nullable T requestBody,
 											 boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.GET, headers, null, throwError, typeToken);
-	}
-
-	public static <T, R> R post(String service, String api, String httpUrl,
-								MultiValueMap<String, String> headers,
-								MultiValueMap<String, String> queryParams,
-								T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.POST,
-			headers, body, true, typeToken).data();
-	}
-
-	public static <T, R> R post(String service, String api, URI uri, MultiValueMap<String, String> headers,
-								T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.POST, headers, body, true, typeToken).data();
-	}
-
-	public static <T, R> R post(String service, String api, String httpUrl,
-								MultiValueMap<String, String> queryParams,
-								MultiValueMap<String, String> headers,
-								T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.POST,
-			headers, body, throwError, typeToken).data();
-	}
-
-	public static <T, R> R post(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-								boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.POST, headers, body, throwError, typeToken).data();
-	}
-
-	public static <T, R> Result<R> postForResult(String service, String api, String httpUrl,
-												 MultiValueMap<String, String> headers,
-												 MultiValueMap<String, String> queryParams,
-												 T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.POST,
-			headers, body, true, typeToken);
-	}
-
-	public static <T, R> Result<R> postForResult(String service, String api, URI uri, MultiValueMap<String, String> headers,
-												 T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.POST, headers, body, true, typeToken);
-	}
-
-	public static <T, R> Result<R> postForResult(String service, String api, String httpUrl,
-												 MultiValueMap<String, String> queryParams,
-												 MultiValueMap<String, String> headers,
-												 T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.POST,
-			headers, body, throwError, typeToken);
-	}
-
-	public static <T, R> Result<R> postForResult(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-												 boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.POST, headers, body, throwError, typeToken);
-	}
-
-	public static <T, R> R put(String service, String api, String httpUrl,
-							   MultiValueMap<String, String> headers,
-							   MultiValueMap<String, String> queryParams,
-							   T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.PUT,
-			headers, body, true, typeToken).data();
-	}
-
-	public static <T, R> R put(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-							   TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.PUT, headers, body, true, typeToken).data();
-	}
-
-	public static <T, R> R put(String service, String api, String httpUrl,
-							   MultiValueMap<String, String> queryParams,
-							   MultiValueMap<String, String> headers,
-							   T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.PUT,
-			headers, body, throwError, typeToken).data();
-	}
-
-	public static <T, R> R put(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-							   boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.PUT, headers, body, throwError, typeToken).data();
-	}
-
-	public static <T, R> Result<R> putForResult(String service, String api, String httpUrl,
-												MultiValueMap<String, String> headers,
-												MultiValueMap<String, String> queryParams,
-												T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.PUT,
-			headers, body, true, typeToken);
-	}
-
-	public static <T, R> Result<R> putForResult(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-												TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.PUT, headers, body, true, typeToken);
-	}
-
-	public static <T, R> Result<R> putForResult(String service, String api, String httpUrl,
-												MultiValueMap<String, String> queryParams,
-												MultiValueMap<String, String> headers,
-												T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.PUT,
-			headers, body, throwError, typeToken);
-	}
-
-	public static <T, R> Result<R> putForResult(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-												boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.PUT, headers, body, throwError, typeToken);
-	}
-
-	public static <T, R> R patch(String service, String api, String httpUrl,
-								 MultiValueMap<String, String> headers,
-								 MultiValueMap<String, String> queryParams,
-								 T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.PATCH,
-			headers, body, true, typeToken).data();
-	}
-
-	public static <T, R> R patch(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-								 TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.PATCH, headers, body, true, typeToken).data();
-	}
-
-	public static <T, R> R patch(String service, String api, String httpUrl,
-								 MultiValueMap<String, String> queryParams,
-								 MultiValueMap<String, String> headers,
-								 T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.PATCH,
-			headers, body, throwError, typeToken).data();
-	}
-
-	public static <T, R> R patch(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-								 boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.PATCH, headers, body, throwError, typeToken).data();
-	}
-
-	public static <T, R> R patchForResult(String service, String api, String httpUrl,
-										  MultiValueMap<String, String> headers,
-										  MultiValueMap<String, String> queryParams,
-										  T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.PATCH,
-			headers, body, true, typeToken).data();
-	}
-
-	public static <T, R> Result<R> patchForResult(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-												  TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.PATCH, headers, body, true, typeToken);
-	}
-
-	public static <T, R> Result<R> patchForResult(String service, String api, String httpUrl,
-												  MultiValueMap<String, String> queryParams,
-												  MultiValueMap<String, String> headers,
-												  T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.PATCH,
-			headers, body, throwError, typeToken);
-	}
-
-	public static <T, R> Result<R> patchForResult(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-												  boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.PATCH, headers, body, throwError, typeToken);
-	}
-
-	public static <T, R> R delete(String service, String api, String httpUrl,
-								  MultiValueMap<String, String> headers,
-								  MultiValueMap<String, String> queryParams,
-								  T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.DELETE,
-			headers, body, true, typeToken).data();
-	}
-
-	public static <T, R> R delete(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-								  TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.DELETE, headers, body, true, typeToken).data();
-	}
-
-	public static <T, R> R delete(String service, String api, String httpUrl,
-								  MultiValueMap<String, String> queryParams,
-								  MultiValueMap<String, String> headers,
-								  T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.DELETE,
-			headers, body, throwError, typeToken).data();
-	}
-
-	public static <T, R> R delete(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-								  boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.DELETE, headers, body, throwError, typeToken).data();
-	}
-
-	public static <T, R> Result<R> deleteForResult(String service, String api, String httpUrl,
-												   MultiValueMap<String, String> headers,
-												   MultiValueMap<String, String> queryParams,
-												   T body, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.DELETE,
-			headers, body, true, typeToken);
-	}
-
-	public static <T, R> Result<R> deleteForResult(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-												   TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.DELETE, headers, body, true, typeToken);
-	}
-
-	public static <T, R> Result<R> deleteForResult(String service, String api, String httpUrl,
-												   MultiValueMap<String, String> queryParams,
-												   MultiValueMap<String, String> headers,
-												   T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), HttpMethod.DELETE,
-			headers, body, throwError, typeToken);
-	}
-
-	public static <T, R> Result<R> deleteForResult(String service, String api, URI uri, MultiValueMap<String, String> headers, T body,
-												   boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, uri, HttpMethod.DELETE, headers, body, throwError, typeToken);
-	}
-
-	public static <T, R> R request(String service, String api, String httpUrl, HttpMethod httpMethod,
-								   MultiValueMap<String, String> queryParams, MultiValueMap<String, String> headers,
-								   T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), httpMethod, headers,
-			body, throwError, typeToken).data();
-	}
-
-	public static <T, R> Result<R> requestForResult(String service, String api, String httpUrl, HttpMethod httpMethod,
-													MultiValueMap<String, String> queryParams, MultiValueMap<String, String> headers,
-													T body, boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(DEFAULT_CLIENT, service, api, UriUtils.fromHttpUrl(httpUrl, queryParams), httpMethod, headers,
-			body, throwError, typeToken);
-	}
-
-	public static <T, R> R request(RestClient restClient, String service, String api, URI uri, HttpMethod httpMethod,
-								   MultiValueMap<String, String> headers, T body,
-								   boolean throwError, TypeToken<Result<R>> typeToken) {
-		return requestForResult(restClient, service, api, uri, httpMethod, headers, body, throwError, typeToken).data();
-	}
-
-	public static <T, R> Result<R> requestForResult(RestClient restClient, String service, String api, URI uri, HttpMethod httpMethod,
-													MultiValueMap<String, String> headers, T body,
-													boolean throwError, TypeToken<Result<R>> typeToken) {
-		try {
+		return request(service, api, uri, throwError, restClient -> {
 			RestClient.RequestBodySpec requestBodySpec = restClient
 				.method(httpMethod)
 				.uri(uri);
@@ -325,33 +231,43 @@ public class ResultApiUtils {
 					.contentType(MediaType.APPLICATION_JSON)
 					.body(ConstantPool.EMPTY_JSON_OBJECT_STR);
 			}
-			if (Objects.nonNull(body)) {
-				if (body instanceof JsonObject jsonBody) {
+			if (Objects.nonNull(requestBody)) {
+				if (requestBody instanceof JsonObject jsonBody) {
 					requestBodySpec.body(jsonBody.toString());
 				} else {
-					requestBodySpec.body(JsonUtils.toString(body));
+					requestBodySpec.body(JsonUtils.toString(requestBody));
 				}
 			}
 			ResponseEntity<String> responseEntity = requestBodySpec
 				.accept(MediaType.APPLICATION_JSON)
 				.retrieve()
 				.toEntity(String.class);
-			Result<R> result = JsonUtils.fromString(responseEntity.getBody(), typeToken);
-			if (result.code() != ConstantPool.SUCCESS_RESPONSE_CODE) {
-				String message = StringUtils.defaultIfBlank(result.message(), "无");
-				if (throwError) {
-					RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api)
-						.uri(uri)
-						.code(result.code())
-						.message(result.message())
-						.build();
-					throw new RemoteServiceException(remoteServiceError);
-				} else {
-					LOGGER.error("服务：{}，接口：{}，路径：{} 请求失败，错误码：{}，错误信息：{}", service, api, uri, result.code(), message);
-					return null;
-				}
+			return JsonUtils.fromString(responseEntity.getBody(), typeToken);
+		});
+	}
+
+	public static <T> Optional<T> request(String service, String api, URI uri, Function<RestClient, Result<T>> function) {
+		return request(service, api, uri, true, function);
+	}
+
+	public static <T> Optional<T> request(String service, String api, URI uri, boolean throwError, Function<RestClient, Result<T>> function) {
+		try {
+			Result<T> result = function.apply(DEFAULT_CLIENT);
+			if (result.code() == ConstantPool.SUCCESS_RESPONSE_CODE) {
+				return Optional.of(result.data());
 			}
-			return result;
+			RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api)
+				.uri(uri)
+				.code(result.code())
+				.message(result.message())
+				.build();
+			RemoteServiceException remoteServiceException = new RemoteServiceException(remoteServiceError);
+			if (throwError) {
+				throw remoteServiceException;
+			} else {
+				remoteServiceException.log(LOGGER);
+				return Optional.empty();
+			}
 		} catch (HttpServerErrorException.GatewayTimeout e) {
 			RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api)
 				.uri(uri)
