@@ -254,7 +254,7 @@ public class ResultApiUtils {
 		try {
 			Result<T> result = function.apply(DEFAULT_CLIENT);
 			if (result.code() == ConstantPool.SUCCESS_RESPONSE_CODE) {
-				return Optional.of(result.data());
+				return Optional.ofNullable(result.data());
 			}
 			RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api)
 				.uri(uri)
