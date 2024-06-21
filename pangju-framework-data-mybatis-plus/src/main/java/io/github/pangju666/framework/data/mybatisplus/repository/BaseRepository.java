@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.github.pangju666.commons.lang.utils.StreamUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -25,28 +26,28 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
         return Objects.isNull(getById(id));
     }
 
-    public <V> boolean existByColumn(SFunction<T, V> column, @Nullable V value) {
+    public <V> boolean existByColumnValue(SFunction<T, V> column, @Nullable V value) {
         Assert.notNull(column, "column 不可为空");
         if (Objects.isNull(value)) {
-            return lambdaQuery()
-                    .isNull(column)
-                    .exists();
+            return lambdaQuery().isNull(column).exists();
         }
-        return lambdaQuery()
-                .eq(column, value)
-                .exists();
+        return lambdaQuery().eq(column, value).exists();
     }
 
-    public <V> boolean notExistByColumn(SFunction<T, V> column, @Nullable V value) {
+    public <V> boolean notExistByColumnValue(SFunction<T, V> column, @Nullable V value) {
         Assert.notNull(column, "column 不可为空");
         if (Objects.isNull(value)) {
-            return lambdaQuery()
-                    .isNotNull(column)
-                    .exists();
+            return lambdaQuery().isNotNull(column).exists();
         }
-        return !lambdaQuery()
-                .eq(column, value)
-                .exists();
+        return !lambdaQuery().eq(column, value).exists();
+    }
+
+    public <V> T getByColumnValue(SFunction<T, V> column, @Nullable V value) {
+        Assert.notNull(column, "column 不可为空");
+        if (Objects.isNull(value)) {
+            return lambdaQuery().isNull(column).one();
+        }
+        return lambdaQuery().eq(column, value).one();
     }
 
     public <V> List<?> listColumnValue(SFunction<T, V> column) {
@@ -63,9 +64,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
         if (nonNull) {
             queryWrapper = queryWrapper.isNotNull(column);
         }
-        var stream = queryWrapper.list()
-                .stream()
-                .map(column);
+        var stream = queryWrapper.list().stream().map(column);
         if (unique) {
             stream = stream.distinct();
         }
@@ -85,35 +84,15 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
         if (validIdList.size() <= batchSize) {
             return super.listByIds(validIdList);
         }
-        return ListUtils.partition(new ArrayList<>(validIdList), batchSize)
-                .stream()
-                .map(super::listByIds)
-                .flatMap(List::stream)
-                .toList();
-    }
-
-    public <V> T getByColumnValue(SFunction<T, V> column, @Nullable V value) {
-        Assert.notNull(column, "column 不可为空");
-        if (Objects.isNull(value)) {
-            return lambdaQuery()
-                    .isNull(column)
-                    .one();
-        }
-        return lambdaQuery()
-                .eq(column, value)
-                .one();
+        return ListUtils.partition(new ArrayList<>(validIdList), batchSize).stream().map(super::listByIds).flatMap(List::stream).toList();
     }
 
     public <V> List<T> listByColumnValue(SFunction<T, V> column, @Nullable V value) {
         Assert.notNull(column, "column 不可为空");
         if (Objects.isNull(value)) {
-            return lambdaQuery()
-                    .isNull(column)
-                    .list();
+            return lambdaQuery().isNull(column).list();
         }
-        return lambdaQuery()
-                .eq(column, value)
-                .list();
+        return lambdaQuery().eq(column, value).list();
     }
 
     public <V> List<T> listByColumnValues(SFunction<T, V> column, Collection<V> values) {
@@ -127,17 +106,51 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
         }
         List<?> validList = StreamUtils.toNonNullList(values);
         if (validList.size() <= batchSize) {
-            return lambdaQuery()
-                    .in(column, validList)
-                    .list();
+            return lambdaQuery().in(column, validList).list();
         }
-        return ListUtils.partition(new ArrayList<>(validList), batchSize)
-                .stream()
-                .map(part -> lambdaQuery()
-                        .in(column, part)
-                        .list())
-                .flatMap(List::stream)
-                .toList();
+        return ListUtils.partition(new ArrayList<>(validList), batchSize).stream().map(part -> lambdaQuery().in(column, part).list()).flatMap(List::stream).toList();
+    }
+
+    public <V> List<T> listByNotNullColumn(SFunction<T, V> column) {
+        Assert.notNull(column, "column 不可为空");
+        return lambdaQuery().isNotNull(column).list();
+    }
+
+    public <V> List<T> listByNullColumn(SFunction<T, V> column) {
+        Assert.notNull(column, "column 不可为空");
+        return lambdaQuery().isNull(column).list();
+    }
+
+    public <V> List<T> listByLikeColumnValue(SFunction<T, V> column, String value) {
+        Assert.notNull(column, "column 不可为空");
+        if (StringUtils.isBlank(value)) {
+            return Collections.emptyList();
+        }
+        return lambdaQuery().like(column, value).list();
+    }
+
+    public <V> List<T> listByNotLikeColumnValue(SFunction<T, V> column, String value) {
+        Assert.notNull(column, "column 不可为空");
+        if (StringUtils.isBlank(value)) {
+            return Collections.emptyList();
+        }
+        return lambdaQuery().notLike(column, value).list();
+    }
+
+    public <V> List<T> listByLikeLeftColumnValue(SFunction<T, V> column, String value) {
+        Assert.notNull(column, "column 不可为空");
+        if (StringUtils.isBlank(value)) {
+            return Collections.emptyList();
+        }
+        return lambdaQuery().likeLeft(column, value).list();
+    }
+
+    public <V> List<T> listByLikeRightColumnValue(SFunction<T, V> column, String value) {
+        Assert.notNull(column, "column 不可为空");
+        if (StringUtils.isBlank(value)) {
+            return Collections.emptyList();
+        }
+        return lambdaQuery().likeRight(column, value).list();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -200,7 +213,6 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
         return super.saveOrUpdateBatch(validEntityList, batchSize);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean removeByIds(Collection<?> list) {
         if (CollectionUtils.isEmpty(list)) {
@@ -230,39 +242,61 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
         return super.removeBatchByIds(validList, batchSize);
     }
 
-    public <V> boolean removeByColumnValue(SFunction<T, V> column, @Nullable V value) {
+    public <V> boolean removeByColumnValue(SFunction<T, V> column, V value) {
         Assert.notNull(column, "column 不可为空");
         if (Objects.isNull(value)) {
-            return lambdaUpdate()
-                    .isNull(column)
-                    .remove();
+            return false;
         }
-        return lambdaUpdate()
-                .eq(column, value)
-                .remove();
+        return lambdaUpdate().eq(column, value).remove();
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public <V> boolean removeBatchByColumns(SFunction<T, V> column, Collection<V> values) {
-        return removeBatchByColumns(column, values, DEFAULT_BATCH_SIZE);
+    public <V> boolean removeByColumnValues(SFunction<T, V> column, Collection<V> values) {
+        return removeByColumnValues(column, values, DEFAULT_BATCH_SIZE);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public <V> boolean removeBatchByColumns(SFunction<T, V> column, Collection<V> values, int batchSize) {
+    public <V> boolean removeByColumnValues(SFunction<T, V> column, Collection<V> values, int batchSize) {
         Assert.notNull(column, "column 不可为空");
         if (CollectionUtils.isEmpty(values)) {
             return false;
         }
         List<V> validList = StreamUtils.toNonNullList(values);
         if (validList.size() <= batchSize) {
-            return lambdaUpdate()
-                    .in(column, validList)
-                    .remove();
+            return lambdaUpdate().in(column, validList).remove();
         }
-        return ListUtils.partition(new ArrayList<>(validList), batchSize)
-                .stream()
-                .allMatch(part -> lambdaUpdate()
-                        .in(column, part)
-                        .remove());
+        return ListUtils.partition(new ArrayList<>(validList), batchSize).stream().allMatch(part -> lambdaUpdate().in(column, part).remove());
+    }
+
+    public <V> boolean removeByLikeColumnValue(SFunction<T, V> column, String value) {
+        Assert.notNull(column, "column 不可为空");
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        return lambdaUpdate().like(column, value).remove();
+    }
+
+    public <V> boolean removeByNotLikeColumnValue(SFunction<T, V> column, String value) {
+        Assert.notNull(column, "column 不可为空");
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        return lambdaUpdate().notLike(column, value).remove();
+    }
+
+    public <V> boolean removeByLikeLeftColumnValue(SFunction<T, V> column, String value) {
+        Assert.notNull(column, "column 不可为空");
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        return lambdaUpdate().likeLeft(column, value).remove();
+    }
+
+    public <V> boolean removeByLikeRightColumnValue(SFunction<T, V> column, String value) {
+        Assert.notNull(column, "column 不可为空");
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        return lambdaUpdate().likeRight(column, value).remove();
     }
 }
