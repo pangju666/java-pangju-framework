@@ -11,7 +11,7 @@ import java.util.List;
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
 public class BooleanVarcharListTypeHandler extends GenericsVarcharListTypeHandler<Boolean> {
-	public BooleanVarcharListTypeHandler() {
-		super((value) -> BooleanUtils.toBooleanObject(value, "true", "false", "null"));
-	}
+    public BooleanVarcharListTypeHandler() {
+        super((value) -> BooleanUtils.toBooleanObject(value, "true", "false", "null"));
+    }
 }

@@ -14,40 +14,40 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.util.Objects;
 
 public class EnumRequestParamArgumentResolver implements HandlerMethodArgumentResolver {
-	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
-		return parameter.hasParameterAnnotation(EnumRequestParam.class) && parameter.getParameterType().isEnum();
-	}
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return parameter.hasParameterAnnotation(EnumRequestParam.class) && parameter.getParameterType().isEnum();
+    }
 
-	@Override
-	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-								  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-		EnumRequestParam annotation = parameter.getParameterAnnotation(EnumRequestParam.class);
-		Class<? extends Enum> enumClass = (Class<? extends Enum>) parameter.getParameterType();
+    @Override
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+        EnumRequestParam annotation = parameter.getParameterAnnotation(EnumRequestParam.class);
+        Class<? extends Enum> enumClass = (Class<? extends Enum>) parameter.getParameterType();
 
-		String parameterName = annotation.value();
-		if (StringUtils.isBlank(parameterName)) {
-			parameterName = parameter.getParameterName();
-		}
+        String parameterName = annotation.value();
+        if (StringUtils.isBlank(parameterName)) {
+            parameterName = parameter.getParameterName();
+        }
 
-		String enumName = webRequest.getParameter(parameterName);
-		if (StringUtils.isBlank(enumName)) {
-			String defaultValue = annotation.defaultValue();
-			if (StringUtils.isNotBlank(defaultValue)) {
-				enumName = defaultValue;
-			} else {
-				if (annotation.required()) {
-					throw new MissingServletRequestParameterException(parameterName, enumClass.getName());
-				}
-				return null;
-			}
-		}
+        String enumName = webRequest.getParameter(parameterName);
+        if (StringUtils.isBlank(enumName)) {
+            String defaultValue = annotation.defaultValue();
+            if (StringUtils.isNotBlank(defaultValue)) {
+                enumName = defaultValue;
+            } else {
+                if (annotation.required()) {
+                    throw new MissingServletRequestParameterException(parameterName, enumClass.getName());
+                }
+                return null;
+            }
+        }
 
-		Enum<?> enumValue = EnumUtils.getEnumIgnoreCase(enumClass, enumName);
-		if (Objects.isNull(enumValue)) {
-			throw new ValidationException("无效的" + annotation.description());
-		}
-		mavContainer.addAttribute(parameterName, enumValue);
-		return enumValue;
-	}
+        Enum<?> enumValue = EnumUtils.getEnumIgnoreCase(enumClass, enumName);
+        if (Objects.isNull(enumValue)) {
+            throw new ValidationException("无效的" + annotation.description());
+        }
+        mavContainer.addAttribute(parameterName, enumValue);
+        return enumValue;
+    }
 }

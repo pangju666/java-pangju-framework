@@ -6,6 +6,6 @@ import org.hibernate.validator.constraints.UniqueElements;
 import java.util.List;
 
 public record RequiredIdListDTO(@UniqueElements(message = "存在重复的id")
-								@Ids(notEmpty = true)
-								List<Long> ids) {
+                                @Ids(notEmpty = true)
+                                List<Long> ids) {
 }

@@ -12,7 +12,7 @@ import java.util.List;
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
 public class BigDecimalVarcharListTypeHandler extends GenericsVarcharListTypeHandler<BigDecimal> {
-	public BigDecimalVarcharListTypeHandler() {
-		super((value) -> StringUtils.isBlank(value) ? null : new BigDecimal(value));
-	}
+    public BigDecimalVarcharListTypeHandler() {
+        super((value) -> StringUtils.isBlank(value) ? null : new BigDecimal(value));
+    }
 }

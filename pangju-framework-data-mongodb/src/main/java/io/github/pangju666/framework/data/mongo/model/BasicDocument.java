@@ -7,15 +7,15 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.io.Serializable;
 
 public abstract class BasicDocument implements Serializable {
-	@Id
-	@Field(name = BaseRepository.ID_FIELD_NAME)
-	protected String id;
+    @Id
+    @Field(name = BaseRepository.ID_FIELD_NAME)
+    protected String id;
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 }

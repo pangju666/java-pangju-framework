@@ -22,50 +22,50 @@ import java.util.List;
 @MappedTypes({Object.class})
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public abstract class GenericsJsonListTypeHandler<T> extends BaseTypeHandler<List<T>> {
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-	private final TypeReference<List<T>> typeReference;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final TypeReference<List<T>> typeReference;
 
-	public GenericsJsonListTypeHandler(TypeReference<List<T>> typeReference) {
-		Assert.notNull(typeReference, "TypeReference argument cannot be null");
-		this.typeReference = typeReference;
-	}
+    public GenericsJsonListTypeHandler(TypeReference<List<T>> typeReference) {
+        Assert.notNull(typeReference, "TypeReference argument cannot be null");
+        this.typeReference = typeReference;
+    }
 
-	@Override
-	public void setNonNullParameter(PreparedStatement ps, int i, List<T> parameter, JdbcType jdbcType) throws SQLException {
-		ps.setString(i, toJson(parameter));
-	}
+    @Override
+    public void setNonNullParameter(PreparedStatement ps, int i, List<T> parameter, JdbcType jdbcType) throws SQLException {
+        ps.setString(i, toJson(parameter));
+    }
 
-	@Override
-	public List<T> getNullableResult(ResultSet rs, String columnName) throws SQLException {
-		final String json = rs.getString(columnName);
-		return StringUtils.isBlank(json) ? Collections.emptyList() : parse(json);
-	}
+    @Override
+    public List<T> getNullableResult(ResultSet rs, String columnName) throws SQLException {
+        final String json = rs.getString(columnName);
+        return StringUtils.isBlank(json) ? Collections.emptyList() : parse(json);
+    }
 
-	@Override
-	public List<T> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-		final String json = rs.getString(columnIndex);
-		return StringUtils.isBlank(json) ? Collections.emptyList() : parse(json);
-	}
+    @Override
+    public List<T> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+        final String json = rs.getString(columnIndex);
+        return StringUtils.isBlank(json) ? Collections.emptyList() : parse(json);
+    }
 
-	@Override
-	public List<T> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-		final String json = cs.getString(columnIndex);
-		return StringUtils.isBlank(json) ? Collections.emptyList() : parse(json);
-	}
+    @Override
+    public List<T> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+        final String json = cs.getString(columnIndex);
+        return StringUtils.isBlank(json) ? Collections.emptyList() : parse(json);
+    }
 
-	private List<T> parse(String json) {
-		try {
-			return OBJECT_MAPPER.readValue(json, typeReference);
-		} catch (IOException e) {
-			throw new ServerException("json字符串解析失败", e);
-		}
-	}
+    private List<T> parse(String json) {
+        try {
+            return OBJECT_MAPPER.readValue(json, typeReference);
+        } catch (IOException e) {
+            throw new ServerException("json字符串解析失败", e);
+        }
+    }
 
-	private String toJson(Object obj) {
-		try {
-			return OBJECT_MAPPER.writeValueAsString(obj);
-		} catch (JsonProcessingException e) {
-			throw new ServerException("json字符串转换失败", e);
-		}
-	}
+    private String toJson(Object obj) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new ServerException("json字符串转换失败", e);
+        }
+    }
 }

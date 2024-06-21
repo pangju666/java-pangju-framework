@@ -3,23 +3,23 @@ package io.github.pangju666.framework.core.exception.authentication;
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 
 public class NoRoleException extends AuthenticationException {
-	public NoRoleException(String message) {
-		super(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE, message);
-		this.setHttpStatus(ConstantPool.FORBIDDEN_HTTP_STATUS_CODE);
-	}
+    public NoRoleException(String message) {
+        super(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE, message);
+        this.setHttpStatus(ConstantPool.FORBIDDEN_HTTP_STATUS_CODE);
+    }
 
-	public NoRoleException(String message, String reason) {
-		super(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE, message, reason);
-		this.setHttpStatus(ConstantPool.FORBIDDEN_HTTP_STATUS_CODE);
-	}
+    public NoRoleException(String message, String reason) {
+        super(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE, message, reason);
+        this.setHttpStatus(ConstantPool.FORBIDDEN_HTTP_STATUS_CODE);
+    }
 
-	public NoRoleException(String message, Throwable cause) {
-		super(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE, message, cause);
-		this.setHttpStatus(ConstantPool.FORBIDDEN_HTTP_STATUS_CODE);
-	}
+    public NoRoleException(String message, Throwable cause) {
+        super(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE, message, cause);
+        this.setHttpStatus(ConstantPool.FORBIDDEN_HTTP_STATUS_CODE);
+    }
 
-	public NoRoleException(String message, String reason, Throwable cause) {
-		super(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE, message, reason, cause);
-		this.setHttpStatus(ConstantPool.FORBIDDEN_HTTP_STATUS_CODE);
-	}
+    public NoRoleException(String message, String reason, Throwable cause) {
+        super(ConstantPool.AUTHENTICATION_ERROR_RESPONSE_CODE, message, reason, cause);
+        this.setHttpStatus(ConstantPool.FORBIDDEN_HTTP_STATUS_CODE);
+    }
 }

@@ -16,13 +16,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = IdsValidator.class)
 public @interface Ids {
-	String message() default "存在无效的id";
+    String message() default "存在无效的id";
 
-	boolean allMatch() default true;
+    boolean allMatch() default true;
 
-	boolean notEmpty() default false;
+    boolean notEmpty() default false;
 
-	Class<?>[] groups() default {};
+    Class<?>[] groups() default {};
 
-	Class<? extends Payload>[] payload() default {};
+    Class<? extends Payload>[] payload() default {};
 }

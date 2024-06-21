@@ -7,11 +7,11 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Objects;
 
 public class IdValidator implements ConstraintValidator<Id, Long> {
-	@Override
-	public boolean isValid(Long value, ConstraintValidatorContext context) {
-		if (Objects.isNull(value)) {
-			return true;
-		}
-		return value >= 1;
-	}
+    @Override
+    public boolean isValid(Long value, ConstraintValidatorContext context) {
+        if (Objects.isNull(value)) {
+            return true;
+        }
+        return value >= 1;
+    }
 }

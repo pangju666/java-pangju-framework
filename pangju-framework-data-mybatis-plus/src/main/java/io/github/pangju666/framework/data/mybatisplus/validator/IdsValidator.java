@@ -9,17 +9,17 @@ import java.util.Collection;
 import java.util.Objects;
 
 public class IdsValidator implements ConstraintValidator<Ids, Collection<Long>> {
-	private boolean allMatch;
-	private boolean notEmpty;
+    private boolean allMatch;
+    private boolean notEmpty;
 
-	@Override
-	public void initialize(Ids constraintAnnotation) {
-		this.allMatch = constraintAnnotation.allMatch();
-		this.notEmpty = constraintAnnotation.notEmpty();
-	}
+    @Override
+    public void initialize(Ids constraintAnnotation) {
+        this.allMatch = constraintAnnotation.allMatch();
+        this.notEmpty = constraintAnnotation.notEmpty();
+    }
 
-	@Override
-	public boolean isValid(Collection<Long> value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, allMatch, notEmpty, id -> Objects.nonNull(id) && id >= 1);
-	}
+    @Override
+    public boolean isValid(Collection<Long> value, ConstraintValidatorContext context) {
+        return ConstraintValidatorUtils.validate(value, allMatch, notEmpty, id -> Objects.nonNull(id) && id >= 1);
+    }
 }

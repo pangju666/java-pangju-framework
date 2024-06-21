@@ -22,229 +22,229 @@ import java.util.stream.Collectors;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 public abstract class BaseRepository<T extends BasicDocument> {
-	public static final String ID_FIELD_NAME = "_id";
+    public static final String ID_FIELD_NAME = "_id";
 
-	protected Class<T> entityClass;
-	protected MongoOperations mongoOperations;
-	protected String collectionName;
+    protected Class<T> entityClass;
+    protected MongoOperations mongoOperations;
+    protected String collectionName;
 
-	protected BaseRepository() {
-	}
+    protected BaseRepository() {
+    }
 
-	protected BaseRepository(MongoOperations mongoOperations) {
-		init(mongoOperations);
-	}
+    protected BaseRepository(MongoOperations mongoOperations) {
+        init(mongoOperations);
+    }
 
-	public void init(MongoOperations mongoOperations) {
-		this.mongoOperations = mongoOperations;
-		this.entityClass = ReflectionUtils.getClassGenericType(this.getClass());
-		String collectionName = null;
-		Document document = this.entityClass.getAnnotation(Document.class);
-		if (Objects.nonNull(document)) {
-			collectionName = document.value();
-			if (StringUtils.isEmpty(collectionName)) {
-				collectionName = document.collection();
-			}
-		}
-		if (StringUtils.isBlank(collectionName)) {
-			collectionName = this.mongoOperations.getCollectionName(entityClass);
-		}
-		this.collectionName = collectionName;
-	}
+    public void init(MongoOperations mongoOperations) {
+        this.mongoOperations = mongoOperations;
+        this.entityClass = ReflectionUtils.getClassGenericType(this.getClass());
+        String collectionName = null;
+        Document document = this.entityClass.getAnnotation(Document.class);
+        if (Objects.nonNull(document)) {
+            collectionName = document.value();
+            if (StringUtils.isEmpty(collectionName)) {
+                collectionName = document.collection();
+            }
+        }
+        if (StringUtils.isBlank(collectionName)) {
+            collectionName = this.mongoOperations.getCollectionName(entityClass);
+        }
+        this.collectionName = collectionName;
+    }
 
-	public MongoOperations getMongoOperations() {
-		return mongoOperations;
-	}
+    public MongoOperations getMongoOperations() {
+        return mongoOperations;
+    }
 
-	public String getCollectionName() {
-		return collectionName;
-	}
+    public String getCollectionName() {
+        return collectionName;
+    }
 
-	public Class<T> getEntityClass() {
-		return entityClass;
-	}
+    public Class<T> getEntityClass() {
+        return entityClass;
+    }
 
-	public void insert(T entity) {
-		mongoOperations.insert(entity, this.collectionName);
-	}
+    public void insert(T entity) {
+        mongoOperations.insert(entity, this.collectionName);
+    }
 
-	public void insertBatch(Collection<T> entities) {
-		if (CollectionUtils.isNotEmpty(entities)) {
-			List<T> validaEntities = StreamUtils.toNonNullList(entities);
-			mongoOperations.insert(validaEntities, this.collectionName);
-		}
-	}
+    public void insertBatch(Collection<T> entities) {
+        if (CollectionUtils.isNotEmpty(entities)) {
+            List<T> validaEntities = StreamUtils.toNonNullList(entities);
+            mongoOperations.insert(validaEntities, this.collectionName);
+        }
+    }
 
-	public void save(T entity) {
-		mongoOperations.save(entity, this.collectionName);
-	}
+    public void save(T entity) {
+        mongoOperations.save(entity, this.collectionName);
+    }
 
-	public void saveBatch(Collection<T> entities) {
-		if (CollectionUtils.isNotEmpty(entities)) {
-			List<T> insertEntities = entities.stream()
-				.filter(entity -> Objects.nonNull(entity) && Objects.isNull(entity.getId()))
-				.toList();
-			if (!insertEntities.isEmpty()) {
-				mongoOperations.insert(insertEntities, this.collectionName);
-			}
+    public void saveBatch(Collection<T> entities) {
+        if (CollectionUtils.isNotEmpty(entities)) {
+            List<T> insertEntities = entities.stream()
+                    .filter(entity -> Objects.nonNull(entity) && Objects.isNull(entity.getId()))
+                    .toList();
+            if (!insertEntities.isEmpty()) {
+                mongoOperations.insert(insertEntities, this.collectionName);
+            }
 
-			List<T> updateEntities = entities.stream()
-				.filter(entity -> Objects.nonNull(entity) && Objects.nonNull(entity.getId()))
-				.toList();
-			if (!updateEntities.isEmpty()) {
-				for (T updateEntity : updateEntities) {
-					mongoOperations.save(updateEntity, this.collectionName);
-				}
-			}
-		}
-	}
+            List<T> updateEntities = entities.stream()
+                    .filter(entity -> Objects.nonNull(entity) && Objects.nonNull(entity.getId()))
+                    .toList();
+            if (!updateEntities.isEmpty()) {
+                for (T updateEntity : updateEntities) {
+                    mongoOperations.save(updateEntity, this.collectionName);
+                }
+            }
+        }
+    }
 
-	public boolean removeById(String id) {
-		DeleteResult result = mongoOperations.remove(queryById(id), this.entityClass, this.collectionName);
-		return result.wasAcknowledged() && result.getDeletedCount() == 1;
-	}
+    public boolean removeById(String id) {
+        DeleteResult result = mongoOperations.remove(queryById(id), this.entityClass, this.collectionName);
+        return result.wasAcknowledged() && result.getDeletedCount() == 1;
+    }
 
-	public boolean removeByIds(Collection<String> ids) {
-		List<String> validIds = StringUtils.getUniqueNotBlankElements(ids);
-		Query query = new Query(new Criteria(ID_FIELD_NAME).in(validIds));
-		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
-		return result.wasAcknowledged() && result.getDeletedCount() == validIds.size();
-	}
+    public boolean removeByIds(Collection<String> ids) {
+        List<String> validIds = StringUtils.getUniqueNotBlankElements(ids);
+        Query query = new Query(new Criteria(ID_FIELD_NAME).in(validIds));
+        DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
+        return result.wasAcknowledged() && result.getDeletedCount() == validIds.size();
+    }
 
-	public boolean removeByObjectId(ObjectId id) {
-		DeleteResult result = mongoOperations.remove(queryByObjectId(id), this.entityClass, this.collectionName);
-		return result.wasAcknowledged() && result.getDeletedCount() == 1;
-	}
+    public boolean removeByObjectId(ObjectId id) {
+        DeleteResult result = mongoOperations.remove(queryByObjectId(id), this.entityClass, this.collectionName);
+        return result.wasAcknowledged() && result.getDeletedCount() == 1;
+    }
 
-	public boolean removeByObjectIds(Collection<ObjectId> ids) {
-		Set<String> validIds = ids.stream()
-			.filter(Objects::nonNull)
-			.map(ObjectId::toHexString)
-			.collect(Collectors.toSet());
-		Query query = new Query(new Criteria(ID_FIELD_NAME).in(validIds));
-		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
-		return result.wasAcknowledged() && result.getDeletedCount() == validIds.size();
-	}
+    public boolean removeByObjectIds(Collection<ObjectId> ids) {
+        Set<String> validIds = ids.stream()
+                .filter(Objects::nonNull)
+                .map(ObjectId::toHexString)
+                .collect(Collectors.toSet());
+        Query query = new Query(new Criteria(ID_FIELD_NAME).in(validIds));
+        DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
+        return result.wasAcknowledged() && result.getDeletedCount() == validIds.size();
+    }
 
-	public boolean remove(Query query) {
-		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
-		return result.wasAcknowledged() && result.getDeletedCount() > 0;
-	}
+    public boolean remove(Query query) {
+        DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
+        return result.wasAcknowledged() && result.getDeletedCount() > 0;
+    }
 
-	public T getById(String id) {
-		return mongoOperations.findById(id, this.entityClass, this.collectionName);
-	}
+    public T getById(String id) {
+        return mongoOperations.findById(id, this.entityClass, this.collectionName);
+    }
 
-	public Optional<T> getOptionalById(String id) {
-		return Optional.ofNullable(mongoOperations.findById(id, this.entityClass, this.collectionName));
-	}
+    public Optional<T> getOptionalById(String id) {
+        return Optional.ofNullable(mongoOperations.findById(id, this.entityClass, this.collectionName));
+    }
 
-	public T getByObjectId(ObjectId id) {
-		return mongoOperations.findById(id, this.entityClass, this.collectionName);
-	}
+    public T getByObjectId(ObjectId id) {
+        return mongoOperations.findById(id, this.entityClass, this.collectionName);
+    }
 
-	public Optional<T> getOptionalByObjectId(ObjectId id) {
-		return Optional.ofNullable(mongoOperations.findById(id, this.entityClass, this.collectionName));
-	}
+    public Optional<T> getOptionalByObjectId(ObjectId id) {
+        return Optional.ofNullable(mongoOperations.findById(id, this.entityClass, this.collectionName));
+    }
 
-	public T getOne(Query query) {
-		return mongoOperations.findOne(query, this.entityClass, this.collectionName);
-	}
+    public T getOne(Query query) {
+        return mongoOperations.findOne(query, this.entityClass, this.collectionName);
+    }
 
-	public boolean existsById(String id) {
-		return mongoOperations.exists(queryById(id), this.entityClass, this.collectionName);
-	}
+    public boolean existsById(String id) {
+        return mongoOperations.exists(queryById(id), this.entityClass, this.collectionName);
+    }
 
-	public boolean existsByObjectId(ObjectId id) {
-		return mongoOperations.exists(queryByObjectId(id), this.entityClass, this.collectionName);
-	}
+    public boolean existsByObjectId(ObjectId id) {
+        return mongoOperations.exists(queryByObjectId(id), this.entityClass, this.collectionName);
+    }
 
-	public boolean exist(Query query) {
-		return mongoOperations.exists(query, this.entityClass, this.collectionName);
-	}
+    public boolean exist(Query query) {
+        return mongoOperations.exists(query, this.entityClass, this.collectionName);
+    }
 
-	public List<T> listByIds(Collection<String> ids) {
-		if (CollectionUtils.isEmpty(ids)) {
-			return Collections.emptyList();
-		}
-		return mongoOperations.find(queryByIds(ids), this.entityClass, this.collectionName);
-	}
+    public List<T> listByIds(Collection<String> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Collections.emptyList();
+        }
+        return mongoOperations.find(queryByIds(ids), this.entityClass, this.collectionName);
+    }
 
-	public List<T> listByObjectIds(Collection<ObjectId> ids) {
-		if (CollectionUtils.isEmpty(ids)) {
-			return Collections.emptyList();
-		}
-		return mongoOperations.find(queryByObjectIds(ids), this.entityClass, this.collectionName);
-	}
+    public List<T> listByObjectIds(Collection<ObjectId> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Collections.emptyList();
+        }
+        return mongoOperations.find(queryByObjectIds(ids), this.entityClass, this.collectionName);
+    }
 
-	public List<T> list() {
-		return mongoOperations.findAll(this.entityClass, this.collectionName);
-	}
+    public List<T> list() {
+        return mongoOperations.findAll(this.entityClass, this.collectionName);
+    }
 
-	public List<T> list(Sort sort) {
-		return mongoOperations.find(new Query().with(sort), this.entityClass, this.collectionName);
-	}
+    public List<T> list(Sort sort) {
+        return mongoOperations.find(new Query().with(sort), this.entityClass, this.collectionName);
+    }
 
-	public List<T> list(Query query) {
-		return mongoOperations.find(query, this.entityClass, this.collectionName);
-	}
+    public List<T> list(Query query) {
+        return mongoOperations.find(query, this.entityClass, this.collectionName);
+    }
 
-	public long count() {
-		return mongoOperations.count(new Query(), this.collectionName);
-	}
+    public long count() {
+        return mongoOperations.count(new Query(), this.collectionName);
+    }
 
-	public long count(Query query) {
-		return mongoOperations.count(query, this.collectionName);
-	}
+    public long count(Query query) {
+        return mongoOperations.count(query, this.collectionName);
+    }
 
-	public Page<T> page(Pageable pageable) {
-		long count = count();
-		List<T> list = list(new Query().with(pageable));
-		return new PageImpl<>(list, pageable, count);
-	}
+    public Page<T> page(Pageable pageable) {
+        long count = count();
+        List<T> list = list(new Query().with(pageable));
+        return new PageImpl<>(list, pageable, count);
+    }
 
-	public Page<T> page(Pageable pageable, Sort sort) {
-		long count = count();
-		List<T> list = list(new Query().with(pageable).with(sort));
-		return new PageImpl<>(list, pageable, count);
-	}
+    public Page<T> page(Pageable pageable, Sort sort) {
+        long count = count();
+        List<T> list = list(new Query().with(pageable).with(sort));
+        return new PageImpl<>(list, pageable, count);
+    }
 
-	public Page<T> page(Pageable pageable, Query query) {
-		long count = count(query);
-		List<T> list = list(query.with(pageable));
-		return new PageImpl<>(list, pageable, count);
-	}
+    public Page<T> page(Pageable pageable, Query query) {
+        long count = count(query);
+        List<T> list = list(query.with(pageable));
+        return new PageImpl<>(list, pageable, count);
+    }
 
-	public Page<T> page(Pageable pageable, Query query, Sort sort) {
-		long count = count(query);
-		List<T> list = list(query.with(pageable).with(sort));
-		return new PageImpl<>(list, pageable, count);
-	}
+    public Page<T> page(Pageable pageable, Query query, Sort sort) {
+        long count = count(query);
+        List<T> list = list(query.with(pageable).with(sort));
+        return new PageImpl<>(list, pageable, count);
+    }
 
-	protected Query queryByObjectId(ObjectId id) {
-		Criteria criteria = criteriaById(id.toHexString());
-		return new Query(criteria);
-	}
+    protected Query queryByObjectId(ObjectId id) {
+        Criteria criteria = criteriaById(id.toHexString());
+        return new Query(criteria);
+    }
 
-	protected Query queryById(String id) {
-		Criteria criteria = criteriaById(id);
-		return new Query(criteria);
-	}
+    protected Query queryById(String id) {
+        Criteria criteria = criteriaById(id);
+        return new Query(criteria);
+    }
 
-	public Query queryByIds(Collection<String> ids) {
-		List<String> validIds = StringUtils.getUniqueNotBlankElements(ids);
-		return new Query(new Criteria(ID_FIELD_NAME).in(validIds));
-	}
+    public Query queryByIds(Collection<String> ids) {
+        List<String> validIds = StringUtils.getUniqueNotBlankElements(ids);
+        return new Query(new Criteria(ID_FIELD_NAME).in(validIds));
+    }
 
-	public Query queryByObjectIds(Collection<ObjectId> ids) {
-		Set<String> validIds = ids.stream()
-			.filter(Objects::nonNull)
-			.map(ObjectId::toHexString)
-			.collect(Collectors.toSet());
-		return new Query(new Criteria(ID_FIELD_NAME).in(validIds));
-	}
+    public Query queryByObjectIds(Collection<ObjectId> ids) {
+        Set<String> validIds = ids.stream()
+                .filter(Objects::nonNull)
+                .map(ObjectId::toHexString)
+                .collect(Collectors.toSet());
+        return new Query(new Criteria(ID_FIELD_NAME).in(validIds));
+    }
 
-	protected Criteria criteriaById(String id) {
-		return where(ID_FIELD_NAME).is(id);
-	}
+    protected Criteria criteriaById(String id) {
+        return where(ID_FIELD_NAME).is(id);
+    }
 }
