@@ -1,6 +1,8 @@
 package io.github.pangju666.framework.core.lang.pool;
 
 public class ConstantPool extends io.github.pangju666.commons.lang.pool.ConstantPool {
+    // Redis相关常量
+    public static final String REDIS_PATH_DELIMITER = "::";
     // 鉴权相关常量
     public static final String ADMIN_ROLE = "admin";
 

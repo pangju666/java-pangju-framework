@@ -1,5 +1,6 @@
 package io.github.pangju666.framework.data.redis.utils;
 
+import io.github.pangju666.framework.core.lang.pool.ConstantPool;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.redis.connection.DataType;
@@ -12,14 +13,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class RedisUtils {
-    // Redis相关常量
-    public static final String REDIS_PATH_DELIMITER = "::";
-
     protected RedisUtils() {
     }
 
     public static String generateKey(final String... element) {
-        return StringUtils.join(Arrays.asList(element), REDIS_PATH_DELIMITER);
+        return StringUtils.join(Arrays.asList(element), ConstantPool.REDIS_PATH_DELIMITER);
     }
 
     public static <K> Set<K> likeRightKeys(final String keyword, final RedisTemplate<K, ?> redisTemplate) {
