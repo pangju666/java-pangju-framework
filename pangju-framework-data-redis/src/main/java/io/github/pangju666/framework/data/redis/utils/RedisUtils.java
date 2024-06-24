@@ -1,7 +1,6 @@
 package io.github.pangju666.framework.data.redis.utils;
 
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.redis.connection.DataType;
@@ -13,7 +12,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class RedisUtils {
@@ -212,34 +210,6 @@ public class RedisUtils {
             builder.match(pattern);
         }
         return builder.build();
-    }
-
-    public static <K> Long delete(final Collection<K> keys, final RedisTemplate<K, ?> redisTemplate,
-                                  final Function<RedisTemplate<K, ?>, Long> function) {
-        return delete(keys, redisTemplate, function, DELETE_RETRY_TIMES);
-    }
-
-    public static <K> Long delete(final Collection<K> keys, final RedisTemplate<K, ?> redisTemplate,
-                                  final Function<RedisTemplate<K, ?>, Long> function, int retryTimes) {
-        if (CollectionUtils.isEmpty(keys)) {
-            return 0L;
-        }
-        Long deleteCount = function.apply(redisTemplate);
-        if (Objects.isNull(deleteCount)) {
-            return 0L;
-        } else if (deleteCount < keys.size()) {
-            long count = keys.size() - deleteCount;
-            long times = 0;
-            while (times <= retryTimes && count > 0) {
-                Long tmpCount = function.apply(redisTemplate);
-                if (Objects.nonNull(tmpCount)) {
-                    ++times;
-                    count -= tmpCount;
-                    deleteCount += tmpCount;
-                }
-            }
-        }
-        return deleteCount;
     }
 
     protected static <K, V> Map<K, V> toMap(final List<Map.Entry<K, V>> entries) {
