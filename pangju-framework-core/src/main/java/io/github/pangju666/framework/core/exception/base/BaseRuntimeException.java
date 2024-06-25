@@ -1,6 +1,7 @@
 package io.github.pangju666.framework.core.exception.base;
 
 import io.github.pangju666.framework.core.lang.pool.ConstantPool;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
@@ -69,8 +70,7 @@ public abstract class BaseRuntimeException extends RuntimeException {
     }
 
     public Throwable getMostSpecificCause() {
-        Throwable rootCause = getRootCause();
-        return (rootCause != null ? rootCause : this);
+        return ObjectUtils.defaultIfNull(getRootCause(), this);
     }
 
     public boolean contains(Class<?> exType) {
