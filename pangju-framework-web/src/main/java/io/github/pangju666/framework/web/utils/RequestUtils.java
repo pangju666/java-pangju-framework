@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class RequestUtils {
@@ -144,7 +145,7 @@ public class RequestUtils {
             return Collections.emptyMap();
         }
         try (InputStream inputStream = request.getInputStream()) {
-            String requestBodyStr = new String(inputStream.readAllBytes());
+            String requestBodyStr = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
             JsonElement requestBody = JsonUtils.parseString(requestBodyStr);
             if (!requestBody.isJsonObject()) {
                 return Collections.emptyMap();
