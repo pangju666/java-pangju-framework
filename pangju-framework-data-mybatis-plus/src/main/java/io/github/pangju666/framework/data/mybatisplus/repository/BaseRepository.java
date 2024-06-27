@@ -50,21 +50,23 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
         return lambdaQuery().eq(column, value).one();
     }
 
-    public <V> List<?> listColumnValue(SFunction<T, V> column) {
+    public <V> List<V> listColumnValue(SFunction<T, V> column) {
         return listColumnValue(column, false, true);
     }
 
-    public <V> List<?> listUniqueColumnValue(SFunction<T, V> column) {
+    public <V> List<V> listUniqueColumnValue(SFunction<T, V> column) {
         return listColumnValue(column, true, true);
     }
 
-    public <V> List<?> listColumnValue(SFunction<T, V> column, boolean unique, boolean nonNull) {
+    public <V> List<V> listColumnValue(SFunction<T, V> column, boolean unique, boolean nonNull) {
         Assert.notNull(column, "column 不可为空");
         var queryWrapper = lambdaQuery().select(column);
         if (nonNull) {
             queryWrapper = queryWrapper.isNotNull(column);
         }
-        var stream = queryWrapper.list().stream().map(column);
+        var stream = queryWrapper.list()
+                .stream()
+                .map(column);
         if (unique) {
             stream = stream.distinct();
         }
@@ -104,7 +106,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends Service
         if (CollectionUtils.isEmpty(values)) {
             return Collections.emptyList();
         }
-        List<?> validList = StreamUtils.toNonNullList(values);
+        List<V> validList = StreamUtils.toNonNullList(values);
         if (validList.size() <= batchSize) {
             return lambdaQuery().in(column, validList).list();
         }
