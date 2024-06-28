@@ -9,12 +9,6 @@ public abstract class BasicDO extends AutoIDBasicDO {
     @TableField(update = "CURRENT_TIMESTAMP")
     protected Date updateTime;
 
-    @Deprecated(forRemoval = true)
-    public static String formatId(Long id) {
-        String idStr = id.toString();
-        return "0".repeat(Math.max(0, 4 - idStr.length())) + id;
-    }
-
     public Date getCreateTime() {
         return createTime;
     }
