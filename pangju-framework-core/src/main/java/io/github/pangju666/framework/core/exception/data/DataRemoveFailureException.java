@@ -1,6 +1,4 @@
-package io.github.pangju666.framework.core.exception.data.operation;
-
-import io.github.pangju666.framework.core.exception.data.DataAccessException;
+package io.github.pangju666.framework.core.exception.data;
 
 public class DataRemoveFailureException extends DataAccessException {
     public DataRemoveFailureException() {

@@ -1,12 +1,21 @@
 package io.github.pangju666.framework.core.utils;
 
-import io.github.pangju666.framework.core.exception.data.operation.DataCreateFailureException;
-import io.github.pangju666.framework.core.exception.data.operation.DataRemoveFailureException;
-import io.github.pangju666.framework.core.exception.data.operation.DataSaveFailureException;
-import io.github.pangju666.framework.core.exception.data.operation.DataUpdateFailureException;
+import io.github.pangju666.framework.core.exception.data.*;
 
 public class DataAccessAssert {
     protected DataAccessAssert() {
+    }
+
+    public static void query(boolean expression) {
+        if (!expression) {
+            throw new DataQueryFailureException();
+        }
+    }
+
+    public static void query(boolean expression, final String message) {
+        if (!expression) {
+            throw new DataQueryFailureException(message);
+        }
     }
 
     public static void create(boolean expression) {

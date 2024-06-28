@@ -1,6 +1,4 @@
-package io.github.pangju666.framework.core.exception.data.query;
-
-import io.github.pangju666.framework.core.exception.data.DataAccessException;
+package io.github.pangju666.framework.core.exception.data;
 
 public class DataQueryFailureException extends DataAccessException {
     public DataQueryFailureException() {
