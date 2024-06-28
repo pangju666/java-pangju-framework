@@ -4,35 +4,9 @@ import io.github.pangju666.framework.core.exception.data.operation.DataCreateFai
 import io.github.pangju666.framework.core.exception.data.operation.DataRemoveFailureException;
 import io.github.pangju666.framework.core.exception.data.operation.DataSaveFailureException;
 import io.github.pangju666.framework.core.exception.data.operation.DataUpdateFailureException;
-import io.github.pangju666.framework.core.exception.data.query.DataRecordExistException;
-import io.github.pangju666.framework.core.exception.data.query.DataRecordNotExistException;
 
 public class DataAccessAssert {
     protected DataAccessAssert() {
-    }
-
-    public static void notExist(boolean expression) {
-        if (!expression) {
-            throw new DataRecordExistException();
-        }
-    }
-
-    public static void notExist(boolean expression, final String message) {
-        if (!expression) {
-            throw new DataRecordExistException(message);
-        }
-    }
-
-    public static void exist(boolean expression) {
-        if (!expression) {
-            throw new DataRecordNotExistException();
-        }
-    }
-
-    public static void exist(boolean expression, final String message) {
-        if (!expression) {
-            throw new DataRecordNotExistException(message);
-        }
     }
 
     public static void create(boolean expression) {
