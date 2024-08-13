@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
+import com.fasterxml.jackson.databind.ser.std.NullSerializer;
 import io.github.pangju666.commons.lang.utils.DesensitizationUtils;
 import io.github.pangju666.framework.core.jackson.annotation.DesensitizeFormat;
 import io.github.pangju666.framework.core.jackson.enums.DesensitizedType;
@@ -86,7 +87,7 @@ public class DesensitizedJsonSerializer extends JsonSerializer<String> implement
     @Override
     public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property) throws JsonMappingException {
         if (Objects.isNull(property)) {
-            return prov.findNullValueSerializer(null);
+			return NullSerializer.instance;
         }
         if (Objects.equals(property.getType().getRawClass(), String.class)) {
             DesensitizeFormat desensitizeFormat = property.getAnnotation(DesensitizeFormat.class);
