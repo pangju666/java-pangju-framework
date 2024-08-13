@@ -10,6 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +24,14 @@ public class RequestUtils {
 
     protected RequestUtils() {
     }
+
+	public static HttpServletRequest getCurrentRequest() {
+		return ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
+	}
+
+	public static RequestAttributes getCurrentRequestAttributes() {
+		return RequestContextHolder.currentRequestAttributes();
+	}
 
     public static boolean isFormMobile(final String userAgent) {
         if (!userAgent.contains("Windows NT") || (userAgent.contains("Windows NT") && userAgent.contains("compatible; MSIE 9.0;"))) {
