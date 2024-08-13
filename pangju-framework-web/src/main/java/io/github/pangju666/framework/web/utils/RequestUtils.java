@@ -141,9 +141,10 @@ public class RequestUtils {
     }
 
     public static Map<String, Object> getRequestBodyMap(final HttpServletRequest request) throws IOException {
-        if (!MediaType.APPLICATION_JSON_VALUE.equals(request.getContentType())) {
-            return Collections.emptyMap();
-        }
+		if (!MediaType.APPLICATION_JSON_VALUE.equals(request.getContentType()) &&
+			!MediaType.APPLICATION_JSON_UTF8_VALUE.equals(request.getContentType())) {
+			return Collections.emptyMap();
+		}
         try (InputStream inputStream = request.getInputStream()) {
             String requestBodyStr = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
             JsonElement requestBody = JsonUtils.parseString(requestBodyStr);
