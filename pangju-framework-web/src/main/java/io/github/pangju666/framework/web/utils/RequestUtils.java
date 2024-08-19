@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -156,14 +157,19 @@ public class RequestUtils {
 			!MediaType.APPLICATION_JSON_UTF8_VALUE.equals(request.getContentType())) {
 			return Collections.emptyMap();
 		}
-        try (InputStream inputStream = request.getInputStream()) {
-            String requestBodyStr = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            JsonElement requestBody = JsonUtils.parseString(requestBodyStr);
-            if (!requestBody.isJsonObject()) {
-                return Collections.emptyMap();
-            }
-            return JsonUtils.fromJson(requestBody, new TypeToken<Map<String, Object>>() {
-            });
-        }
+		String requestBodyStr;
+		if (request instanceof ContentCachingRequestWrapper requestWrapper) {
+			requestBodyStr = requestWrapper.getContentAsString();
+		} else {
+			try (InputStream inputStream = request.getInputStream()) {
+				requestBodyStr = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+			}
+		}
+		JsonElement requestBody = JsonUtils.parseString(requestBodyStr);
+		if (!requestBody.isJsonObject()) {
+			return Collections.emptyMap();
+		}
+		return JsonUtils.fromJson(requestBody, new TypeToken<Map<String, Object>>() {
+		});
     }
 }
