@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.util.Date;
 
 public class DateJsonSerializer extends JsonSerializer<Date> {
-    @Override
-    public void serialize(Date value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeNumber(DateUtils.getTime(value));
-    }
+	@Override
+	public void serialize(Date value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+		gen.writeNumber(DateUtils.getTime(value));
+	}
 }

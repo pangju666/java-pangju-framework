@@ -13,13 +13,13 @@ import java.lang.annotation.RetentionPolicy;
 @JacksonAnnotationsInside
 @JsonSerialize(using = DesensitizedJsonSerializer.class)
 public @interface DesensitizeFormat {
-    DesensitizedType type() default DesensitizedType.CUSTOM;
+	DesensitizedType type() default DesensitizedType.CUSTOM;
 
-    String format() default "";
+	String format() default "";
 
-    String regex() default "";
+	String regex() default "";
 
-    int prefix() default -1;
+	int prefix() default -1;
 
-    int suffix() default -1;
+	int suffix() default -1;
 }
