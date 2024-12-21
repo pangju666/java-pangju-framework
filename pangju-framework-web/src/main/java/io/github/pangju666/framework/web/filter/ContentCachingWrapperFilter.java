@@ -12,18 +12,19 @@ import java.io.IOException;
 import java.util.Set;
 
 public class ContentCachingWrapperFilter extends BaseRequestFilter {
-    public ContentCachingWrapperFilter(Set<String> excludePathPatterns) {
-        super(excludePathPatterns);
-    }
+	public ContentCachingWrapperFilter(Set<String> excludePathPatterns) {
+		super(excludePathPatterns);
+	}
 
-    @Override
-    protected void handle(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
-        ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
-        filterChain.doFilter(requestWrapper, responseWrapper);
-        try (ServletOutputStream outputStream = response.getOutputStream()) {
-            response.setContentType(responseWrapper.getContentType());
-            responseWrapper.getContentInputStream().transferTo(outputStream);
-        }
-    }
+	@Override
+	protected void handle(HttpServletRequest request, HttpServletResponse response,
+						  FilterChain filterChain) throws ServletException, IOException {
+		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
+		ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
+		filterChain.doFilter(requestWrapper, responseWrapper);
+		try (ServletOutputStream outputStream = response.getOutputStream()) {
+			response.setContentType(responseWrapper.getContentType());
+			responseWrapper.getContentInputStream().transferTo(outputStream);
+		}
+	}
 }

@@ -13,31 +13,32 @@ import java.util.Collections;
 import java.util.Set;
 
 public class CorsFilter extends org.springframework.web.filter.CorsFilter {
-    private final PathMatcher pathMatcher;
-    private final Set<String> excludePathPatterns;
+	private final PathMatcher pathMatcher;
+	private final Set<String> excludePathPatterns;
 
-    public CorsFilter(CorsConfigurationSource configSource) {
-        this(configSource, Collections.emptySet());
-    }
+	public CorsFilter(CorsConfigurationSource configSource) {
+		this(configSource, Collections.emptySet());
+	}
 
-    public CorsFilter(CorsConfigurationSource configSource, Set<String> excludePathPatterns) {
-        super(configSource);
-        this.pathMatcher = new AntPathMatcher();
-        this.excludePathPatterns = excludePathPatterns;
-    }
+	public CorsFilter(CorsConfigurationSource configSource, Set<String> excludePathPatterns) {
+		super(configSource);
+		this.pathMatcher = new AntPathMatcher();
+		this.excludePathPatterns = excludePathPatterns;
+	}
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (excludePathPatterns.isEmpty()) {
-            super.doFilterInternal(request, response, filterChain);
-            return;
-        }
-        for (String excludePathPattern : excludePathPatterns) {
-            if (pathMatcher.matchStart(excludePathPattern, request.getServletPath())) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-        }
-        super.doFilterInternal(request, response, filterChain);
-    }
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+									FilterChain filterChain) throws ServletException, IOException {
+		if (excludePathPatterns.isEmpty()) {
+			super.doFilterInternal(request, response, filterChain);
+			return;
+		}
+		for (String excludePathPattern : excludePathPatterns) {
+			if (pathMatcher.matchStart(excludePathPattern, request.getServletPath())) {
+				filterChain.doFilter(request, response);
+				return;
+			}
+		}
+		super.doFilterInternal(request, response, filterChain);
+	}
 }

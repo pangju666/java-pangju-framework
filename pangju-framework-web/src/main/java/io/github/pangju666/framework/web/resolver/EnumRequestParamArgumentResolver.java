@@ -19,6 +19,7 @@ public class EnumRequestParamArgumentResolver implements HandlerMethodArgumentRe
         return parameter.hasParameterAnnotation(EnumRequestParam.class) && parameter.getParameterType().isEnum();
     }
 
+	@SuppressWarnings("unchecked")
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {

@@ -6,11 +6,11 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface EnumRequestParam {
-    String value() default "";
+	String value() default "";
 
-    boolean required() default true;
+	boolean required() default true;
 
-    String defaultValue() default "";
+	String defaultValue() default "";
 
-    String description();
+	String description();
 }

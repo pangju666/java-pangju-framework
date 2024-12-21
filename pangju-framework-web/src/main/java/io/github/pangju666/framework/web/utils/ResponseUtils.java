@@ -18,84 +18,84 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 public class ResponseUtils {
-    protected static final Logger logger = LoggerFactory.getLogger(ResponseUtils.class);
+	protected static final Logger logger = LoggerFactory.getLogger(ResponseUtils.class);
 
-    protected ResponseUtils() {
-    }
+	protected ResponseUtils() {
+	}
 
-    public static void setAttachmentHeader(final HttpServletResponse response, final String filename) {
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + URLEncoder.encode(filename, StandardCharsets.UTF_8));
-    }
+	public static void setAttachmentHeader(final HttpServletResponse response, final String filename) {
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + URLEncoder.encode(filename, StandardCharsets.UTF_8));
+	}
 
-    public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response) {
-        writeBytesToResponse(bytes, response, HttpStatus.OK.value());
-    }
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response) {
+		writeBytesToResponse(bytes, response, HttpStatus.OK.value());
+	}
 
-    public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, final HttpStatus status) {
-        writeBytesToResponse(bytes, response, status.value());
-    }
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, final HttpStatus status) {
+		writeBytesToResponse(bytes, response, status.value());
+	}
 
-    public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, int status) {
-        try (OutputStream outputStream = response.getOutputStream()) {
-            response.setStatus(status);
-            outputStream.write(bytes);
-        } catch (IOException e) {
-            throw new ServerException("Http Servlet 响应值写入失败", e);
-        }
-    }
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, int status) {
+		try (OutputStream outputStream = response.getOutputStream()) {
+			response.setStatus(status);
+			outputStream.write(bytes);
+		} catch (IOException e) {
+			throw new ServerException("Http Servlet 响应值写入失败", e);
+		}
+	}
 
-    public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response) {
-        writeInputStreamToResponse(inputStream, response, HttpStatus.OK.value());
-    }
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response) {
+		writeInputStreamToResponse(inputStream, response, HttpStatus.OK.value());
+	}
 
-    public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response, final HttpStatus status) {
-        writeInputStreamToResponse(inputStream, response, status.value());
-    }
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response, final HttpStatus status) {
+		writeInputStreamToResponse(inputStream, response, status.value());
+	}
 
-    public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response, int status) {
-        try (OutputStream outputStream = response.getOutputStream()) {
-            response.setStatus(status);
-            inputStream.transferTo(outputStream);
-        } catch (IOException e) {
-            throw new ServerException("Http Servlet 响应值写入失败", e);
-        }
-    }
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response, int status) {
+		try (OutputStream outputStream = response.getOutputStream()) {
+			response.setStatus(status);
+			inputStream.transferTo(outputStream);
+		} catch (IOException e) {
+			throw new ServerException("Http Servlet 响应值写入失败", e);
+		}
+	}
 
-    public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response) {
-        writeResultToResponse(Result.ok(bean), response, HttpStatus.OK.value());
-    }
+	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response) {
+		writeResultToResponse(Result.ok(bean), response, HttpStatus.OK.value());
+	}
 
-    public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final HttpStatus status) {
-        writeResultToResponse(Result.ok(bean), response, status.value());
-    }
+	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final HttpStatus status) {
+		writeResultToResponse(Result.ok(bean), response, status.value());
+	}
 
-    public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response) {
-        exception.log(logger);
-        writeResultToResponse(Result.failByException(exception), response, exception.getHttpStatus());
-    }
+	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response) {
+		exception.log(logger);
+		writeResultToResponse(Result.failByException(exception), response, exception.getHttpStatus());
+	}
 
-    public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, final HttpStatus httpStatus) {
-        exception.log(logger);
-        writeResultToResponse(Result.failByException(exception), response, httpStatus.value());
-    }
+	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, final HttpStatus httpStatus) {
+		exception.log(logger);
+		writeResultToResponse(Result.failByException(exception), response, httpStatus.value());
+	}
 
-    public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, int httpStatus) {
-        exception.log(logger);
-        writeResultToResponse(Result.failByException(exception), response, httpStatus);
-    }
+	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, int httpStatus) {
+		exception.log(logger);
+		writeResultToResponse(Result.failByException(exception), response, httpStatus);
+	}
 
-    public static <T> void writeResultToResponse(final Result<T> data, final HttpServletResponse response, final HttpStatus httpStatus) {
-        writeResultToResponse(data, response, httpStatus.value());
-    }
+	public static <T> void writeResultToResponse(final Result<T> data, final HttpServletResponse response, final HttpStatus httpStatus) {
+		writeResultToResponse(data, response, httpStatus.value());
+	}
 
-    public static <T> void writeResultToResponse(final Result<T> data, final HttpServletResponse response, int status) {
-        try (OutputStream outputStream = response.getOutputStream()) {
-            response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
-            response.setStatus(status);
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            outputStream.write(JsonUtils.toString(data).getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new ServerException("Http Servlet 响应值写入失败", e);
-        }
-    }
+	public static <T> void writeResultToResponse(final Result<T> data, final HttpServletResponse response, int status) {
+		try (OutputStream outputStream = response.getOutputStream()) {
+			response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
+			response.setStatus(status);
+			response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+			outputStream.write(JsonUtils.toString(data).getBytes(StandardCharsets.UTF_8));
+		} catch (IOException e) {
+			throw new ServerException("Http Servlet 响应值写入失败", e);
+		}
+	}
 }

@@ -13,32 +13,34 @@ import java.util.Collections;
 import java.util.Set;
 
 public abstract class BaseRequestFilter extends OncePerRequestFilter {
-    private final PathMatcher pathMatcher;
-    private final Set<String> excludePathPatterns;
+	private final PathMatcher pathMatcher;
+	private final Set<String> excludePathPatterns;
 
-    protected BaseRequestFilter() {
-        this(Collections.emptySet());
-    }
+	protected BaseRequestFilter() {
+		this(Collections.emptySet());
+	}
 
-    protected BaseRequestFilter(Set<String> excludePathPatterns) {
-        this.pathMatcher = new AntPathMatcher();
-        this.excludePathPatterns = excludePathPatterns;
-    }
+	protected BaseRequestFilter(Set<String> excludePathPatterns) {
+		this.pathMatcher = new AntPathMatcher();
+		this.excludePathPatterns = excludePathPatterns;
+	}
 
-    @Override
-    protected final void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (excludePathPatterns.isEmpty()) {
-            handle(request, response, filterChain);
-            return;
-        }
-        for (String excludePathPattern : excludePathPatterns) {
-            if (pathMatcher.match(excludePathPattern, request.getServletPath())) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-        }
-        handle(request, response, filterChain);
-    }
+	@Override
+	protected final void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+										  FilterChain filterChain) throws ServletException, IOException {
+		if (excludePathPatterns.isEmpty()) {
+			handle(request, response, filterChain);
+			return;
+		}
+		for (String excludePathPattern : excludePathPatterns) {
+			if (pathMatcher.match(excludePathPattern, request.getServletPath())) {
+				filterChain.doFilter(request, response);
+				return;
+			}
+		}
+		handle(request, response, filterChain);
+	}
 
-    protected abstract void handle(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException;
+	protected abstract void handle(HttpServletRequest request, HttpServletResponse response,
+								   FilterChain filterChain) throws ServletException, IOException;
 }

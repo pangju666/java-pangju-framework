@@ -7,19 +7,19 @@ import java.util.List;
 import java.util.Set;
 
 public class ExcludePathPatternProvider {
-    private final List<String> excludePaths;
-    private final Set<String> excludePathSet;
+	private final List<String> excludePaths;
+	private final Set<String> excludePathSet;
 
-    public ExcludePathPatternProvider(List<String> excludePaths) {
-        this.excludePaths = excludePaths;
-        this.excludePathSet = new HashSet<>(ListUtils.emptyIfNull(excludePaths));
-    }
+	public ExcludePathPatternProvider(List<String> excludePaths) {
+		this.excludePaths = excludePaths;
+		this.excludePathSet = new HashSet<>(ListUtils.emptyIfNull(excludePaths));
+	}
 
-    public List<String> getExcludePaths() {
-        return excludePaths;
-    }
+	public List<String> getExcludePaths() {
+		return excludePaths;
+	}
 
-    public Set<String> getExcludePathSet() {
-        return excludePathSet;
-    }
+	public Set<String> getExcludePathSet() {
+		return excludePathSet;
+	}
 }
