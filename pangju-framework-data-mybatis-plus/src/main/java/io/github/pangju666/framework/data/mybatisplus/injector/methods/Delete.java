@@ -8,31 +8,31 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlSource;
 
 public class Delete extends AbstractMethod {
-    public Delete() {
-        this(SqlMethod.DELETE.getMethod());
-    }
+	public Delete() {
+		this(SqlMethod.DELETE.getMethod());
+	}
 
-    public Delete(String name) {
-        super(name);
-    }
+	public Delete(String name) {
+		super(name);
+	}
 
-    @Override
-    public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
-        String sql;
-        SqlMethod sqlMethod = SqlMethod.LOGIC_DELETE;
-        if (tableInfo.isWithLogicDelete()) {
-            String sqlSet = TableLogicFillUtils.logicDelSetSql(tableInfo);
-            sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), sqlSet,
-                    sqlWhereEntityWrapper(true, tableInfo), sqlComment());
-            SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
-            return this.addUpdateMappedStatement(mapperClass, modelClass, methodName, sqlSource);
-        } else {
-            sqlMethod = SqlMethod.DELETE;
-            sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(),
-                    sqlWhereEntityWrapper(true, tableInfo),
-                    sqlComment());
-            SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
-            return this.addDeleteMappedStatement(mapperClass, methodName, sqlSource);
-        }
-    }
+	@Override
+	public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+		String sql;
+		SqlMethod sqlMethod = SqlMethod.LOGIC_DELETE;
+		if (tableInfo.isWithLogicDelete()) {
+			String sqlSet = TableLogicFillUtils.logicDelSetSql(tableInfo);
+			sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), sqlSet,
+				sqlWhereEntityWrapper(true, tableInfo), sqlComment());
+			SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
+			return this.addUpdateMappedStatement(mapperClass, modelClass, methodName, sqlSource);
+		} else {
+			sqlMethod = SqlMethod.DELETE;
+			sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(),
+				sqlWhereEntityWrapper(true, tableInfo),
+				sqlComment());
+			SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
+			return this.addDeleteMappedStatement(mapperClass, methodName, sqlSource);
+		}
+	}
 }

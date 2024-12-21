@@ -11,7 +11,7 @@ import java.util.List;
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
 public class IntegerVarcharListTypeHandler extends GenericsVarcharListTypeHandler<Integer> {
-    public IntegerVarcharListTypeHandler() {
-        super(value -> StringUtils.isBlank(value) ? null : Integer.valueOf(value));
-    }
+	public IntegerVarcharListTypeHandler() {
+		super(value -> StringUtils.isBlank(value) ? null : Integer.valueOf(value));
+	}
 }

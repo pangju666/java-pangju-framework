@@ -11,7 +11,7 @@ import java.util.List;
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
 public class LongVarcharListTypeHandler extends GenericsVarcharListTypeHandler<Long> {
-    public LongVarcharListTypeHandler() {
-        super((value) -> StringUtils.isBlank(value) ? null : Long.valueOf(value));
-    }
+	public LongVarcharListTypeHandler() {
+		super((value) -> StringUtils.isBlank(value) ? null : Long.valueOf(value));
+	}
 }

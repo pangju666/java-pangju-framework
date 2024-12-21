@@ -20,65 +20,65 @@ import java.util.*;
 @MappedTypes({Object.class})
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public class JacksonTypeHandler extends BaseTypeHandler<Object> {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private final Class<?> type;
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+	private final Class<?> type;
 
-    public JacksonTypeHandler(Class<?> type) {
-        Assert.notNull(type, "Type argument cannot be null");
-        this.type = type;
-    }
+	public JacksonTypeHandler(Class<?> type) {
+		Assert.notNull(type, "Type argument cannot be null");
+		this.type = type;
+	}
 
-    @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType) throws SQLException {
-        ps.setString(i, toJson(parameter));
-    }
+	@Override
+	public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType) throws SQLException {
+		ps.setString(i, toJson(parameter));
+	}
 
-    @Override
-    public Object getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        final String json = rs.getString(columnName);
-        return StringUtils.isBlank(json) ? getNullValue() : parse(json);
-    }
+	@Override
+	public Object getNullableResult(ResultSet rs, String columnName) throws SQLException {
+		final String json = rs.getString(columnName);
+		return StringUtils.isBlank(json) ? getNullValue() : parse(json);
+	}
 
-    @Override
-    public Object getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        final String json = rs.getString(columnIndex);
-        return StringUtils.isBlank(json) ? getNullValue() : parse(json);
-    }
+	@Override
+	public Object getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+		final String json = rs.getString(columnIndex);
+		return StringUtils.isBlank(json) ? getNullValue() : parse(json);
+	}
 
-    @Override
-    public Object getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        final String json = cs.getString(columnIndex);
-        return StringUtils.isBlank(json) ? getNullValue() : parse(json);
-    }
+	@Override
+	public Object getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+		final String json = cs.getString(columnIndex);
+		return StringUtils.isBlank(json) ? getNullValue() : parse(json);
+	}
 
-    private Object parse(String json) {
-        try {
-            return OBJECT_MAPPER.readValue(json, type);
-        } catch (IOException e) {
-            throw new ServerException("json字符串解析失败", e);
-        }
-    }
+	private Object parse(String json) {
+		try {
+			return OBJECT_MAPPER.readValue(json, type);
+		} catch (IOException e) {
+			throw new ServerException("json字符串解析失败", e);
+		}
+	}
 
-    private String toJson(Object obj) {
-        try {
-            return OBJECT_MAPPER.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            throw new ServerException("json字符串转换失败", e);
-        }
-    }
+	private String toJson(Object obj) {
+		try {
+			return OBJECT_MAPPER.writeValueAsString(obj);
+		} catch (JsonProcessingException e) {
+			throw new ServerException("json字符串转换失败", e);
+		}
+	}
 
-    private Object getNullValue() {
-        if (type.isAssignableFrom(List.class)) {
-            return Collections.emptyList();
-        } else if (type.isAssignableFrom(Set.class)) {
-            return Collections.emptySet();
-        } else if (type.isAssignableFrom(Map.class)) {
-            return Collections.emptyMap();
-        } else if (type.isAssignableFrom(Enumeration.class)) {
-            return Collections.emptyEnumeration();
-        } else if (type.isAssignableFrom(Iterator.class)) {
-            return Collections.emptyIterator();
-        }
-        return null;
-    }
+	private Object getNullValue() {
+		if (type.isAssignableFrom(List.class)) {
+			return Collections.emptyList();
+		} else if (type.isAssignableFrom(Set.class)) {
+			return Collections.emptySet();
+		} else if (type.isAssignableFrom(Map.class)) {
+			return Collections.emptyMap();
+		} else if (type.isAssignableFrom(Enumeration.class)) {
+			return Collections.emptyEnumeration();
+		} else if (type.isAssignableFrom(Iterator.class)) {
+			return Collections.emptyIterator();
+		}
+		return null;
+	}
 }

@@ -19,47 +19,47 @@ import java.util.function.Function;
 @MappedTypes({Object.class})
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public abstract class GenericsVarcharListTypeHandler<T> extends BaseTypeHandler<List<T>> {
-    private final Function<String, T> mapper;
-    private final String delimiter;
+	private final Function<String, T> mapper;
+	private final String delimiter;
 
-    public GenericsVarcharListTypeHandler(Function<String, T> mapper) {
-        this(",", mapper);
-    }
+	public GenericsVarcharListTypeHandler(Function<String, T> mapper) {
+		this(",", mapper);
+	}
 
-    public GenericsVarcharListTypeHandler(String delimiter, Function<String, T> mapper) {
-        this.delimiter = delimiter;
-        this.mapper = mapper;
-    }
+	public GenericsVarcharListTypeHandler(String delimiter, Function<String, T> mapper) {
+		this.delimiter = delimiter;
+		this.mapper = mapper;
+	}
 
-    @Override
-    public void setNonNullParameter(PreparedStatement ps, int i, List<T> parameter, JdbcType jdbcType) throws SQLException {
-        List<String> values = parameter.stream()
-                .map(element -> Objects.isNull(element) ? StringUtils.EMPTY : element.toString())
-                .toList();
-        ps.setString(i, String.join(delimiter, values));
-    }
+	@Override
+	public void setNonNullParameter(PreparedStatement ps, int i, List<T> parameter, JdbcType jdbcType) throws SQLException {
+		List<String> values = parameter.stream()
+			.map(element -> Objects.isNull(element) ? StringUtils.EMPTY : element.toString())
+			.toList();
+		ps.setString(i, String.join(delimiter, values));
+	}
 
-    @Override
-    public List<T> getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        return getListResult(rs.getString(columnName));
-    }
+	@Override
+	public List<T> getNullableResult(ResultSet rs, String columnName) throws SQLException {
+		return getListResult(rs.getString(columnName));
+	}
 
-    @Override
-    public List<T> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        return getListResult(rs.getString(columnIndex));
-    }
+	@Override
+	public List<T> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+		return getListResult(rs.getString(columnIndex));
+	}
 
-    @Override
-    public List<T> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        return getListResult(cs.getString(columnIndex));
-    }
+	@Override
+	public List<T> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+		return getListResult(cs.getString(columnIndex));
+	}
 
-    protected List<T> getListResult(String result) {
-        if (StringUtils.isBlank(result)) {
-            return Collections.emptyList();
-        }
-        return Arrays.stream(result.split(delimiter))
-                .map(value -> mapper.apply(result))
-                .toList();
-    }
+	protected List<T> getListResult(String result) {
+		if (StringUtils.isBlank(result)) {
+			return Collections.emptyList();
+		}
+		return Arrays.stream(result.split(delimiter))
+			.map(value -> mapper.apply(result))
+			.toList();
+	}
 }
