@@ -1,7 +1,6 @@
 package io.github.pangju666.framework.web.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.gson.reflect.TypeToken;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.core.exception.base.BaseRuntimeException;
 import io.github.pangju666.framework.core.lang.pool.Constants;
@@ -49,7 +48,6 @@ public record Result<T>(
 
 	@Override
 	public String toString() {
-		return JsonUtils.toString(this, new TypeToken<Result<T>>() {
-		});
+		return JsonUtils.toString(this);
 	}
 }

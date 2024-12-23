@@ -2,6 +2,7 @@ package io.github.pangju666.framework.http.utils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import io.github.pangju666.commons.lang.pool.ConstantPool;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.core.exception.remote.RemoteServiceException;
 import io.github.pangju666.framework.core.exception.remote.RemoteServiceTimeoutException;
@@ -229,7 +230,7 @@ public class ResultApiUtils {
 			if (httpMethod.equals(HttpMethod.POST) || httpMethod.equals(HttpMethod.PUT)) {
 				requestBodySpec
 					.contentType(MediaType.APPLICATION_JSON)
-					.body(Constants.EMPTY_JSON_OBJECT_STR);
+					.body(ConstantPool.EMPTY_JSON_OBJECT_STR);
 			}
 			if (Objects.nonNull(requestBody)) {
 				if (requestBody instanceof JsonObject jsonBody) {

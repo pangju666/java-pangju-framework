@@ -1,6 +1,5 @@
 package io.github.pangju666.framework.web.utils;
 
-import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.core.exception.base.BaseRuntimeException;
 import io.github.pangju666.framework.core.exception.base.ServerException;
 import io.github.pangju666.framework.web.model.Result;
@@ -93,7 +92,7 @@ public class ResponseUtils {
 			response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
 			response.setStatus(status);
 			response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-			outputStream.write(JsonUtils.toString(data).getBytes(StandardCharsets.UTF_8));
+			outputStream.write(data.toString().getBytes(StandardCharsets.UTF_8));
 		} catch (IOException e) {
 			throw new ServerException("Http Servlet 响应值写入失败", e);
 		}
