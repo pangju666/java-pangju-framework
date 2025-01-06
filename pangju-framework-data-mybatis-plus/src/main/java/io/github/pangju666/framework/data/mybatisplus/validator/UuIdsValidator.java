@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 
 public class UuIdsValidator implements ConstraintValidator<UUIds, Collection<String>> {
-	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.UUID, true, true);
+	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.UUID_SIMPLE, true, true);
 
 	private boolean allMatch;
 	private boolean notEmpty;

@@ -10,7 +10,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.regex.Pattern;
 
 public class UuIdValidator implements ConstraintValidator<UUId, String> {
-	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.UUID, true, true);
+	private static final Pattern PATTERN = RegExUtils.compile(RegExPool.UUID_SIMPLE, true, true);
 
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext context) {
