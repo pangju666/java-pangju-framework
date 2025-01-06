@@ -1,6 +1,6 @@
 package io.github.pangju666.framework.data.mybatisplus.annotation.validation;
 
-import io.github.pangju666.framework.data.mybatisplus.validator.AutoIdsValidator;
+import io.github.pangju666.framework.data.mybatisplus.validator.UuIdValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -14,15 +14,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = AutoIdsValidator.class)
-public @interface AutoIds {
-	String message() default "存在无效的id";
+@Constraint(validatedBy = UuIdValidator.class)
+public @interface UUId {
+	String message() default "不是有效的id";
 
 	Class<?>[] groups() default {};
 
 	Class<? extends Payload>[] payload() default {};
-
-	boolean allMatch() default true;
-
-	boolean notEmpty() default false;
 }
