@@ -26,6 +26,12 @@ public class RequestUtils {
 	protected RequestUtils() {
 	}
 
+	public static String getRequestUrl(HttpServletRequest request) {
+		StringBuffer url = request.getRequestURL();
+		String contextPath = request.getServletContext().getContextPath();
+		return url.delete(url.length() - request.getRequestURI().length(), url.length()).append(contextPath).toString();
+	}
+
 	public static HttpServletRequest getCurrentRequest() {
 		return ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
 	}
