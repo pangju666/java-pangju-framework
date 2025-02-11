@@ -21,11 +21,11 @@ import java.util.List;
 
 @MappedTypes({Object.class})
 @MappedJdbcTypes(JdbcType.VARCHAR)
-public abstract class GenericsJsonListTypeHandler<T> extends BaseTypeHandler<List<T>> {
+public abstract class GenericsJsonArrayToListTypeHandler<T> extends BaseTypeHandler<List<T>> {
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private final TypeReference<List<T>> typeReference;
 
-	public GenericsJsonListTypeHandler(TypeReference<List<T>> typeReference) {
+	public GenericsJsonArrayToListTypeHandler(TypeReference<List<T>> typeReference) {
 		Assert.notNull(typeReference, "TypeReference argument cannot be null");
 		this.typeReference = typeReference;
 	}

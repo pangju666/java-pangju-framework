@@ -1,6 +1,6 @@
-package io.github.pangju666.framework.data.mybatisplus.type.handler;
+package io.github.pangju666.framework.data.mybatisplus.type.handler.list;
 
-import io.github.pangju666.framework.data.mybatisplus.type.handler.base.GenericsVarcharListTypeHandler;
+import io.github.pangju666.framework.data.mybatisplus.type.handler.base.GenericsVarcharToListTypeHandler;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
@@ -10,8 +10,8 @@ import java.util.List;
 
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
-public class BooleanVarcharListTypeHandler extends GenericsVarcharListTypeHandler<Boolean> {
-	public BooleanVarcharListTypeHandler() {
+public class BooleanVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<Boolean> {
+	public BooleanVarcharToListTypeHandler() {
 		super((value) -> BooleanUtils.toBooleanObject(value, "true", "false", "null"));
 	}
 }

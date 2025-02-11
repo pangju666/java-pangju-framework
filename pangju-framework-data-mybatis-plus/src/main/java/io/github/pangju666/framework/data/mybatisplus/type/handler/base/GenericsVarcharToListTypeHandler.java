@@ -18,15 +18,15 @@ import java.util.function.Function;
 
 @MappedTypes({Object.class})
 @MappedJdbcTypes(JdbcType.VARCHAR)
-public abstract class GenericsVarcharListTypeHandler<T> extends BaseTypeHandler<List<T>> {
+public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandler<List<T>> {
 	private final Function<String, T> mapper;
 	private final String delimiter;
 
-	public GenericsVarcharListTypeHandler(Function<String, T> mapper) {
+	public GenericsVarcharToListTypeHandler(Function<String, T> mapper) {
 		this(",", mapper);
 	}
 
-	public GenericsVarcharListTypeHandler(String delimiter, Function<String, T> mapper) {
+	public GenericsVarcharToListTypeHandler(String delimiter, Function<String, T> mapper) {
 		this.delimiter = delimiter;
 		this.mapper = mapper;
 	}
