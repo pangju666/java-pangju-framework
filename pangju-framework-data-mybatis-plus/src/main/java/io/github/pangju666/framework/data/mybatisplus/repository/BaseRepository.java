@@ -20,21 +20,41 @@ import java.util.stream.Collectors;
 public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRepository<M, T> {
 	protected static final int DEFAULT_LIST_BATCH_SIZE = 500;
 
-	public List<T> listByJsonArrayElement(String columnName, Object jsonArrayElement) {
+	public List<T> listByJsonObjectValue(String columnName, String jsonObjectKey, Object jsonObjectValue) {
 		return lambdaQuery()
-			.apply("{0} member of ({1})", jsonArrayElement, columnName)
+			.apply("{0}->>'$.{1}' = '{2}'", columnName, jsonObjectKey, jsonObjectValue.toString())
 			.list();
 	}
 
-	public List<T> listByJsonArrayElement(LambdaQueryChainWrapper<T> queryChainWrapper, String columnName, Object jsonArrayElement) {
+	public List<T> listByJsonObjectValue(LambdaQueryChainWrapper<T> queryChainWrapper, String columnName,
+										 String jsonObjectKey, Object jsonObjectValue) {
 		return queryChainWrapper
-			.apply("{0} member of ({1})", jsonArrayElement, columnName)
+			.apply("{0}->>'$.{1}' = '{2}'", columnName, jsonObjectKey, jsonObjectValue.toString())
 			.list();
 	}
 
-	public List<T> listByJsonArrayElement(QueryChainWrapper<T> queryChainWrapper, String columnName, Object jsonArrayElement) {
+	public List<T> listByJsonObjectValue(QueryChainWrapper<T> queryChainWrapper, String columnName,
+										 String jsonObjectKey, Object jsonObjectValue) {
 		return queryChainWrapper
-			.apply("{0} member of ({1})", jsonArrayElement, columnName)
+			.apply("{0}->>'$.{1}' = '{2}'", columnName, jsonObjectKey, jsonObjectValue.toString())
+			.list();
+	}
+
+	public List<T> listByJsonArrayValue(String columnName, Object jsonArrayValue) {
+		return lambdaQuery()
+			.apply("{0} member of ({1})", jsonArrayValue, columnName)
+			.list();
+	}
+
+	public List<T> listByJsonArrayValue(LambdaQueryChainWrapper<T> queryChainWrapper, String columnName, Object jsonArrayValue) {
+		return queryChainWrapper
+			.apply("{0} member of ({1})", jsonArrayValue, columnName)
+			.list();
+	}
+
+	public List<T> listByJsonArrayValue(QueryChainWrapper<T> queryChainWrapper, String columnName, Object jsonArrayValue) {
+		return queryChainWrapper
+			.apply("{0} member of ({1})", jsonArrayValue, columnName)
 			.list();
 	}
 
