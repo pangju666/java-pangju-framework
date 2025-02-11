@@ -2,6 +2,8 @@ package io.github.pangju666.framework.data.mybatisplus.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.repository.CrudRepository;
 import io.github.pangju666.commons.lang.utils.StreamUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
@@ -17,6 +19,24 @@ import java.util.stream.Collectors;
 
 public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRepository<M, T> {
 	protected static final int DEFAULT_LIST_BATCH_SIZE = 500;
+
+	public List<T> listByJsonArrayElement(String columnName, Object jsonArrayElement) {
+		return lambdaQuery()
+			.apply("{0} member of ({1})", jsonArrayElement, columnName)
+			.list();
+	}
+
+	public List<T> listByJsonArrayElement(LambdaQueryChainWrapper<T> queryChainWrapper, String columnName, Object jsonArrayElement) {
+		return queryChainWrapper
+			.apply("{0} member of ({1})", jsonArrayElement, columnName)
+			.list();
+	}
+
+	public List<T> listByJsonArrayElement(QueryChainWrapper<T> queryChainWrapper, String columnName, Object jsonArrayElement) {
+		return queryChainWrapper
+			.apply("{0} member of ({1})", jsonArrayElement, columnName)
+			.list();
+	}
 
 	public boolean existById(Serializable id) {
 		return Objects.nonNull(getById(id));
@@ -63,16 +83,29 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public <V> List<V> listColumnValue(SFunction<T, V> column) {
-		return listColumnValue(column, false, true);
+		return listColumnValue(lambdaQuery(), column, false, true);
+	}
+
+	public <V> List<V> listColumnValue(LambdaQueryChainWrapper<T> queryChainWrapper, SFunction<T, V> column) {
+		return listColumnValue(queryChainWrapper, column, false, true);
 	}
 
 	public <V> List<V> listUniqueColumnValue(SFunction<T, V> column) {
-		return listColumnValue(column, true, true);
+		return listColumnValue(lambdaQuery(), column, true, true);
+	}
+
+	public <V> List<V> listUniqueColumnValue(LambdaQueryChainWrapper<T> queryChainWrapper, SFunction<T, V> column) {
+		return listColumnValue(queryChainWrapper, column, false, true);
 	}
 
 	public <V> List<V> listColumnValue(SFunction<T, V> column, boolean unique, boolean nonNull) {
+		return listColumnValue(lambdaQuery(), column, unique, nonNull);
+	}
+
+	public <V> List<V> listColumnValue(LambdaQueryChainWrapper<T> queryChainWrapper,
+									   SFunction<T, V> column, boolean unique, boolean nonNull) {
 		Assert.notNull(column, "column 不可为空");
-		var queryWrapper = lambdaQuery().select(column);
+		var queryWrapper = queryChainWrapper.select(column);
 		if (nonNull) {
 			queryWrapper = queryWrapper.isNotNull(column);
 		}
@@ -142,20 +175,26 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public <V> List<T> listByNotNullColumn(SFunction<T, V> column) {
+		return listByNotNullColumn(lambdaQuery(), column);
+	}
+
+	public <V> List<T> listByNotNullColumn(LambdaQueryChainWrapper<T> queryChainWrapper,
+										   SFunction<T, V> column) {
 		Assert.notNull(column, "column 不可为空");
-		return lambdaQuery()
-			.isNotNull(column)
-			.list();
+		return queryChainWrapper.isNull(column).list();
 	}
 
 	public <V> List<T> listByNullColumn(SFunction<T, V> column) {
-		Assert.notNull(column, "column 不可为空");
-		return lambdaQuery()
-			.isNull(column)
-			.list();
+		return listByNullColumn(lambdaQuery(), column);
 	}
 
-	public <V> List<T> listByLikeColumnValue(SFunction<T, V> column, String value) {
+	public <V> List<T> listByNullColumn(LambdaQueryChainWrapper<T> queryChainWrapper,
+										SFunction<T, V> column) {
+		Assert.notNull(column, "column 不可为空");
+		return queryChainWrapper.isNull(column).list();
+	}
+
+	public List<T> listByLikeColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
@@ -165,7 +204,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.list();
 	}
 
-	public <V> List<T> listByLikeLeftColumnValue(SFunction<T, V> column, String value) {
+	public List<T> listByLikeLeftColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
@@ -175,7 +214,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.list();
 	}
 
-	public <V> List<T> listByLikeRightColumnValue(SFunction<T, V> column, String value) {
+	public List<T> listByLikeRightColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
@@ -185,7 +224,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.list();
 	}
 
-	public <V> List<T> listByNotLikeColumnValue(SFunction<T, V> column, String value) {
+	public List<T> listByNotLikeColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
@@ -195,7 +234,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.list();
 	}
 
-	public <V> List<T> listByNotLikeLeftColumnValue(SFunction<T, V> column, String value) {
+	public List<T> listByNotLikeLeftColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
@@ -205,7 +244,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.list();
 	}
 
-	public <V> List<T> listByNotLikeRightColumnValue(SFunction<T, V> column, String value) {
+	public List<T> listByNotLikeRightColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
@@ -312,7 +351,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 				.remove());
 	}
 
-	public <V> boolean removeByLikeColumnValue(SFunction<T, V> column, String value) {
+	public boolean removeByLikeColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
@@ -322,7 +361,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.remove();
 	}
 
-	public <V> boolean removeByNotLikeColumnValue(SFunction<T, V> column, String value) {
+	public boolean removeByNotLikeColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
@@ -332,7 +371,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.remove();
 	}
 
-	public <V> boolean removeByLikeLeftColumnValue(SFunction<T, V> column, String value) {
+	public boolean removeByLikeLeftColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
@@ -342,13 +381,33 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.remove();
 	}
 
-	public <V> boolean removeByLikeRightColumnValue(SFunction<T, V> column, String value) {
+	public boolean removeByNotLikeLeftColumnValue(SFunction<T, String> column, String value) {
+		Assert.notNull(column, "column 不可为空");
+		if (StringUtils.isEmpty(value)) {
+			return false;
+		}
+		return lambdaUpdate()
+			.notLikeLeft(column, value)
+			.remove();
+	}
+
+	public boolean removeByLikeRightColumnValue(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
 		}
 		return lambdaUpdate()
 			.likeRight(column, value)
+			.remove();
+	}
+
+	public boolean removeByNotLikeRightColumnValue(SFunction<T, String> column, String value) {
+		Assert.notNull(column, "column 不可为空");
+		if (StringUtils.isEmpty(value)) {
+			return false;
+		}
+		return lambdaUpdate()
+			.notLikeRight(column, value)
 			.remove();
 	}
 }

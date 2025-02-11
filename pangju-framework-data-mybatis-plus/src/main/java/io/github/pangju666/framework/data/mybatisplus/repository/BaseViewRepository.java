@@ -133,22 +133,22 @@ public abstract class BaseViewRepository<M extends BaseMapper<T>, T> extends Bas
 	}
 
 	@Override
-	public final <V> boolean removeByLikeColumnValue(SFunction<T, V> column, String value) {
+	public final boolean removeByLikeColumnValue(SFunction<T, String> column, String value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public final <V> boolean removeByNotLikeColumnValue(SFunction<T, V> column, String value) {
+	public final boolean removeByNotLikeColumnValue(SFunction<T, String> column, String value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public final <V> boolean removeByLikeLeftColumnValue(SFunction<T, V> column, String value) {
+	public final boolean removeByLikeLeftColumnValue(SFunction<T, String> column, String value) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public final <V> boolean removeByLikeRightColumnValue(SFunction<T, V> column, String value) {
+	public final boolean removeByLikeRightColumnValue(SFunction<T, String> column, String value) {
 		throw new UnsupportedOperationException();
 	}
 }
