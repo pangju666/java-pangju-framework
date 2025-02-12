@@ -286,4 +286,29 @@ public class ResultApiUtils {
 			throw new RemoteServiceException(remoteServiceError);
 		}
 	}
+
+	public static RemoteServiceException throwException(RestClientResponseException exception,
+														RemoteServiceError remoteServiceError,
+														String errorMessageMemberName) {
+		if (exception instanceof HttpServerErrorException.GatewayTimeout) {
+			throw new RemoteServiceTimeoutException(remoteServiceError);
+		}
+		JsonObject jsonObject = JsonUtils.parseString(exception.getResponseBodyAsString()).getAsJsonObject();
+		String message = jsonObject.getAsJsonPrimitive(errorMessageMemberName).getAsString();
+		throw new RemoteServiceException(remoteServiceError.clone(message));
+	}
+
+	public static RemoteServiceException throwException(RestClientResponseException exception,
+														RemoteServiceErrorBuilder builder,
+														String errorMessageMemberName) {
+		if (exception instanceof HttpServerErrorException.GatewayTimeout) {
+			throw new RemoteServiceTimeoutException(builder.build());
+		}
+		JsonObject jsonObject = JsonUtils.parseString(exception.getResponseBodyAsString()).getAsJsonObject();
+		String message = jsonObject.getAsJsonPrimitive(errorMessageMemberName).getAsString();
+		RemoteServiceError remoteServiceError = builder
+			.message(message)
+			.build();
+		throw new RemoteServiceException(remoteServiceError);
+	}
 }

@@ -8,4 +8,8 @@ public record RemoteServiceError(String service,
 								 String message,
 								 Integer code,
 								 Integer httpStatus) {
+
+	public RemoteServiceError clone(String message) {
+		return new RemoteServiceError(service, api, uri, message, code, httpStatus);
+	}
 }
