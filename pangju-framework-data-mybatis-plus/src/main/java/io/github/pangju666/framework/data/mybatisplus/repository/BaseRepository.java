@@ -3,10 +3,10 @@ package io.github.pangju666.framework.data.mybatisplus.repository;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
-import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.extension.repository.CrudRepository;
 import io.github.pangju666.commons.lang.utils.StreamUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
+import io.github.pangju666.framework.core.lang.pool.Constants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.lang.Nullable;
@@ -33,10 +33,15 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.list();
 	}
 
-	public List<T> listByJsonObjectValue(QueryChainWrapper<T> queryChainWrapper, String columnName,
-										 String jsonObjectKey, Object jsonObjectValue) {
+	public <V> List<T> listByEmptyJsonObject(SFunction<T, V> column) {
+		return lambdaQuery()
+			.like(column, Constants.EMPTY_JSON_OBJECT_STR)
+			.list();
+	}
+
+	public <V> List<T> listByEmptyJsonObject(LambdaQueryChainWrapper<T> queryChainWrapper, SFunction<T, V> column) {
 		return queryChainWrapper
-			.apply("{0}->>'$.{1}' = '{2}'", columnName, jsonObjectKey, jsonObjectValue.toString())
+			.like(column, Constants.EMPTY_JSON_OBJECT_STR)
 			.list();
 	}
 
@@ -52,9 +57,15 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.list();
 	}
 
-	public List<T> listByJsonArrayValue(QueryChainWrapper<T> queryChainWrapper, String columnName, Object jsonArrayValue) {
+	public <V> List<T> listByEmptyJsonArray(SFunction<T, V> column) {
+		return lambdaQuery()
+			.like(column, Constants.EMPTY_JSON_ARRAY_STR)
+			.list();
+	}
+
+	public <V> List<T> listByEmptyJsonArray(LambdaQueryChainWrapper<T> queryChainWrapper, SFunction<T, V> column) {
 		return queryChainWrapper
-			.apply("{0} member of ({1})", jsonArrayValue, columnName)
+			.like(column, Constants.EMPTY_JSON_ARRAY_STR)
 			.list();
 	}
 
