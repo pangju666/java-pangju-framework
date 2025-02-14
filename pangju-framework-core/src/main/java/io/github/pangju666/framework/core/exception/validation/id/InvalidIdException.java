@@ -11,6 +11,10 @@ public class InvalidIdException extends ValidationException {
 		super(message);
 	}
 
+	public InvalidIdException(Throwable cause) {
+		super("不是合法的id", cause);
+	}
+
 	public InvalidIdException(String message, Throwable cause) {
 		super(message, cause);
 	}

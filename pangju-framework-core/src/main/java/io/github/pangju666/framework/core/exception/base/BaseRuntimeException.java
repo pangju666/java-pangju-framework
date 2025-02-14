@@ -6,39 +6,30 @@ import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
 public abstract class BaseRuntimeException extends RuntimeException {
-	private int code;
-	private int httpStatus;
+	private int code = Constants.BASE_ERROR_RESPONSE_CODE;
+	private int httpStatus = Constants.OK_HTTP_STATUS_CODE;
+	private boolean log = true;
 
 	protected BaseRuntimeException(String message) {
 		super(message);
-		this.code = Constants.BASE_ERROR_RESPONSE_CODE;
-		this.httpStatus = Constants.OK_HTTP_STATUS_CODE;
 	}
 
 	protected BaseRuntimeException(int code, String message) {
 		super(message);
 		this.code = code;
-		this.httpStatus = Constants.OK_HTTP_STATUS_CODE;
 	}
 
 	protected BaseRuntimeException(String message, Throwable cause) {
 		super(message, cause);
-		this.code = Constants.BASE_ERROR_RESPONSE_CODE;
-		this.httpStatus = Constants.OK_HTTP_STATUS_CODE;
 	}
 
 	protected BaseRuntimeException(int code, String message, Throwable cause) {
 		super(message, cause);
 		this.code = code;
-		this.httpStatus = Constants.OK_HTTP_STATUS_CODE;
 	}
 
 	public int getCode() {
 		return code;
-	}
-
-	protected void setCode(int code) {
-		this.code = code;
 	}
 
 	public int getHttpStatus() {
@@ -47,6 +38,14 @@ public abstract class BaseRuntimeException extends RuntimeException {
 
 	protected void setHttpStatus(int httpStatus) {
 		this.httpStatus = httpStatus;
+	}
+
+	public boolean isLog() {
+		return log;
+	}
+
+	protected void setLog(boolean log) {
+		this.log = log;
 	}
 
 	public void log(Logger logger) {

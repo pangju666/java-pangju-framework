@@ -11,6 +11,10 @@ public class InvalidIdentifierException extends ValidationException {
 		super(message);
 	}
 
+	public InvalidIdentifierException(Throwable cause) {
+		super("不是合法的标识符", cause);
+	}
+
 	public InvalidIdentifierException(String message, Throwable cause) {
 		super(message, cause);
 	}

@@ -11,6 +11,10 @@ public class IdNotExistException extends ValidationException {
 		super(message);
 	}
 
+	public IdNotExistException(Throwable cause) {
+		super("id不存在", cause);
+	}
+
 	public IdNotExistException(String message, Throwable cause) {
 		super(message, cause);
 	}

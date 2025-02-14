@@ -6,6 +6,7 @@ public class AuthenticationExpireException extends AuthenticationException {
 	public AuthenticationExpireException(String message) {
 		super(Constants.AUTHENTICATION_EXPIRE_ERROR_RESPONSE_CODE, message);
 		this.setHttpStatus(Constants.UNAUTHORIZED_HTTP_STATUS_CODE);
+		this.setLog(false);
 	}
 
 	public AuthenticationExpireException(String message, String reason) {
@@ -16,6 +17,7 @@ public class AuthenticationExpireException extends AuthenticationException {
 	public AuthenticationExpireException(String message, Throwable cause) {
 		super(Constants.AUTHENTICATION_EXPIRE_ERROR_RESPONSE_CODE, message, cause);
 		this.setHttpStatus(Constants.UNAUTHORIZED_HTTP_STATUS_CODE);
+		this.setLog(false);
 	}
 
 	public AuthenticationExpireException(String message, String reason, Throwable cause) {

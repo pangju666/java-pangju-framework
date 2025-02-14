@@ -11,6 +11,10 @@ public class DataNotExistException extends ValidationException {
 		super(message);
 	}
 
+	public DataNotExistException(Throwable cause) {
+		super("数据不存在", cause);
+	}
+
 	public DataNotExistException(String message, Throwable cause) {
 		super(message, cause);
 	}

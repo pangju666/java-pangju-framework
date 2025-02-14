@@ -11,6 +11,10 @@ public class IdentifierNotExistException extends ValidationException {
 		super(message);
 	}
 
+	public IdentifierNotExistException(Throwable cause) {
+		super("标识符不存在", cause);
+	}
+
 	public IdentifierNotExistException(String message, Throwable cause) {
 		super(message, cause);
 	}

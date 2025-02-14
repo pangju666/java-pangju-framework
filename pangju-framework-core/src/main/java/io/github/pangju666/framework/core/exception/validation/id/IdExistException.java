@@ -11,6 +11,10 @@ public class IdExistException extends ValidationException {
 		super(message);
 	}
 
+	public IdExistException(Throwable cause) {
+		super("id已存在", cause);
+	}
+
 	public IdExistException(String message, Throwable cause) {
 		super(message, cause);
 	}

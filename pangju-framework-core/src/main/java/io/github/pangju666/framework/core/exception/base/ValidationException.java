@@ -9,21 +9,25 @@ public class ValidationException extends BaseRuntimeException {
 	public ValidationException(String message) {
 		super(Constants.VALIDATION_ERROR_RESPONSE_CODE, message);
 		this.setHttpStatus(Constants.BAD_REQUEST_HTTP_STATUS_CODE);
+		this.setLog(false);
 	}
 
 	public ValidationException(String message, Throwable cause) {
 		super(Constants.VALIDATION_ERROR_RESPONSE_CODE, message, cause);
 		this.setHttpStatus(Constants.BAD_REQUEST_HTTP_STATUS_CODE);
+		this.setLog(false);
 	}
 
 	protected ValidationException(int code, String message) {
 		super(code, message);
 		this.setHttpStatus(Constants.BAD_REQUEST_HTTP_STATUS_CODE);
+		this.setLog(false);
 	}
 
 	protected ValidationException(int code, String message, Throwable cause) {
 		super(code, message, cause);
 		this.setHttpStatus(Constants.BAD_REQUEST_HTTP_STATUS_CODE);
+		this.setLog(false);
 	}
 
 	@Override
