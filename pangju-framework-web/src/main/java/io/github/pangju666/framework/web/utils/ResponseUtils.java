@@ -69,17 +69,23 @@ public class ResponseUtils {
 	}
 
 	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response) {
-		exception.log(logger);
+		if (exception.isLog()) {
+			exception.log(logger);
+		}
 		writeResultToResponse(Result.failByException(exception), response, exception.getHttpStatus());
 	}
 
 	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, final HttpStatus httpStatus) {
-		exception.log(logger);
+		if (exception.isLog()) {
+			exception.log(logger);
+		}
 		writeResultToResponse(Result.failByException(exception), response, httpStatus.value());
 	}
 
 	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, int httpStatus) {
-		exception.log(logger);
+		if (exception.isLog()) {
+			exception.log(logger);
+		}
 		writeResultToResponse(Result.failByException(exception), response, httpStatus);
 	}
 
