@@ -6,13 +6,11 @@
 	<parent>
 		<groupId>io.github.pangju666</groupId>
 		<artifactId>pangju-framework-parent</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>pangju-framework-data-redis</artifactId>
-	<version>1.0.0</version>
-
 	<name>pangju-framework-data-redis</name>
-	<description>java 后端框架Redis模块</description>
+	<description>胖橘框架Redis模块</description>
 
 	<licenses>
 		<license>
