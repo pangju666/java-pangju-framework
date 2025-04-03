@@ -5,15 +5,15 @@
 	<parent>
 		<groupId>io.github.pangju666</groupId>
 		<artifactId>pangju-dependencies</artifactId>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<artifactId>pangju-framework-parent</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<artifactId>pangju-framework</artifactId>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 
 	<name>pangju-framework</name>
-	<description>胖橘框架（基于spring framework、mybatis-pus进行拓展）</description>
+	<description>胖橘框架（基于spring framework拓展）</description>
 	<url>https://github.com/pangju666/java-pangju-framework</url>
 
 	<modules>
@@ -25,7 +25,7 @@
 	</modules>
 
 	<properties>
-		<commons.version>1.0.0-SNAPSHOT</commons.version>
+		<commons.version>1.0.0</commons.version>
 		<skipTests>true</skipTests>
 	</properties>
 
@@ -63,27 +63,27 @@
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-framework-core</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-framework-web</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-framework-data-mybatis-plus</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-framework-data-mongodb</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-framework-data-redis</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>1.0.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -105,9 +105,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
-				<!--<configuration>
+				<configuration>
 					<skip>true</skip>
-				</configuration>-->
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

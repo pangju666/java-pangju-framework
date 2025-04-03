@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.core.exception.remote.model;
+package io.github.pangju666.framework.http.model;
 
 import java.net.URI;
 import java.text.MessageFormat;

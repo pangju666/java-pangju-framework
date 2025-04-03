@@ -1,7 +1,7 @@
-package io.github.pangju666.framework.core.exception.remote;
+package io.github.pangju666.framework.http.exception;
 
 import io.github.pangju666.framework.core.exception.base.ServiceException;
-import io.github.pangju666.framework.core.exception.remote.model.RemoteServiceError;
+import io.github.pangju666.framework.http.model.RemoteServiceError;
 import io.github.pangju666.framework.core.lang.pool.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
