@@ -1,5 +1,7 @@
 package io.github.pangju666.framework.http.model;
 
+import org.springframework.http.HttpStatus;
+
 import java.net.URI;
 import java.text.MessageFormat;
 
@@ -9,30 +11,21 @@ public final class RemoteServiceErrorBuilder {
 	private URI uri;
 	private String message;
 	private Integer code;
-	private Integer httpStatus;
+	private int httpStatus = HttpStatus.OK.value();
 
 	public RemoteServiceErrorBuilder(String service, String api) {
 		this.service = service;
 		this.api = api;
 	}
 
-	public RemoteServiceErrorBuilder(String service, String apiPattern, Object... args) {
+	public RemoteServiceErrorBuilder(String service, String api, URI uri) {
 		this.service = service;
-		this.api = MessageFormat.format(apiPattern, args);
-	}
-
-	public RemoteServiceErrorBuilder uri(String uri) {
-		this.uri = URI.create(uri);
-		return this;
+		this.api = api;
+		this.uri = uri;
 	}
 
 	public RemoteServiceErrorBuilder uri(URI uri) {
 		this.uri = uri;
-		return this;
-	}
-
-	public RemoteServiceErrorBuilder uri(String uriPattern, Object... args) {
-		this.message = MessageFormat.format(uriPattern, args);
 		return this;
 	}
 
@@ -51,7 +44,7 @@ public final class RemoteServiceErrorBuilder {
 		return this;
 	}
 
-	public RemoteServiceErrorBuilder httpStatus(Integer httpStatus) {
+	public RemoteServiceErrorBuilder httpStatus(int httpStatus) {
 		this.httpStatus = httpStatus;
 		return this;
 	}

@@ -4,6 +4,7 @@ import com.mongodb.client.result.DeleteResult;
 import io.github.pangju666.commons.lang.utils.ReflectionUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
 import io.github.pangju666.framework.data.mongo.model.BasicDocument;
+import io.github.pangju666.framework.data.mongo.pool.MongoConstants;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -20,20 +21,11 @@ import java.util.stream.Collectors;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 public abstract class BaseRepository<T extends BasicDocument> {
-	public static final String ID_FIELD_NAME = "_id";
-
 	protected Class<T> entityClass;
 	protected MongoOperations mongoOperations;
 	protected String collectionName;
 
-	protected BaseRepository() {
-	}
-
 	protected BaseRepository(MongoOperations mongoOperations) {
-		init(mongoOperations);
-	}
-
-	public void init(MongoOperations mongoOperations) {
 		this.mongoOperations = mongoOperations;
 		this.entityClass = ReflectionUtils.getClassGenericType(this.getClass());
 		String collectionName = null;
@@ -106,7 +98,7 @@ public abstract class BaseRepository<T extends BasicDocument> {
 
 	public boolean removeByIds(Collection<String> ids) {
 		List<String> validIds = StringUtils.getUniqueNotBlankElements(ids);
-		Query query = new Query(new Criteria(ID_FIELD_NAME).in(validIds));
+		Query query = new Query(new Criteria(MongoConstants.ID_FIELD_NAME).in(validIds));
 		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
 		return result.wasAcknowledged() && result.getDeletedCount() == validIds.size();
 	}
@@ -121,7 +113,7 @@ public abstract class BaseRepository<T extends BasicDocument> {
 			.filter(Objects::nonNull)
 			.map(ObjectId::toHexString)
 			.collect(Collectors.toSet());
-		Query query = new Query(new Criteria(ID_FIELD_NAME).in(validIds));
+		Query query = new Query(new Criteria(MongoConstants.ID_FIELD_NAME).in(validIds));
 		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
 		return result.wasAcknowledged() && result.getDeletedCount() == validIds.size();
 	}
@@ -233,7 +225,7 @@ public abstract class BaseRepository<T extends BasicDocument> {
 
 	public Query queryByIds(Collection<String> ids) {
 		List<String> validIds = StringUtils.getUniqueNotBlankElements(ids);
-		return new Query(new Criteria(ID_FIELD_NAME).in(validIds));
+		return new Query(new Criteria(MongoConstants.ID_FIELD_NAME).in(validIds));
 	}
 
 	public Query queryByObjectIds(Collection<ObjectId> ids) {
@@ -241,10 +233,10 @@ public abstract class BaseRepository<T extends BasicDocument> {
 			.filter(Objects::nonNull)
 			.map(ObjectId::toHexString)
 			.collect(Collectors.toSet());
-		return new Query(new Criteria(ID_FIELD_NAME).in(validIds));
+		return new Query(new Criteria(MongoConstants.ID_FIELD_NAME).in(validIds));
 	}
 
 	protected Criteria criteriaById(String id) {
-		return where(ID_FIELD_NAME).is(id);
+		return where(MongoConstants.ID_FIELD_NAME).is(id);
 	}
 }

@@ -61,12 +61,10 @@ public class RemoteServiceException extends ServiceException {
 			.append(" 接口：")
 			.append(this.remoteServiceError.api());
 		if (Objects.nonNull(this.remoteServiceError.uri())) {
-			builder.append(" url：").append(this.remoteServiceError.uri());
+			builder.append(" 链接：").append(this.remoteServiceError.uri());
 		}
 		builder.append(" 请求失败");
-		if (Objects.nonNull(this.getRemoteService().httpStatus())) {
-			builder.append(" http状态码：").append(this.getRemoteService().httpStatus()).append("，");
-		}
+		builder.append(" http状态码：").append(this.getRemoteService().httpStatus()).append("，");
 		if (Objects.nonNull(this.getRemoteService().code())) {
 			builder.append(" 错误码：").append(this.getRemoteService().code()).append("，");
 		}

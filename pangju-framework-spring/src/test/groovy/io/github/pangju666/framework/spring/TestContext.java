@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.web;
+package io.github.pangju666.framework.spring;
 
 import org.springframework.boot.test.context.TestConfiguration;
 

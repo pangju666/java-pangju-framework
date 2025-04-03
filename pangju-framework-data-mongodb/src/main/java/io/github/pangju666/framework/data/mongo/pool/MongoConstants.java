@@ -14,22 +14,11 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.http.jackson.databind.deserializer;
+package io.github.pangju666.framework.data.mongo.pool;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+public class MongoConstants {
+	public static final String ID_FIELD_NAME = "_id";
 
-import java.io.IOException;
-
-public class ClassJsonDeserializer extends JsonDeserializer<Class> {
-	@Override
-	public Class deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-		try {
-			return Class.forName(p.getText());
-		} catch (ClassNotFoundException | JsonParseException e) {
-			return null;
-		}
+	protected MongoConstants() {
 	}
 }
