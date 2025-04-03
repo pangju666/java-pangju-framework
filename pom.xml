@@ -17,7 +17,7 @@
 	<url>https://github.com/pangju666/java-pangju-framework</url>
 
 	<modules>
-		<module>pangju-framework-core</module>
+		<module>pangju-framework-spring</module>
 		<module>pangju-framework-web</module>
 		<module>pangju-framework-data-mybatis-plus</module>
 		<module>pangju-framework-data-redis</module>
@@ -62,7 +62,7 @@
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-framework-core</artifactId>
+				<artifactId>pangju-framework-spring</artifactId>
 				<version>1.0.0</version>
 			</dependency>
 			<dependency>

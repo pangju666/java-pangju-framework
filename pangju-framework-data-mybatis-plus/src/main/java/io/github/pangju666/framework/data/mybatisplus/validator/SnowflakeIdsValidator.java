@@ -20,6 +20,7 @@ public class SnowflakeIdsValidator implements ConstraintValidator<SnowflakeIds, 
 
 	@Override
 	public boolean isValid(Collection<Long> value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, allMatch, notEmpty, Objects::nonNull);
+		return ConstraintValidatorUtils.validate(value, allMatch, notEmpty,
+			id -> Objects.nonNull(id) && id >= 0);
 	}
 }

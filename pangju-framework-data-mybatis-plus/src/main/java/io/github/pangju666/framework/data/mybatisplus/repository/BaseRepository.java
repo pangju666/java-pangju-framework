@@ -4,14 +4,12 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.repository.CrudRepository;
-import io.github.pangju666.commons.lang.utils.StreamUtils;
+import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.StringUtils;
-import io.github.pangju666.framework.core.lang.pool.Constants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.springframework.lang.Nullable;
+import org.apache.commons.lang3.Validate;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
 import java.io.Serializable;
 import java.util.*;
@@ -77,8 +75,8 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 		return Objects.isNull(getById(id));
 	}
 
-	public <V> boolean existByColumnValue(SFunction<T, V> column, @Nullable V value) {
-		Assert.notNull(column, "column 不可为空");
+	public <V> boolean existByColumnValue(SFunction<T, V> column, V value) {
+		Validate.notNull(column, "column 不可为空");
 		if (Objects.isNull(value)) {
 			return lambdaQuery()
 				.isNull(column)
@@ -89,8 +87,8 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.exists();
 	}
 
-	public <V> boolean notExistByColumnValue(SFunction<T, V> column, @Nullable V value) {
-		Assert.notNull(column, "column 不可为空");
+	public <V> boolean notExistByColumnValue(SFunction<T, V> column, V value) {
+		Validate.notNull(column, "column 不可为空");
 		if (Objects.isNull(value)) {
 			return lambdaQuery()
 				.isNotNull(column)
@@ -101,8 +99,8 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.exists();
 	}
 
-	public <V> T getByColumnValue(SFunction<T, V> column, @Nullable V value) {
-		Assert.notNull(column, "column 不可为空");
+	public <V> T getByColumnValue(SFunction<T, V> column, V value) {
+		Validate.notNull(column, "column 不可为空");
 		if (Objects.isNull(value)) {
 			return lambdaQuery()
 				.isNull(column)
@@ -135,7 +133,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 
 	public <V> List<V> listColumnValue(LambdaQueryChainWrapper<T> queryChainWrapper,
 									   SFunction<T, V> column, boolean unique, boolean nonNull) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		var queryWrapper = queryChainWrapper.select(column);
 		if (nonNull) {
 			queryWrapper = queryWrapper.isNotNull(column);
@@ -158,7 +156,9 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 		if (CollectionUtils.isEmpty(ids)) {
 			return Collections.emptyList();
 		}
-		List<? extends Serializable> validIdList = StreamUtils.toNonNullList(ids);
+		List<? extends Serializable> validIdList = ids.stream()
+			.filter(Objects::nonNull)
+			.toList();
 		if (validIdList.size() <= batchSize) {
 			return super.listByIds(validIdList);
 		}
@@ -169,8 +169,8 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.toList();
 	}
 
-	public <V> List<T> listByColumnValue(SFunction<T, V> column, @Nullable V value) {
-		Assert.notNull(column, "column 不可为空");
+	public <V> List<T> listByColumnValue(SFunction<T, V> column, V value) {
+		Validate.notNull(column, "column 不可为空");
 		if (Objects.isNull(value)) {
 			return lambdaQuery()
 				.isNull(column)
@@ -186,11 +186,13 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public <V> List<T> listByColumnValues(SFunction<T, V> column, Collection<V> values, int batchSize) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (CollectionUtils.isEmpty(values)) {
 			return Collections.emptyList();
 		}
-		List<V> validList = StreamUtils.toNonNullList(values);
+		List<V> validList = values.stream()
+			.filter(Objects::nonNull)
+			.toList();
 		if (validList.size() <= batchSize) {
 			return lambdaQuery()
 				.in(column, validList)
@@ -211,7 +213,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 
 	public <V> List<T> listByNotNullColumn(LambdaQueryChainWrapper<T> queryChainWrapper,
 										   SFunction<T, V> column) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		return queryChainWrapper.isNull(column).list();
 	}
 
@@ -221,12 +223,12 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 
 	public <V> List<T> listByNullColumn(LambdaQueryChainWrapper<T> queryChainWrapper,
 										SFunction<T, V> column) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		return queryChainWrapper.isNull(column).list();
 	}
 
 	public List<T> listByLikeColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
 		}
@@ -236,7 +238,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public List<T> listByLikeLeftColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
 		}
@@ -246,7 +248,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public List<T> listByLikeRightColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
 		}
@@ -256,7 +258,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public List<T> listByNotLikeColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
 		}
@@ -266,7 +268,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public List<T> listByNotLikeLeftColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
 		}
@@ -276,7 +278,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public List<T> listByNotLikeRightColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return Collections.emptyList();
 		}
@@ -293,7 +295,9 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public boolean saveBatch(Collection<T> entityList, int batchSize) {
-		List<T> validEntityList = StreamUtils.toNonNullList(entityList);
+		List<T> validEntityList = entityList.stream()
+			.filter(Objects::nonNull)
+			.toList();
 		if (CollectionUtils.isEmpty(validEntityList)) {
 			return false;
 		}
@@ -308,7 +312,9 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public boolean updateBatchById(Collection<T> entityList, int batchSize) {
-		List<T> validEntityList = StreamUtils.toNonNullList(entityList);
+		List<T> validEntityList = entityList.stream()
+			.filter(Objects::nonNull)
+			.toList();
 		if (CollectionUtils.isEmpty(validEntityList)) {
 			return false;
 		}
@@ -323,7 +329,9 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public boolean saveOrUpdateBatch(Collection<T> entityList, int batchSize) {
-		List<T> validEntityList = StreamUtils.toNonNullList(entityList);
+		List<T> validEntityList = entityList.stream()
+			.filter(Objects::nonNull)
+			.toList();
 		if (CollectionUtils.isEmpty(validEntityList)) {
 			return false;
 		}
@@ -332,7 +340,9 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 
 	@Override
 	public boolean removeByIds(Collection<?> list) {
-		List<?> validList = StreamUtils.toNonNullList(list);
+		List<?> validList = list.stream()
+			.filter(Objects::nonNull)
+			.toList();
 		if (CollectionUtils.isEmpty(validList)) {
 			return false;
 		}
@@ -341,7 +351,9 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 
 	@Override
 	public boolean removeByIds(Collection<?> list, boolean useFill) {
-		List<?> validList = StreamUtils.toNonNullList(list);
+		List<?> validList = list.stream()
+			.filter(Objects::nonNull)
+			.toList();
 		if (CollectionUtils.isEmpty(validList)) {
 			return false;
 		}
@@ -349,7 +361,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public <V> boolean removeByColumnValue(SFunction<T, V> column, V value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (Objects.isNull(value)) {
 			return false;
 		}
@@ -365,8 +377,10 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 
 	@Transactional(rollbackFor = Exception.class)
 	public <V> boolean removeByColumnValues(SFunction<T, V> column, Collection<V> values, int batchSize) {
-		Assert.notNull(column, "column 不可为空");
-		List<V> validList = StreamUtils.toNonNullList(values);
+		Validate.notNull(column, "column 不可为空");
+		List<V> validList = values.stream()
+			.filter(Objects::nonNull)
+			.toList();
 		if (CollectionUtils.isEmpty(validList)) {
 			return false;
 		}
@@ -383,7 +397,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public boolean removeByLikeColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
 		}
@@ -393,7 +407,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public boolean removeByNotLikeColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
 		}
@@ -403,7 +417,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public boolean removeByLikeLeftColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
 		}
@@ -413,7 +427,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public boolean removeByNotLikeLeftColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
 		}
@@ -423,7 +437,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public boolean removeByLikeRightColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
 		}
@@ -433,7 +447,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public boolean removeByNotLikeRightColumnValue(SFunction<T, String> column, String value) {
-		Assert.notNull(column, "column 不可为空");
+		Validate.notNull(column, "column 不可为空");
 		if (StringUtils.isEmpty(value)) {
 			return false;
 		}

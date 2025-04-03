@@ -3,7 +3,6 @@ package io.github.pangju666.framework.web.utils;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
@@ -23,11 +22,6 @@ public class FileDownloadUtils {
 	protected static final int RESPONSE_BUFF_SIZE = 20480;
 
 	protected FileDownloadUtils() {
-	}
-
-	public static void downloadFile(final String filePath, final String expectFileName, final String contentType,
-									final HttpServletRequest request, final HttpServletResponse response) throws IOException {
-		downloadFile(FileUtils.getFile(filePath), expectFileName, contentType, request, response);
 	}
 
 	public static void downloadFile(final File file, final String expectFileName, final String contentType,

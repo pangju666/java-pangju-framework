@@ -9,6 +9,6 @@ import java.util.Objects;
 public class SnowflakeIdValidator implements ConstraintValidator<SnowflakeId, Long> {
 	@Override
 	public boolean isValid(Long value, ConstraintValidatorContext context) {
-		return Objects.nonNull(value);
+		return Objects.nonNull(value) && value >= 0;
 	}
 }

@@ -1,6 +1,6 @@
 package io.github.pangju666.framework.data.redis.utils;
 
-import io.github.pangju666.framework.core.lang.pool.Constants;
+import io.github.pangju666.framework.data.redis.lang.pool.RedisConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.redis.connection.DataType;
@@ -19,7 +19,7 @@ public class RedisUtils {
 	}
 
 	public static String computeKey(final String... keys) {
-		return StringUtils.join(Arrays.asList(keys), Constants.REDIS_PATH_DELIMITER);
+		return StringUtils.join(Arrays.asList(keys), RedisConstants.REDIS_PATH_DELIMITER);
 	}
 
 	public static <K> Set<K> likeLeftKeys(final String keyword, final RedisTemplate<K, ?> redisTemplate) {

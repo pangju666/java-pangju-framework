@@ -1,8 +1,8 @@
 package io.github.pangju666.framework.http.exception;
 
-import io.github.pangju666.framework.core.exception.base.ServiceException;
 import io.github.pangju666.framework.http.model.RemoteServiceError;
-import io.github.pangju666.framework.core.lang.pool.Constants;
+import io.github.pangju666.framework.web.exception.base.ServiceException;
+import io.github.pangju666.framework.web.lang.pool.WebConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
@@ -15,22 +15,22 @@ public class RemoteServiceException extends ServiceException {
 	private final RemoteServiceError remoteServiceError;
 
 	public RemoteServiceException(RemoteServiceError remoteServiceError) {
-		super(Constants.REMOTE_SERVICE_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE);
+		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, DEFAULT_MESSAGE);
 		this.remoteServiceError = remoteServiceError;
 	}
 
 	public RemoteServiceException(RemoteServiceError remoteServiceError, String message) {
-		super(Constants.REMOTE_SERVICE_ERROR_RESPONSE_CODE, message);
+		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, message);
 		this.remoteServiceError = remoteServiceError;
 	}
 
 	public RemoteServiceException(RemoteServiceError remoteServiceError, Throwable cause) {
-		super(Constants.REMOTE_SERVICE_ERROR_RESPONSE_CODE, DEFAULT_MESSAGE, cause);
+		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, DEFAULT_MESSAGE, cause);
 		this.remoteServiceError = remoteServiceError;
 	}
 
 	public RemoteServiceException(RemoteServiceError remoteServiceError, String message, Throwable cause) {
-		super(Constants.REMOTE_SERVICE_ERROR_RESPONSE_CODE, message, cause);
+		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, message, cause);
 		this.remoteServiceError = remoteServiceError;
 	}
 

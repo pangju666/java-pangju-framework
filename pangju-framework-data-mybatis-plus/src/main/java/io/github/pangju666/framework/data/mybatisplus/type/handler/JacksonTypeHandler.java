@@ -3,7 +3,6 @@ package io.github.pangju666.framework.data.mybatisplus.type.handler;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.pangju666.framework.core.exception.base.ServerException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
@@ -51,19 +50,19 @@ public class JacksonTypeHandler extends BaseTypeHandler<Object> {
 		return StringUtils.isBlank(json) ? getNullValue() : parse(json);
 	}
 
-	private Object parse(String json) {
+	private Object parse(String json) throws SQLException {
 		try {
 			return OBJECT_MAPPER.readValue(json, type);
 		} catch (IOException e) {
-			throw new ServerException("json字符串解析失败", e);
+			throw new SQLException("json字符串解析失败", e);
 		}
 	}
 
-	private String toJson(Object obj) {
+	private String toJson(Object obj) throws SQLException {
 		try {
 			return OBJECT_MAPPER.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
-			throw new ServerException("json字符串转换失败", e);
+			throw new SQLException("json字符串转换失败", e);
 		}
 	}
 

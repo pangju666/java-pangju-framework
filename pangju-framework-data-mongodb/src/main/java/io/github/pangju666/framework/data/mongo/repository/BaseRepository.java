@@ -2,10 +2,8 @@ package io.github.pangju666.framework.data.mongo.repository;
 
 import com.mongodb.client.result.DeleteResult;
 import io.github.pangju666.commons.lang.utils.ReflectionUtils;
-import io.github.pangju666.commons.lang.utils.StreamUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
 import io.github.pangju666.framework.data.mongo.model.BasicDocument;
-import org.apache.commons.collections4.CollectionUtils;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -69,8 +67,10 @@ public abstract class BaseRepository<T extends BasicDocument> {
 	}
 
 	public void insertBatch(Collection<T> entities) {
-		if (CollectionUtils.isNotEmpty(entities)) {
-			List<T> validaEntities = StreamUtils.toNonNullList(entities);
+		if (Objects.nonNull(entities) && !entities.isEmpty()) {
+			List<T> validaEntities = entities.stream()
+				.filter(Objects::nonNull)
+				.toList();
 			mongoOperations.insert(validaEntities, this.collectionName);
 		}
 	}
@@ -80,7 +80,7 @@ public abstract class BaseRepository<T extends BasicDocument> {
 	}
 
 	public void saveBatch(Collection<T> entities) {
-		if (CollectionUtils.isNotEmpty(entities)) {
+		if (Objects.nonNull(entities) && !entities.isEmpty()) {
 			List<T> insertEntities = entities.stream()
 				.filter(entity -> Objects.nonNull(entity) && Objects.isNull(entity.getId()))
 				.toList();
@@ -164,14 +164,14 @@ public abstract class BaseRepository<T extends BasicDocument> {
 	}
 
 	public List<T> listByIds(Collection<String> ids) {
-		if (CollectionUtils.isEmpty(ids)) {
+		if (Objects.isNull(ids) || ids.isEmpty()) {
 			return Collections.emptyList();
 		}
 		return mongoOperations.find(queryByIds(ids), this.entityClass, this.collectionName);
 	}
 
 	public List<T> listByObjectIds(Collection<ObjectId> ids) {
-		if (CollectionUtils.isEmpty(ids)) {
+		if (Objects.isNull(ids) || ids.isEmpty()) {
 			return Collections.emptyList();
 		}
 		return mongoOperations.find(queryByObjectIds(ids), this.entityClass, this.collectionName);

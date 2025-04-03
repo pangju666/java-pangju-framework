@@ -2,13 +2,14 @@ package io.github.pangju666.framework.http.utils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.http.exception.RemoteServiceException;
 import io.github.pangju666.framework.http.exception.RemoteServiceTimeoutException;
 import io.github.pangju666.framework.http.model.RemoteServiceError;
 import io.github.pangju666.framework.http.model.RemoteServiceErrorBuilder;
-import io.github.pangju666.framework.core.lang.pool.Constants;
-import io.github.pangju666.framework.web.model.Result;
+import io.github.pangju666.framework.web.lang.pool.WebConstants;
+import io.github.pangju666.framework.web.model.vo.Result;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,7 +254,7 @@ public class ResultApiUtils {
 	public static <T> Optional<T> request(String service, String api, URI uri, boolean throwError, Function<RestClient, Result<T>> function) {
 		try {
 			Result<T> result = function.apply(DEFAULT_CLIENT);
-			if (result.code() == Constants.SUCCESS_RESPONSE_CODE) {
+			if (result.code() == WebConstants.SUCCESS_CODE) {
 				return Optional.ofNullable(result.data());
 			}
 			RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api)

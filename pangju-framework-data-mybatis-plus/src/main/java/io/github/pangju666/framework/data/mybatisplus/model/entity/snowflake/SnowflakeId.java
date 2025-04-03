@@ -12,7 +12,7 @@ public interface SnowflakeId {
 		}
 		return collection.stream()
 			.map(SnowflakeId::getId)
-			.filter(Objects::nonNull)
+			.filter(id -> Objects.nonNull(id) && id >= 0)
 			.toList();
 	}
 
@@ -22,7 +22,7 @@ public interface SnowflakeId {
 		}
 		return collection.stream()
 			.map(SnowflakeId::getId)
-			.filter(Objects::nonNull)
+			.filter(id -> Objects.nonNull(id) && id >= 0)
 			.collect(Collectors.toSet());
 	}
 
@@ -32,7 +32,7 @@ public interface SnowflakeId {
 		}
 		return collection.stream()
 			.map(SnowflakeId::getId)
-			.filter(Objects::nonNull)
+			.filter(id -> Objects.nonNull(id) && id >= 0)
 			.distinct()
 			.toList();
 	}

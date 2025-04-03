@@ -1,5 +1,6 @@
 package io.github.pangju666.framework.data.mybatisplus.utils;
 
+import io.github.pangju666.framework.data.mybatisplus.model.entity.uuid.UUId;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,7 +44,7 @@ public class EntityIdUtils {
 			return Collections.emptyList();
 		}
 		return collection.stream()
-			.filter(StringUtils::isNotBlank)
+			.filter(value -> StringUtils.isNotBlank(value) && UUId.PATTERN.matcher(value).matches())
 			.toList();
 	}
 
@@ -52,7 +53,7 @@ public class EntityIdUtils {
 			return Collections.emptySet();
 		}
 		return collection.stream()
-			.filter(StringUtils::isNotBlank)
+			.filter(value -> StringUtils.isNotBlank(value) && UUId.PATTERN.matcher(value).matches())
 			.collect(Collectors.toSet());
 	}
 
@@ -61,7 +62,7 @@ public class EntityIdUtils {
 			return Collections.emptyList();
 		}
 		return collection.stream()
-			.filter(StringUtils::isNotBlank)
+			.filter(value -> StringUtils.isNotBlank(value) && UUId.PATTERN.matcher(value).matches())
 			.distinct()
 			.toList();
 	}
@@ -71,7 +72,7 @@ public class EntityIdUtils {
 			return Collections.emptyList();
 		}
 		return collection.stream()
-			.filter(Objects::nonNull)
+			.filter(id -> Objects.nonNull(id) && id >= 0)
 			.toList();
 	}
 
@@ -80,7 +81,7 @@ public class EntityIdUtils {
 			return Collections.emptySet();
 		}
 		return collection.stream()
-			.filter(Objects::nonNull)
+			.filter(id -> Objects.nonNull(id) && id >= 0)
 			.collect(Collectors.toSet());
 	}
 
@@ -89,7 +90,7 @@ public class EntityIdUtils {
 			return Collections.emptyList();
 		}
 		return collection.stream()
-			.filter(Objects::nonNull)
+			.filter(id -> Objects.nonNull(id) && id >= 0)
 			.distinct()
 			.toList();
 	}

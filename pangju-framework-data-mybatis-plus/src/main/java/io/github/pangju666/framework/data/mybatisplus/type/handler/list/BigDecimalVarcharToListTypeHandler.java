@@ -1,6 +1,5 @@
 package io.github.pangju666.framework.data.mybatisplus.type.handler.list;
 
-import io.github.pangju666.framework.data.mybatisplus.type.handler.base.GenericsVarcharToListTypeHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
