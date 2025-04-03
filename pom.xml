@@ -22,6 +22,7 @@
 		<module>pangju-framework-data-mybatis-plus</module>
 		<module>pangju-framework-data-redis</module>
 		<module>pangju-framework-data-mongodb</module>
+		<module>pangju-framework-all</module>
 	</modules>
 
 	<properties>
@@ -83,6 +84,11 @@
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
 				<artifactId>pangju-framework-data-redis</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.github.pangju666</groupId>
+				<artifactId>pangju-framework-all</artifactId>
 				<version>1.0.0</version>
 			</dependency>
 		</dependencies>

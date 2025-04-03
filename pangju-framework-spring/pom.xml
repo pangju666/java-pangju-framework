@@ -9,8 +9,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-framework-spring</artifactId>
-	<name>pangju-framework-spring</name>
-	<description>胖橘框架核心</description>
+	<description>框架Spring模块</description>
 
 	<licenses>
 		<license>

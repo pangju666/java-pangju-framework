@@ -9,8 +9,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-framework-data-mongodb</artifactId>
-	<name>pangju-framework-data-mongodb</name>
-	<description>胖橘框架MongoDB模块</description>
+	<description>框架MongoDB模块</description>
 
 	<licenses>
 		<license>

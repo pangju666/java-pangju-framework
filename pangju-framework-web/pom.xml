@@ -9,8 +9,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>pangju-framework-web</artifactId>
-	<name>pangju-framework-web</name>
-	<description>胖橘框架Web模块</description>
+	<description>框架Web模块</description>
 
 	<licenses>
 		<license>
