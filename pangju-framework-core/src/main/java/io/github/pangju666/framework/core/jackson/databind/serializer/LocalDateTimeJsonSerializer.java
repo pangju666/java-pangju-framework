@@ -19,13 +19,14 @@ package io.github.pangju666.framework.core.jackson.databind.serializer;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import io.github.pangju666.commons.lang.utils.DateUtils;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDateTime;
 
-public class DateJsonSerializer extends JsonSerializer<Date> {
+public class LocalDateTimeJsonSerializer extends JsonSerializer<LocalDateTime> {
 	@Override
-	public void serialize(Date value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-		gen.writeNumber(value.getTime());
+	public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+		gen.writeNumber(DateUtils.toDate(value).getTime());
 	}
 }

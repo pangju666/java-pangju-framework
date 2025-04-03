@@ -16,18 +16,22 @@
 
 package io.github.pangju666.framework.core.jackson.databind.deserializer;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import io.github.pangju666.commons.lang.utils.DateUtils;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.LocalDateTime;
 
-public class TimestampJsonDeserializer extends JsonDeserializer<Date> {
+public class LocalDateTimeJsonDeserializer extends JsonDeserializer<LocalDateTime> {
 	@Override
-	public Date deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-		long timestamp = p.getLongValue();
-		return DateUtils.toDate(timestamp);
+	public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+		try {
+			return DateUtils.toLocalDateTime(p.getLongValue());
+		} catch (JsonParseException e) {
+			return null;
+		}
 	}
 }

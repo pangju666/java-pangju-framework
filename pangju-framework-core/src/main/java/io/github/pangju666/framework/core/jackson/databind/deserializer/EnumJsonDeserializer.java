@@ -16,6 +16,7 @@
 
 package io.github.pangju666.framework.core.jackson.databind.deserializer;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -25,9 +26,13 @@ import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
 import org.apache.commons.lang3.EnumUtils;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EnumJsonDeserializer extends JsonDeserializer<Enum> implements ContextualDeserializer {
+	private static final Map<JavaType, EnumJsonDeserializer> DESERIALIZER_MAP = new ConcurrentHashMap<>(10);
+
 	private final Class<? extends Enum> enumClass;
 
 	public EnumJsonDeserializer() {
@@ -41,16 +46,19 @@ public class EnumJsonDeserializer extends JsonDeserializer<Enum> implements Cont
 	@SuppressWarnings("unchecked")
 	@Override
 	public Enum deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-		if (Objects.isNull(enumClass)) {
-			throw new UnsupportedOperationException();
+		try {
+			return EnumUtils.getEnumIgnoreCase(this.enumClass, p.getText());
+		} catch (JsonParseException e) {
+			return null;
 		}
-		return EnumUtils.getEnumIgnoreCase(this.enumClass, p.getText());
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public JsonDeserializer<Enum> createContextual(DeserializationContext ctxt, BeanProperty property) {
 		JavaType type = Objects.nonNull(ctxt.getContextualType()) ? ctxt.getContextualType() : property.getMember().getType();
-		return new EnumJsonDeserializer((Class<? extends Enum>) type.getRawClass());
+		return DESERIALIZER_MAP.computeIfAbsent(type, enumType ->
+			new EnumJsonDeserializer((Class<? extends Enum>) enumType.getRawClass())
+		);
 	}
 }

@@ -24,8 +24,8 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import com.fasterxml.jackson.databind.ser.std.NullSerializer;
 import io.github.pangju666.commons.lang.utils.DesensitizationUtils;
+import io.github.pangju666.framework.core.enums.DesensitizedType;
 import io.github.pangju666.framework.core.jackson.annotation.DesensitizeFormat;
-import io.github.pangju666.framework.core.jackson.enums.DesensitizedType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.convert.converter.Converter;
 
@@ -63,7 +63,12 @@ public class DesensitizedJsonSerializer extends JsonSerializer<String> implement
 		if (REGEX_SERIALIZER_MAP.containsKey(key)) {
 			return REGEX_SERIALIZER_MAP.get(key);
 		}
-		DesensitizedJsonSerializer serializer = new DesensitizedJsonSerializer(value -> DesensitizationUtils.hide(value, regex, format));
+		DesensitizedJsonSerializer serializer = new DesensitizedJsonSerializer(value -> {
+			if (StringUtils.isBlank(value)) {
+				return value;
+			}
+			return value.replaceAll(regex, format);
+		});
 		REGEX_SERIALIZER_MAP.put(key, serializer);
 		return serializer;
 	}

@@ -14,24 +14,28 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.core.jackson.enums;
+package io.github.pangju666.framework.core.enums;
 
 import io.github.pangju666.commons.lang.utils.DesensitizationUtils;
 import org.springframework.core.convert.converter.Converter;
 
 public enum DesensitizedType {
-	CHINESE_NAME(DesensitizationUtils::desensitizeChineseName),
-	ID_CARD(DesensitizationUtils::desensitizeIdCard),
-	TEL_PHONE(DesensitizationUtils::desensitizeTelPhone),
-	PHONE_NUMBER(DesensitizationUtils::desensitizePhoneNumber),
-	ADDRESS(DesensitizationUtils::desensitizeAddress),
-	EMAIL(DesensitizationUtils::desensitizeEmail),
-	PASSWORD(DesensitizationUtils::desensitizePassword),
-	PLATE_NUMBER(DesensitizationUtils::desensitizePlateNumber),
-	VEHICLE_ENGINE_NUMBER(DesensitizationUtils::desensitizeVehicleEngineNumber),
-	VEHICLE_FRAME_NUMBER(DesensitizationUtils::desensitizeVehicleFrameNumber),
-	NICK_NAME(DesensitizationUtils::desensitizeNickName),
-	BANK_CARD(DesensitizationUtils::desensitizeBankCard),
+	CHINESE_NAME(DesensitizationUtils::hideChineseName),
+	MILITARY_ID_NUMBER(DesensitizationUtils::hideMilitaryIdNumber),
+	PASSPORT_NUMBER(DesensitizationUtils::hidePassportNumber),
+	SOCIAL_SECURITY_CARD_NUMBER(DesensitizationUtils::hideSocialSecurityCardNumber),
+	MEDICAL_CARD_NUMBER(DesensitizationUtils::hideMedicalCardNumber),
+	ID_CARD(DesensitizationUtils::hideIdCardNumber),
+	TEL_PHONE(DesensitizationUtils::hideTelPhone),
+	PHONE_NUMBER(DesensitizationUtils::hidePhoneNumber),
+	ADDRESS(DesensitizationUtils::hideAddress),
+	EMAIL(DesensitizationUtils::hideEmail),
+	PASSWORD(DesensitizationUtils::hidePassword),
+	PLATE_NUMBER(DesensitizationUtils::hidePlateNumber),
+	VEHICLE_ENGINE_NUMBER(DesensitizationUtils::hideVehicleEngineNumber),
+	VEHICLE_FRAME_NUMBER(DesensitizationUtils::hideVehicleFrameNumber),
+	NICK_NAME(DesensitizationUtils::hideNickName),
+	BANK_CARD(DesensitizationUtils::hideBankCard),
 	CUSTOM(value -> value);
 
 	private final Converter<String, String> converter;
