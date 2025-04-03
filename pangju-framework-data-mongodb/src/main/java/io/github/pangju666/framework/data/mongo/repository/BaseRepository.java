@@ -26,6 +26,10 @@ public abstract class BaseRepository<T extends BasicDocument> {
 	protected String collectionName;
 
 	protected BaseRepository(MongoOperations mongoOperations) {
+		setMongoOperations(mongoOperations);
+	}
+
+	public void setMongoOperations(MongoOperations mongoOperations) {
 		this.mongoOperations = mongoOperations;
 		this.entityClass = ReflectionUtils.getClassGenericType(this.getClass());
 		String collectionName = null;

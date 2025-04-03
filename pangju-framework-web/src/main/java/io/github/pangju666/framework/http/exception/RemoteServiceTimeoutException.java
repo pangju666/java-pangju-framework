@@ -35,6 +35,6 @@ public class RemoteServiceTimeoutException extends RemoteServiceException {
 	@Override
 	public void log(Logger logger, Level level) {
 		logger.atLevel(level).log("服务：{} 接口：｛｝ url：｛｝ 请求超时",
-			this.getRemoteService().service(), this.getRemoteService().api(), this.getRemoteService().url());
+			this.getRemoteService().service(), this.getRemoteService().api(), this.getRemoteService().uri());
 	}
 }
