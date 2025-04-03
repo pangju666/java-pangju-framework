@@ -16,7 +16,7 @@
 
 package io.github.pangju666.framework.data.redis.lang.pool;
 
-public class RedisConstants extends io.github.pangju666.commons.lang.pool.Constants {
+public class RedisConstants {
 	// Redis相关常量
 	public static final String REDIS_PATH_DELIMITER = "::";
 
