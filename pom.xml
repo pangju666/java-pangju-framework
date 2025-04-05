@@ -22,6 +22,7 @@
 		<module>pangju-framework-data-mybatis-plus</module>
 		<module>pangju-framework-data-redis</module>
 		<module>pangju-framework-data-mongodb</module>
+		<module>pangju-framework-bom</module>
 		<module>pangju-framework-all</module>
 	</modules>
 
@@ -56,40 +57,10 @@
 		<dependencies>
 			<dependency>
 				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-commons-parent</artifactId>
+				<artifactId>pangju-commons-bom</artifactId>
 				<version>${commons.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-framework-spring</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-framework-web</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-framework-data-mybatis-plus</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-framework-data-mongodb</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-framework-data-redis</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.github.pangju666</groupId>
-				<artifactId>pangju-framework-all</artifactId>
-				<version>1.0.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
