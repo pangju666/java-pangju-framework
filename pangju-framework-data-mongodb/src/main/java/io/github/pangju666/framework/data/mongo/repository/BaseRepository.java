@@ -62,32 +62,24 @@ public abstract class BaseRepository<T extends BasicDocument> {
 		return entityClass;
 	}
 
-	public <V> boolean existByKey(String key) {
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.exists(Query.query(Criteria.where(key).not().isNull()), this.entityClass,
-			this.collectionName);
-	}
-
-	public <V> boolean notExistByKey(String key) {
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.exists(Query.query(Criteria.where(key).isNull()), this.entityClass,
-			this.collectionName);
-	}
-
 	public <V> boolean existByKeyValue(String key, V value) {
 		Assert.hasText(key, "key 不可为空");
-		Assert.notNull(value, "value 不可为null");
 
+		if (Objects.isNull(value)) {
+			return mongoOperations.exists(Query.query(notNullCriteria(key)), this.entityClass,
+				this.collectionName);
+		}
 		return mongoOperations.exists(Query.query(Criteria.where(key).is(value)), this.entityClass,
 			this.collectionName);
 	}
 
 	public <V> boolean notExistByKeyValue(String key, V value) {
 		Assert.hasText(key, "key 不可为空");
-		Assert.notNull(value, "value 不可为null");
 
+		if (Objects.isNull(value)) {
+			return !mongoOperations.exists(Query.query(notNullCriteria(key)), this.entityClass,
+				this.collectionName);
+		}
 		return mongoOperations.exists(Query.query(Criteria.where(key).not().is(value)), this.entityClass,
 			this.collectionName);
 	}
@@ -520,6 +512,12 @@ public abstract class BaseRepository<T extends BasicDocument> {
 	protected Criteria nullCriteria(String key) {
 		Criteria nullValueCriteria = Criteria.where(key).isNullValue();
 		Criteria nullCriteria = Criteria.where(key).isNull();
+		return nullValueCriteria.orOperator(nullCriteria);
+	}
+
+	protected Criteria notNullCriteria(String key) {
+		Criteria nullValueCriteria = Criteria.where(key).not().isNullValue();
+		Criteria nullCriteria = Criteria.where(key).not().isNull();
 		return nullValueCriteria.orOperator(nullCriteria);
 	}
 }
