@@ -5,7 +5,7 @@ import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
-public record RequiredUUIdListDTO(@UniqueElements(message = "存在重复的id")
+public record UUIdRequiredListDTO(@UniqueElements(message = "存在重复的id")
 								  @UUIds(notEmpty = true)
 								  List<String> ids) {
 }

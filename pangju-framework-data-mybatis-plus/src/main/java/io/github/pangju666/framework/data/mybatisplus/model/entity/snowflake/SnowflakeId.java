@@ -1,18 +1,19 @@
 package io.github.pangju666.framework.data.mybatisplus.model.entity.snowflake;
 
+import io.github.pangju666.framework.data.mybatisplus.model.entity.base.Id;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public interface SnowflakeId {
+public interface SnowflakeId extends Id<Long> {
 	static List<Long> getIdList(final Collection<? extends SnowflakeId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyList();
 		}
 		return collection.stream()
 			.map(SnowflakeId::getId)
-			.filter(id -> Objects.nonNull(id) && id >= 0)
+			.filter(Objects::nonNull)
 			.toList();
 	}
 
@@ -22,7 +23,7 @@ public interface SnowflakeId {
 		}
 		return collection.stream()
 			.map(SnowflakeId::getId)
-			.filter(id -> Objects.nonNull(id) && id >= 0)
+			.filter(Objects::nonNull)
 			.collect(Collectors.toSet());
 	}
 
@@ -32,12 +33,8 @@ public interface SnowflakeId {
 		}
 		return collection.stream()
 			.map(SnowflakeId::getId)
-			.filter(id -> Objects.nonNull(id) && id >= 0)
+			.filter(Objects::nonNull)
 			.distinct()
 			.toList();
 	}
-
-	Long getId();
-
-	void setId(Long id);
 }

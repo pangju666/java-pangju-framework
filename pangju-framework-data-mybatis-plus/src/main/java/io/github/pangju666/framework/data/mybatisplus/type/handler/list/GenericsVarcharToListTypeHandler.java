@@ -3,8 +3,6 @@ package io.github.pangju666.framework.data.mybatisplus.type.handler.list;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import org.apache.ibatis.type.MappedJdbcTypes;
-import org.apache.ibatis.type.MappedTypes;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -16,8 +14,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-@MappedTypes({Object.class})
-@MappedJdbcTypes(JdbcType.VARCHAR)
 public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandler<List<T>> {
 	private final Function<String, T> mapper;
 	private final String delimiter;

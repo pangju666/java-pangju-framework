@@ -22,7 +22,5 @@ public @interface SnowflakeIds {
 
 	Class<? extends Payload>[] payload() default {};
 
-	boolean allMatch() default true;
-
 	boolean notEmpty() default false;
 }

@@ -9,18 +9,16 @@ import java.util.Collection;
 import java.util.Objects;
 
 public class AutoIdsValidator implements ConstraintValidator<AutoIds, Collection<Long>> {
-	private boolean allMatch;
 	private boolean notEmpty;
 
 	@Override
 	public void initialize(AutoIds constraintAnnotation) {
-		this.allMatch = constraintAnnotation.allMatch();
 		this.notEmpty = constraintAnnotation.notEmpty();
 	}
 
 	@Override
 	public boolean isValid(Collection<Long> value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, allMatch, notEmpty,
+		return ConstraintValidatorUtils.validate(value, true, notEmpty,
 			id -> Objects.nonNull(id) && id >= 1);
 	}
 }

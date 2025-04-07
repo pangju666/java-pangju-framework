@@ -5,12 +5,13 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
+import java.math.BigInteger;
 import java.util.List;
 
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
-public final class LongVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<Long> {
-	public LongVarcharToListTypeHandler() {
-		super((value) -> StringUtils.isBlank(value) ? null : Long.valueOf(value));
+public final class BigIntegerVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<BigInteger> {
+	public BigIntegerVarcharToListTypeHandler() {
+		super((value) -> StringUtils.isBlank(value) ? null : new BigInteger(value));
 	}
 }

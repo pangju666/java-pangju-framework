@@ -13,7 +13,7 @@ import java.sql.SQLException;
 
 @MappedTypes({Object.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
-public class ClassTypeHandler extends BaseTypeHandler<Class<?>> {
+public final class ClassTypeHandler extends BaseTypeHandler<Class<?>> {
 	@Override
 	public void setNonNullParameter(PreparedStatement ps, int i, Class<?> parameter, JdbcType jdbcType) throws SQLException {
 		ps.setString(i, parameter.getTypeName());
@@ -34,7 +34,7 @@ public class ClassTypeHandler extends BaseTypeHandler<Class<?>> {
 		return getClass(cs.getString(columnIndex));
 	}
 
-	protected Class<?> getClass(String className) throws SQLException {
+	private Class<?> getClass(String className) throws SQLException {
 		try {
 			return StringUtils.isBlank(className) ? null : Class.forName(className);
 		} catch (ClassNotFoundException e) {

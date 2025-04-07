@@ -2,9 +2,9 @@ package io.github.pangju666.framework.data.mybatisplus.model.entity.auto;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import io.github.pangju666.framework.data.mybatisplus.model.entity.base.VersionLogicStatusBasicDO;
+import io.github.pangju666.framework.data.mybatisplus.model.entity.base.VersionLogicTimeBasicDO;
 
-public abstract class AutoIDVersionLogicStatusBasicDO extends VersionLogicStatusBasicDO<Long> implements AutoID {
+public abstract class AutoIdVersionLogicTimeBasicDO extends VersionLogicTimeBasicDO implements AutoId {
 	@TableId(type = IdType.AUTO)
 	protected Long id;
 

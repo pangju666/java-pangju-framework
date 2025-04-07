@@ -22,7 +22,5 @@ public @interface UUIds {
 
 	Class<? extends Payload>[] payload() default {};
 
-	boolean allMatch() default true;
-
 	boolean notEmpty() default false;
 }

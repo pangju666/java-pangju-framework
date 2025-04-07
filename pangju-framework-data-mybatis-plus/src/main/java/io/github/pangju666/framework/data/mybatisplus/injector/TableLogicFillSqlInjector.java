@@ -8,18 +8,19 @@ import io.github.pangju666.framework.data.mybatisplus.injector.methods.DeleteByI
 import io.github.pangju666.framework.data.mybatisplus.injector.methods.DeleteByIds;
 import org.apache.ibatis.session.Configuration;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
-public class DeleteInjector extends DefaultSqlInjector {
+public class TableLogicFillSqlInjector extends DefaultSqlInjector {
 	@Override
 	public List<AbstractMethod> getMethodList(Configuration configuration, Class<?> mapperClass, TableInfo tableInfo) {
+		List<AbstractMethod> oldMethods = super.getMethodList(configuration, mapperClass, tableInfo);
 		// 重写的注入要先于父类的注入，否则会导致注入失败
-		List<AbstractMethod> list = new LinkedList<>();
-		list.add(new Delete());
-		list.add(new DeleteByIds());
-		list.add(new DeleteById());
-		list.addAll(super.getMethodList(configuration, mapperClass, tableInfo));
-		return list;
+		List<AbstractMethod> newMethods = new ArrayList<>(oldMethods.size() + 3);
+		newMethods.add(new Delete());
+		newMethods.add(new DeleteByIds());
+		newMethods.add(new DeleteById());
+		newMethods.addAll(oldMethods);
+		return newMethods;
 	}
 }

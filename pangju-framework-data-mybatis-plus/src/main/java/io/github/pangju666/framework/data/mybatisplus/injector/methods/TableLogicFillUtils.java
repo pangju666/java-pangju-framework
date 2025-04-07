@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.data.mybatisplus.utils;
+package io.github.pangju666.framework.data.mybatisplus.injector.methods;
 
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
@@ -10,7 +10,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 
-public class TableLogicFillUtils {
+final class TableLogicFillUtils {
 	private TableLogicFillUtils() {
 	}
 

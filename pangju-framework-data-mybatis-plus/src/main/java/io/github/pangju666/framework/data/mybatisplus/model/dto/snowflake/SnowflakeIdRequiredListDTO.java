@@ -5,7 +5,7 @@ import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
-public record RequiredSnowflakeIdListDTO(@UniqueElements(message = "存在重复的id")
+public record SnowflakeIdRequiredListDTO(@UniqueElements(message = "存在重复的id")
 										 @SnowflakeIds(notEmpty = true)
 										 List<Long> ids) {
 }

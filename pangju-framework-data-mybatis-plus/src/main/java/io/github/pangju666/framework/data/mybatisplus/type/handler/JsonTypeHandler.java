@@ -1,15 +1,14 @@
 package io.github.pangju666.framework.data.mybatisplus.type.handler;
 
 import com.baomidou.mybatisplus.core.toolkit.Assert;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonSyntaxException;
+import io.github.pangju666.commons.lang.utils.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
-import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,12 +17,11 @@ import java.util.*;
 
 @MappedTypes({Object.class})
 @MappedJdbcTypes(JdbcType.VARCHAR)
-public class JacksonTypeHandler extends BaseTypeHandler<Object> {
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+public final class JsonTypeHandler extends BaseTypeHandler<Object> {
 	private final Class<?> type;
 
-	public JacksonTypeHandler(Class<?> type) {
-		Assert.notNull(type, "Type argument cannot be null");
+	public JsonTypeHandler(Class<?> type) {
+		Assert.notNull(type, "type 不能为null");
 		this.type = type;
 	}
 
@@ -52,16 +50,16 @@ public class JacksonTypeHandler extends BaseTypeHandler<Object> {
 
 	private Object parse(String json) throws SQLException {
 		try {
-			return OBJECT_MAPPER.readValue(json, type);
-		} catch (IOException e) {
+			return JsonUtils.fromString(json, type);
+		} catch (JsonSyntaxException e) {
 			throw new SQLException("json字符串解析失败", e);
 		}
 	}
 
 	private String toJson(Object obj) throws SQLException {
 		try {
-			return OBJECT_MAPPER.writeValueAsString(obj);
-		} catch (JsonProcessingException e) {
+			return JsonUtils.toString(obj);
+		} catch (JsonSyntaxException e) {
 			throw new SQLException("json字符串转换失败", e);
 		}
 	}

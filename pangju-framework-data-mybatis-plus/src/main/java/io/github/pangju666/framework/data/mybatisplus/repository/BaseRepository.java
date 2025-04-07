@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRepository<M, T> {
-	protected static final int DEFAULT_LIST_BATCH_SIZE = 500;
+	public static final int DEFAULT_LIST_BATCH_SIZE = 500;
 
 	public List<T> listByJsonObjectValue(String columnName, String jsonObjectKey, Object jsonObjectValue) {
 		return lambdaQuery()

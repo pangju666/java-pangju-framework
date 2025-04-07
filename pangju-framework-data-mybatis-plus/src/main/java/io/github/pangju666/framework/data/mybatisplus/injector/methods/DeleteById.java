@@ -3,11 +3,10 @@ package io.github.pangju666.framework.data.mybatisplus.injector.methods;
 import com.baomidou.mybatisplus.core.enums.SqlMethod;
 import com.baomidou.mybatisplus.core.injector.AbstractMethod;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
-import io.github.pangju666.framework.data.mybatisplus.utils.TableLogicFillUtils;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlSource;
 
-public class DeleteById extends AbstractMethod {
+public final class DeleteById extends AbstractMethod {
 	public DeleteById() {
 		this(SqlMethod.DELETE_BY_ID.getMethod());
 	}
