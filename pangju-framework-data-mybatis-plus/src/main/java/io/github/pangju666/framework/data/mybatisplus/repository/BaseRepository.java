@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.repository.CrudRepository;
 import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
+import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.Validate;
@@ -84,35 +86,27 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.list();
 	}
 
-	public boolean existById(Serializable id) {
+	public boolean existsById(Serializable id) {
 		return Objects.nonNull(getById(id));
 	}
 
-	public boolean notExistById(Serializable id) {
+	public boolean notExistsById(Serializable id) {
 		return Objects.isNull(getById(id));
 	}
 
-	public <V> boolean existByColumnValue(SFunction<T, V> column, V value) {
+	public <V> boolean existsByColumnValue(SFunction<T, V> column, V value) {
 		Validate.notNull(column, "column 不可为null");
+		Validate.notNull(value, "value 不可为null");
 
-		if (Objects.isNull(value)) {
-			return lambdaQuery()
-				.isNull(column)
-				.exists();
-		}
 		return lambdaQuery()
 			.eq(column, value)
 			.exists();
 	}
 
-	public <V> boolean notExistByColumnValue(SFunction<T, V> column, V value) {
+	public <V> boolean notExistsByColumnValue(SFunction<T, V> column, V value) {
 		Validate.notNull(column, "column 不可为空");
+		Validate.notNull(value, "value 不可为null");
 
-		if (Objects.isNull(value)) {
-			return lambdaQuery()
-				.isNotNull(column)
-				.exists();
-		}
 		return !lambdaQuery()
 			.eq(column, value)
 			.exists();
@@ -214,6 +208,11 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 
 	public <V> List<T> listByColumnValues(SFunction<T, V> column, Collection<V> values, int batchSize) {
 		return listByColumnValues(lambdaQuery(), column, values, batchSize);
+	}
+
+	public <V> List<T> listByColumnValues(LambdaQueryChainWrapper<T> queryChainWrapper, SFunction<T, V> column,
+										  Collection<V> values) {
+		return listByColumnValues(queryChainWrapper, column, values, DEFAULT_LIST_BATCH_SIZE);
 	}
 
 	public <V> List<T> listByColumnValues(LambdaQueryChainWrapper<T> queryChainWrapper, SFunction<T, V> column,
@@ -522,11 +521,20 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	protected Object getJsonValue(Object value) {
 		if (Objects.isNull(value)) {
 			return "null";
-		} else if (value instanceof String) {
+		} else if (value instanceof String str) {
+			checkSqlInjection(str);
 			return "'" + value + "'";
 		} else if (value instanceof Number || value instanceof Boolean) {
 			return value;
 		}
 		return JsonUtils.toString(value);
+	}
+
+	protected void checkSqlInjection(String value) {
+		try {
+			CCJSqlParserUtil.parse(value);
+			throw new IllegalArgumentException("检查到sql注入风险");
+		} catch (JSQLParserException ignored) {
+		}
 	}
 }
