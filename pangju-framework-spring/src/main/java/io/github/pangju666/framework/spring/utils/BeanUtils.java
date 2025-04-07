@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 public class BeanUtils {
 	protected BeanUtils() {
@@ -44,12 +45,18 @@ public class BeanUtils {
 	}
 
 	public static <S, T> List<T> convertCollection(final Collection<S> source, final Converter<S, T> converter) {
+		return convertCollection(source, true, converter);
+	}
+
+	public static <S, T> List<T> convertCollection(final Collection<S> source, boolean filterNull, final Converter<S, T> converter) {
 		if (CollectionUtils.isEmpty(source)) {
 			return Collections.emptyList();
 		}
-		return source.stream()
-			.map(value -> convert(value, converter))
-			.toList();
+		Stream<S> stream = source.stream();
+		if (filterNull) {
+			stream = stream.filter(Objects::nonNull);
+		}
+		return stream.map(value -> convert(value, converter)).toList();
 	}
 
 	public static <S, T> T convert(final S source, final Converter<S, T> converter) {
