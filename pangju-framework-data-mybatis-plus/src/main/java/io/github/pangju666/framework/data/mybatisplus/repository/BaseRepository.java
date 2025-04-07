@@ -96,20 +96,19 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 
 	public <V> boolean existsByColumnValue(SFunction<T, V> column, V value) {
 		Validate.notNull(column, "column 不可为null");
-		Validate.notNull(value, "value 不可为null");
 
+		if (Objects.isNull(value)) {
+			return lambdaQuery()
+				.isNotNull(column)
+				.exists();
+		}
 		return lambdaQuery()
 			.eq(column, value)
 			.exists();
 	}
 
 	public <V> boolean notExistsByColumnValue(SFunction<T, V> column, V value) {
-		Validate.notNull(column, "column 不可为空");
-		Validate.notNull(value, "value 不可为null");
-
-		return !lambdaQuery()
-			.eq(column, value)
-			.exists();
+		return !existsByColumnValue(column, value);
 	}
 
 	public <V> T getByColumnValue(SFunction<T, V> column, V value) {
