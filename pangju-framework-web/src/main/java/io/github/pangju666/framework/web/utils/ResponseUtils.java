@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
@@ -26,7 +27,11 @@ public class ResponseUtils {
 	}
 
 	public static void setAttachmentHeader(final HttpServletResponse response, final String filename) {
-		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + URLEncoder.encode(filename, StandardCharsets.UTF_8));
+		setAttachmentHeader(response, filename, StandardCharsets.UTF_8);
+	}
+
+	public static void setAttachmentHeader(final HttpServletResponse response, final String filename, final Charset charsets) {
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + URLEncoder.encode(filename, charsets));
 	}
 
 	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response) {
