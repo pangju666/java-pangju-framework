@@ -7,8 +7,6 @@ import com.baomidou.mybatisplus.extension.repository.CrudRepository;
 import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
-import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.Validate;
@@ -23,19 +21,23 @@ import java.util.stream.Collectors;
 
 public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRepository<M, T> {
 	public static final int DEFAULT_LIST_BATCH_SIZE = 500;
+	protected static final String JSON_VALUE_EQ_FORMAT = "JSON_CONTAINS(%s->'$.%s', '%s')";
+	protected static final String JSON_ARRAY_CONTAIN_FORMAT = "JSON_CONTAINS(%s, '%s')";
 
+	// 只支持mysql
 	public List<T> listByJsonObjectValue(String columnName, String jsonObjectKey, Object jsonObjectValue) {
 		return listByJsonObjectValue(lambdaQuery(), columnName, jsonObjectKey, jsonObjectValue);
 	}
 
+	// 只支持mysql
 	public List<T> listByJsonObjectValue(LambdaQueryChainWrapper<T> queryChainWrapper, String columnName,
 										 String jsonObjectKey, Object jsonObjectValue) {
 		Validate.notNull(queryChainWrapper, "queryChainWrapper 不可为null");
 		Validate.notBlank(columnName, "columnName 不可为空");
 		Validate.notBlank(jsonObjectKey, "jsonObjectKey 不可为空");
 
-		return queryChainWrapper
-			.apply("{0}->>'$.{1}' = {2}", columnName, jsonObjectKey, getJsonValue(jsonObjectValue))
+		return queryChainWrapper.apply(String.format(JSON_VALUE_EQ_FORMAT, columnName, jsonObjectKey,
+				getJsonValue(jsonObjectValue)))
 			.list();
 	}
 
@@ -56,16 +58,18 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.list();
 	}
 
+	// 只支持mysql
 	public List<T> listByJsonArrayValue(String columnName, Object jsonArrayValue) {
 		return listByJsonArrayValue(lambdaQuery(), columnName, jsonArrayValue);
 	}
 
+	// 只支持mysql
 	public List<T> listByJsonArrayValue(LambdaQueryChainWrapper<T> queryChainWrapper, String columnName, Object jsonArrayValue) {
 		Validate.notNull(queryChainWrapper, "queryChainWrapper 不可为null");
 		Validate.notBlank(columnName, "columnName 不可为空");
 
 		return queryChainWrapper
-			.apply("{0} member of ({1})", getJsonValue(jsonArrayValue), columnName)
+			.apply(String.format(JSON_ARRAY_CONTAIN_FORMAT, columnName, getJsonValue(jsonArrayValue)))
 			.list();
 	}
 
@@ -517,23 +521,10 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.remove();
 	}
 
-	protected Object getJsonValue(Object value) {
+	protected String getJsonValue(Object value) {
 		if (Objects.isNull(value)) {
 			return "null";
-		} else if (value instanceof String str) {
-			checkSqlInjection(str);
-			return "'" + value + "'";
-		} else if (value instanceof Number || value instanceof Boolean) {
-			return value;
 		}
 		return JsonUtils.toString(value);
-	}
-
-	protected void checkSqlInjection(String value) {
-		try {
-			CCJSqlParserUtil.parse(value);
-			throw new IllegalArgumentException("检查到sql注入风险");
-		} catch (JSQLParserException ignored) {
-		}
 	}
 }

@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:~/data/testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+mybatis-plus:
+  type-aliases-package: io.github.pangju666.framework.data.mybatisplus.entity
+  configuration:
+    shrink-whitespaces-in-sql: true
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      column-format: "`%s`"
+      update-strategy: always
+      id-type: auto

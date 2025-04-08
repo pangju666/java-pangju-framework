@@ -14,8 +14,8 @@ import org.springframework.util.Assert;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RedisUtils {
-	protected RedisUtils() {
+public class RedisTemplateUtils {
+	protected RedisTemplateUtils() {
 	}
 
 	public static String computeKey(final String... keys) {
