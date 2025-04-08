@@ -4,6 +4,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.github.pangju666.framework.data.mybatisplus.type.handler.JsonTypeHandler;
+
+import java.util.List;
+import java.util.Map;
 
 @TableName(value = "TEST")
 public class TestEntity {
@@ -11,8 +15,10 @@ public class TestEntity {
 	private Long id;
 	@TableField(value = "NAME")
 	private String name;
-	@TableField(value = "JSON")
-	private String json;
+	@TableField(value = "JSON_VALUE", typeHandler = JsonTypeHandler.class)
+	private Map<String, Object> jsonValue;
+	@TableField(value = "JSON_ARRAY", typeHandler = JsonTypeHandler.class)
+	private List<String> jsonArray;
 
 	public Long getId() {
 		return id;
@@ -30,11 +36,19 @@ public class TestEntity {
 		this.name = name;
 	}
 
-	public String getJson() {
-		return json;
+	public Map<String, Object> getJsonValue() {
+		return jsonValue;
 	}
 
-	public void setJson(String json) {
-		this.json = json;
+	public void setJsonValue(Map<String, Object> jsonValue) {
+		this.jsonValue = jsonValue;
+	}
+
+	public List<String> getJsonArray() {
+		return jsonArray;
+	}
+
+	public void setJsonArray(List<String> jsonArray) {
+		this.jsonArray = jsonArray;
 	}
 }

@@ -141,7 +141,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	public <V> List<V> listUniqueColumnValue(LambdaQueryChainWrapper<T> queryChainWrapper, SFunction<T, V> column) {
-		return listColumnValue(queryChainWrapper, column, false, true);
+		return listColumnValue(queryChainWrapper, column, true, true);
 	}
 
 	public <V> List<V> listColumnValue(SFunction<T, V> column, boolean unique, boolean nonNull) {
@@ -388,6 +388,23 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			return false;
 		}
 		return super.saveOrUpdateBatch(validEntityList, batchSize);
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public <V> boolean replaceColumnValue(SFunction<T, V> column, V newValue, V oldValue) {
+		Validate.notNull(column, "column 不可为null");
+
+		if (Objects.isNull(oldValue)) {
+			return lambdaUpdate()
+				.set(column, newValue)
+				.isNull(column)
+				.update();
+		} else {
+			return lambdaUpdate()
+				.set(column, newValue)
+				.eq(column, oldValue)
+				.update();
+		}
 	}
 
 	@Override

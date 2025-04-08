@@ -98,6 +98,11 @@ public abstract class BaseViewRepository<M extends BaseMapper<T>, T> extends Bas
 	}
 
 	@Override
+	public final <V> boolean replaceColumnValue(SFunction<T, V> column, V newValue, V oldValue) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public final boolean removeById(Serializable id, boolean useFill) {
 		throw new UnsupportedOperationException();
 	}
@@ -139,6 +144,16 @@ public abstract class BaseViewRepository<M extends BaseMapper<T>, T> extends Bas
 
 	@Override
 	public final boolean removeByNotLikeColumnValue(SFunction<T, String> column, String value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public final boolean removeByNotLikeLeftColumnValue(SFunction<T, String> column, String value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public final boolean removeByNotLikeRightColumnValue(SFunction<T, String> column, String value) {
 		throw new UnsupportedOperationException();
 	}
 

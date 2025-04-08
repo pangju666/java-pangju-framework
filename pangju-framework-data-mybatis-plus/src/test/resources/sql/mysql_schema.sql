@@ -1,6 +1,6 @@
 CREATE TABLE `test`
 (
-    `id`         bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+    `id`         bigint          NOT NULL AUTO_INCREMENT,
     `name`       varchar(255)    NULL,
     `json`       json            NULL,
     `json_array` json            NULL,
