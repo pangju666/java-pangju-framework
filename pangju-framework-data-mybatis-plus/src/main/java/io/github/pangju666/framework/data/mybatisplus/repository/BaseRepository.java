@@ -390,7 +390,6 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 		return super.saveOrUpdateBatch(validEntityList, batchSize);
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public <V> boolean replaceColumnValue(SFunction<T, V> column, V newValue, V oldValue) {
 		Assert.notNull(column, "column 不可为null");
 
@@ -442,12 +441,10 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			.remove();
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public <V> boolean removeByColumnValues(SFunction<T, V> column, Collection<V> values) {
 		return removeByColumnValues(column, values, DEFAULT_BATCH_SIZE);
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public <V> boolean removeByColumnValues(SFunction<T, V> column, Collection<V> values, int batchSize) {
 		Assert.notNull(column, "column 不可为null");
 		Assert.isTrue(batchSize > 0, "batchSize 必须大于0");
