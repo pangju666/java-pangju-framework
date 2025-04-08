@@ -1,11 +1,11 @@
 package io.github.pangju666.framework.data.mongo.repository;
 
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 import io.github.pangju666.commons.lang.utils.ReflectionUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
-import io.github.pangju666.framework.data.mongo.model.BasicDocument;
 import io.github.pangju666.framework.data.mongo.pool.MongoConstants;
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.collections4.CollectionUtils;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -15,19 +15,27 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class BaseRepository<T extends BasicDocument> {
+public abstract class BaseRepository<T> {
 	protected Class<T> entityClass;
 	protected MongoOperations mongoOperations;
 	protected String collectionName;
 
+	private BaseRepository() {
+		this.entityClass = ReflectionUtils.getClassGenericType(this.getClass());
+	}
+
 	protected BaseRepository(MongoOperations mongoOperations) {
+		this();
 		setMongoOperations(mongoOperations);
 	}
 
@@ -35,7 +43,7 @@ public abstract class BaseRepository<T extends BasicDocument> {
 		Assert.notNull(mongoOperations, "mongoOperations 不可为null");
 
 		this.mongoOperations = mongoOperations;
-		this.entityClass = ReflectionUtils.getClassGenericType(this.getClass());
+
 		String collectionName = null;
 		Document document = this.entityClass.getAnnotation(Document.class);
 		if (Objects.nonNull(document)) {
@@ -87,13 +95,13 @@ public abstract class BaseRepository<T extends BasicDocument> {
 	public boolean existsById(String id) {
 		Assert.hasText(id, "id 不可为空");
 
-		return mongoOperations.exists(queryById(id), this.entityClass, this.collectionName);
+		return mongoOperations.exists(idQuery(id), this.entityClass, this.collectionName);
 	}
 
 	public boolean existsByObjectId(ObjectId id) {
 		Assert.notNull(id, "id 不可为null");
 
-		return mongoOperations.exists(queryByObjectId(id), this.entityClass, this.collectionName);
+		return mongoOperations.exists(objectIdQuery(id), this.entityClass, this.collectionName);
 	}
 
 	public boolean exist(Query query) {
@@ -140,17 +148,28 @@ public abstract class BaseRepository<T extends BasicDocument> {
 	}
 
 	public List<T> listByIds(Collection<String> ids) {
-		if (Objects.isNull(ids) || ids.isEmpty()) {
+		List<String> validIds = CollectionUtils.emptyIfNull(ids)
+			.stream()
+			.filter(StringUtils::isNotBlank)
+			.toList();
+		if (validIds.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(queryByIds(ids), this.entityClass, this.collectionName);
+		return mongoOperations.find(Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME)
+			.in(validIds)), this.entityClass, this.collectionName);
 	}
 
-	public List<T> listByObjectIds(Collection<ObjectId> ids) {
-		if (Objects.isNull(ids) || ids.isEmpty()) {
+	public List<T> listByObjectIds(Collection<ObjectId> objectIds) {
+		List<String> validIds = CollectionUtils.emptyIfNull(objectIds)
+			.stream()
+			.filter(Objects::nonNull)
+			.map(ObjectId::toHexString)
+			.toList();
+		if (validIds.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(queryByObjectIds(ids), this.entityClass, this.collectionName);
+		return mongoOperations.find(Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME)
+			.in(validIds)), this.entityClass, this.collectionName);
 	}
 
 	public List<T> list() {
@@ -170,195 +189,332 @@ public abstract class BaseRepository<T extends BasicDocument> {
 	}
 
 	public <V> List<T> listByKeyValue(String key, V value) {
-		Validate.notBlank(key, "key 不可为空");
+		Assert.hasText(key, "key 不可为空");
 
 		if (Objects.isNull(value)) {
-			return lambdaQuery()
-				.isNull(column)
-				.list();
+			return mongoOperations.find(Query.query(nullCriteria(key)), this.entityClass, this.collectionName);
 		}
-		return lambdaQuery()
-			.eq(column, value)
-			.list();
+		return mongoOperations.find(Query.query(Criteria.where(key).is(value)), this.entityClass, this.collectionName);
 	}
 
 	public <V> List<T> listByKeyValues(String key, Collection<V> values) {
-		Validate.notBlank(key, "key 不可为空");
+		Assert.hasText(key, "key 不可为空");
 
-		return listByColumnValues(lambdaQuery(), column, values, DEFAULT_LIST_BATCH_SIZE);
-	}
-
-	public <V> List<T> listByKeyValues(Query query, String key, Collection<V> values) {
-		Validate.notBlank(key, "key 不可为空");
-
-
-		Validate.notNull(column, "column 不可为null");
-		Validate.notNull(queryChainWrapper, "queryChainWrapper 不可为null");
-		Validate.isTrue(batchSize > 0, "batchSize 必须大于0");
-
-		List<V> validList = CollectionUtils.emptyIfNull(values)
+		List<V> validValues = CollectionUtils.emptyIfNull(values)
 			.stream()
 			.filter(Objects::nonNull)
 			.toList();
-		if (validList.isEmpty()) {
+		if (validValues.isEmpty()) {
 			return Collections.emptyList();
 		}
+		return mongoOperations.find(Query.query(Criteria.where(key).in(validValues)), this.entityClass,
+			this.collectionName);
+	}
 
-		if (validList.size() <= batchSize) {
-			return queryChainWrapper.in(column, validList).list();
-		}
-		return ListUtils.partition(validList, batchSize)
+	public <V> List<T> listByKeyValues(Query query, String key, Collection<V> values) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
+
+		List<V> validValues = CollectionUtils.emptyIfNull(values)
 			.stream()
-			.map(part -> queryChainWrapper.in(column, part).list())
-			.flatMap(List::stream)
+			.filter(Objects::nonNull)
 			.toList();
+		if (validValues.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return mongoOperations.find(query.addCriteria(Criteria.where(key).in(validValues)),
+			this.entityClass, this.collectionName);
 	}
 
-	public <V> List<T> listByNotNullKey(String key) {
-		return listByNotNullColumn(lambdaQuery(), column);
+	public List<T> listByNullValue(String key) {
+		Assert.hasText(key, "key 不可为空");
+
+		return mongoOperations.find(Query.query(nullCriteria(key)), this.entityClass, this.collectionName);
 	}
 
-	public <V> List<T> listByNotNullKey(Query query, String key) {
-		Validate.notNull(column, "column 不可为null");
-		Validate.notNull(queryChainWrapper, "queryChainWrapper 不可为null");
+	public List<T> listByNullValue(Query query, String key) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
 
-		return queryChainWrapper.isNotNull(column).list();
+		return mongoOperations.find(query.addCriteria(nullCriteria(key)), this.entityClass,
+			this.collectionName);
 	}
 
-	public <V> List<T> listByNullKey(String key) {
-		return listByNullColumn(lambdaQuery(), column);
+	public List<T> listByNotNullValue(String key) {
+		Assert.hasText(key, "key 不可为空");
+
+		return mongoOperations.find(Query.query(notNullCriteria(key)), this.entityClass, this.collectionName);
 	}
 
-	public <V> List<T> listByNullKey(Query query, String key) {
-		Validate.notNull(column, "column 不可为null");
-		Validate.notNull(queryChainWrapper, "queryChainWrapper 不可为null");
+	public List<T> listByNotNullValue(Query query, String key) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
 
-		return queryChainWrapper.isNull(column).list();
-	}
-
-	public <V> List<T> listByNullValueKey(String key) {
-		return listByNullColumn(lambdaQuery(), column);
-	}
-
-	public <V> List<T> listByNullValueKey(Query query, String key) {
-		Validate.notNull(column, "column 不可为null");
-		Validate.notNull(queryChainWrapper, "queryChainWrapper 不可为null");
-
-		return queryChainWrapper.isNull(column).list();
-	}
-
-	public <V> List<T> listByNotNullValueKey(String key) {
-		return listByNullColumn(lambdaQuery(), column);
-	}
-
-	public <V> List<T> listByNotNullValueKey(Query query, String key) {
-		Validate.notNull(column, "column 不可为null");
-		Validate.notNull(queryChainWrapper, "queryChainWrapper 不可为null");
-
-		return queryChainWrapper.isNull(column).list();
+		return mongoOperations.find(query.addCriteria(notNullCriteria(key)), this.entityClass,
+			this.collectionName);
 	}
 
 	public List<T> listByNotRegex(String key, String regex) {
-		Validate.notNull(column, "column 不可为null");
+		Assert.hasText(key, "key 不可为空");
 
-		if (StringUtils.isEmpty(value)) {
+		if (StringUtils.isEmpty(regex)) {
 			return Collections.emptyList();
 		}
-		return lambdaQuery()
-			.like(column, value)
-			.list();
+		return mongoOperations.find(Query.query(Criteria.where(key).not().regex(regex)), this.entityClass,
+			this.collectionName);
 	}
 
 	public List<T> listByNotRegex(String key, Pattern pattern) {
-		Validate.notNull(column, "column 不可为null");
+		Assert.hasText(key, "key 不可为空");
 
-		if (StringUtils.isEmpty(value)) {
+		if (Objects.isNull(pattern)) {
 			return Collections.emptyList();
 		}
-		return lambdaQuery()
-			.notLike(column, value)
-			.list();
-	}
-
-	public List<T> listByRegex(String key, String regex) {
-		Validate.notNull(column, "column 不可为null");
-
-		if (StringUtils.isEmpty(value)) {
-			return Collections.emptyList();
-		}
-		return lambdaQuery()
-			.like(column, value)
-			.list();
-	}
-
-	public List<T> listByRegex(String key, Pattern pattern) {
-		Validate.notNull(column, "column 不可为null");
-
-		if (StringUtils.isEmpty(value)) {
-			return Collections.emptyList();
-		}
-		return lambdaQuery()
-			.notLike(column, value)
-			.list();
+		return mongoOperations.find(Query.query(Criteria.where(key).not().regex(pattern)), this.entityClass,
+			this.collectionName);
 	}
 
 	public List<T> listByNotRegex(Query query, String key, String regex) {
-		Validate.notNull(column, "column 不可为null");
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
 
-		if (StringUtils.isEmpty(value)) {
+		if (StringUtils.isEmpty(regex)) {
 			return Collections.emptyList();
 		}
-		return lambdaQuery()
-			.like(column, value)
-			.list();
+		return mongoOperations.find(query.addCriteria(Criteria.where(key).not().regex(regex)), this.entityClass,
+			this.collectionName);
 	}
 
 	public List<T> listByNotRegex(Query query, String key, Pattern pattern) {
-		Validate.notNull(column, "column 不可为null");
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
 
-		if (StringUtils.isEmpty(value)) {
+		if (Objects.isNull(pattern)) {
 			return Collections.emptyList();
 		}
-		return lambdaQuery()
-			.notLike(column, value)
-			.list();
+		return mongoOperations.find(query.addCriteria(Criteria.where(key).not().regex(pattern)), this.entityClass,
+			this.collectionName);
+	}
+
+	public List<T> listByRegex(String key, String regex) {
+		Assert.hasText(key, "key 不可为空");
+
+		if (StringUtils.isEmpty(regex)) {
+			return Collections.emptyList();
+		}
+		return mongoOperations.find(Query.query(Criteria.where(key).regex(regex)), this.entityClass,
+			this.collectionName);
+	}
+
+	public List<T> listByRegex(String key, Pattern pattern) {
+		Assert.hasText(key, "key 不可为空");
+
+		if (Objects.isNull(pattern)) {
+			return Collections.emptyList();
+		}
+		return mongoOperations.find(Query.query(Criteria.where(key).regex(pattern)), this.entityClass,
+			this.collectionName);
 	}
 
 	public List<T> listByRegex(Query query, String key, String regex) {
-		Validate.notNull(column, "column 不可为null");
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
 
-		if (StringUtils.isEmpty(value)) {
+		if (StringUtils.isEmpty(regex)) {
 			return Collections.emptyList();
 		}
-		return lambdaQuery()
-			.like(column, value)
-			.list();
+		return mongoOperations.find(query.addCriteria(Criteria.where(key).regex(regex)), this.entityClass,
+			this.collectionName);
 	}
 
 	public List<T> listByRegex(Query query, String key, Pattern pattern) {
-		Validate.notNull(column, "column 不可为null");
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
 
-		if (StringUtils.isEmpty(value)) {
+		if (Objects.isNull(pattern)) {
 			return Collections.emptyList();
 		}
-		return lambdaQuery()
-			.notLike(column, value)
-			.list();
+		return mongoOperations.find(query.addCriteria(Criteria.where(key).regex(pattern)), this.entityClass,
+			this.collectionName);
 	}
-
 
 	public Stream<T> streamByIds(Collection<String> ids) {
-		if (Objects.isNull(ids) || ids.isEmpty()) {
+		List<String> validIds = CollectionUtils.emptyIfNull(ids)
+			.stream()
+			.filter(StringUtils::isNotBlank)
+			.toList();
+		if (validIds.isEmpty()) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(queryByIds(ids), this.entityClass, this.collectionName);
+		return mongoOperations.stream(Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME)
+			.in(validIds)), this.entityClass, this.collectionName);
 	}
 
-	public Stream<T> streamByObjectIds(Collection<ObjectId> ids) {
-		if (Objects.isNull(ids) || ids.isEmpty()) {
+	public Stream<T> streamByObjectIds(Collection<ObjectId> objectIds) {
+		List<String> validIds = CollectionUtils.emptyIfNull(objectIds)
+			.stream()
+			.filter(Objects::nonNull)
+			.map(ObjectId::toHexString)
+			.toList();
+		if (validIds.isEmpty()) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(queryByObjectIds(ids), this.entityClass, this.collectionName);
+		return mongoOperations.stream(Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME)
+			.in(validIds)), this.entityClass, this.collectionName);
+	}
+
+	public <V> Stream<T> streamByKeyValue(String key, V value) {
+		Assert.hasText(key, "key 不可为空");
+
+		if (Objects.isNull(value)) {
+			return mongoOperations.stream(Query.query(nullCriteria(key)), this.entityClass,
+				this.collectionName);
+		}
+		return mongoOperations.stream(Query.query(Criteria.where(key).is(value)),
+			this.entityClass, this.collectionName);
+	}
+
+	public <V> Stream<T> streamByKeyValues(String key, Collection<V> values) {
+		Assert.hasText(key, "key 不可为空");
+
+		List<V> validValues = CollectionUtils.emptyIfNull(values)
+			.stream()
+			.filter(Objects::nonNull)
+			.toList();
+		if (validValues.isEmpty()) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(Query.query(Criteria.where(key).in(validValues)),
+			this.entityClass, this.collectionName);
+	}
+
+	public <V> Stream<T> streamByKeyValues(Query query, String key, Collection<V> values) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
+
+		List<V> validValues = CollectionUtils.emptyIfNull(values)
+			.stream()
+			.filter(Objects::nonNull)
+			.toList();
+		if (validValues.isEmpty()) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(query.addCriteria(Criteria.where(key).in(validValues)),
+			this.entityClass, this.collectionName);
+	}
+
+	public Stream<T> streamByNotRegex(String key, String regex) {
+		Assert.hasText(key, "key 不可为空");
+
+		if (StringUtils.isEmpty(regex)) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(Query.query(Criteria.where(key).not().regex(regex)),
+			this.entityClass, this.collectionName);
+	}
+
+	public Stream<T> streamByNotRegex(String key, Pattern pattern) {
+		Assert.hasText(key, "key 不可为空");
+
+		if (Objects.isNull(pattern)) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(Query.query(Criteria.where(key).not().regex(pattern)),
+			this.entityClass, this.collectionName);
+	}
+
+	public Stream<T> streamByNotRegex(Query query, String key, String regex) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
+
+		if (StringUtils.isEmpty(regex)) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(query.addCriteria(Criteria.where(key).not().regex(regex)),
+			this.entityClass, this.collectionName);
+	}
+
+	public Stream<T> streamByNotRegex(Query query, String key, Pattern pattern) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
+
+		if (Objects.isNull(pattern)) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(query.addCriteria(Criteria.where(key).not().regex(pattern)),
+			this.entityClass, this.collectionName);
+	}
+
+	public Stream<T> streamByRegex(String key, String regex) {
+		Assert.hasText(key, "key 不可为空");
+
+		if (StringUtils.isEmpty(regex)) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(Query.query(Criteria.where(key).regex(regex)), this.entityClass,
+			this.collectionName);
+	}
+
+	public Stream<T> streamByRegex(String key, Pattern pattern) {
+		Assert.hasText(key, "key 不可为空");
+
+		if (Objects.isNull(pattern)) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(Query.query(Criteria.where(key).regex(pattern)),
+			this.entityClass, this.collectionName);
+	}
+
+	public Stream<T> streamByRegex(Query query, String key, String regex) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
+
+		if (StringUtils.isEmpty(regex)) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(query.addCriteria(Criteria.where(key).regex(regex)),
+			this.entityClass, this.collectionName);
+	}
+
+	public Stream<T> streamByRegex(Query query, String key, Pattern pattern) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
+
+		if (Objects.isNull(pattern)) {
+			return Stream.empty();
+		}
+		return mongoOperations.stream(query.addCriteria(Criteria.where(key).regex(pattern)),
+			this.entityClass, this.collectionName);
+	}
+
+	public Stream<T> streamByNullValue(String key) {
+		Assert.hasText(key, "key 不可为空");
+
+		return mongoOperations.stream(Query.query(nullCriteria(key)), this.entityClass,
+			this.collectionName);
+	}
+
+	public Stream<T> streamByNullValue(Query query, String key) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
+
+		return mongoOperations.stream(query.addCriteria(nullCriteria(key)),
+			this.entityClass, this.collectionName);
+	}
+
+	public Stream<T> streamByNotNullValue(String key) {
+		Assert.hasText(key, "key 不可为空");
+
+		return mongoOperations.stream(Query.query(notNullCriteria(key)), this.entityClass,
+			this.collectionName);
+	}
+
+	public Stream<T> streamByNotNullValue(Query query, String key) {
+		Assert.notNull(query, "query 不可为null");
+		Assert.hasText(key, "key 不可为空");
+
+		return mongoOperations.stream(query.addCriteria(notNullCriteria(key)),
+			this.entityClass, this.collectionName);
 	}
 
 	public Stream<T> stream() {
@@ -413,100 +569,129 @@ public abstract class BaseRepository<T extends BasicDocument> {
 		return new PageImpl<>(list, pageable, count);
 	}
 
-	public void insert(T entity) {
-		mongoOperations.insert(entity, this.collectionName);
+	public T insert(T entity) {
+		Assert.notNull(entity, "entity 不可为null");
+
+		return mongoOperations.insert(entity, this.collectionName);
 	}
 
-	public void insertBatch(Collection<T> entities) {
-		if (Objects.nonNull(entities) && !entities.isEmpty()) {
-			List<T> validaEntities = entities.stream()
-				.filter(Objects::nonNull)
-				.toList();
-			mongoOperations.insert(validaEntities, this.collectionName);
+	public Collection<T> insertBatch(Collection<T> entities) {
+		List<T> validaEntities = CollectionUtils.emptyIfNull(entities)
+			.stream()
+			.filter(Objects::nonNull)
+			.toList();
+		if (validaEntities.isEmpty()) {
+			return Collections.emptyList();
 		}
+		return mongoOperations.insert(validaEntities, this.collectionName);
 	}
 
 	public void save(T entity) {
+		Assert.notNull(entity, "entity 不可为null");
+
 		mongoOperations.save(entity, this.collectionName);
 	}
 
-	public void saveBatch(Collection<T> entities) {
-		if (Objects.nonNull(entities) && !entities.isEmpty()) {
-			List<T> insertEntities = entities.stream()
-				.filter(entity -> Objects.nonNull(entity) && Objects.isNull(entity.getId()))
-				.toList();
-			if (!insertEntities.isEmpty()) {
-				mongoOperations.insert(insertEntities, this.collectionName);
-			}
+	public Collection<T> saveBatch(Collection<T> entities) {
+		return CollectionUtils.emptyIfNull(entities)
+			.stream()
+			.filter(Objects::nonNull)
+			.map(validaEntity -> mongoOperations.save(validaEntity, this.collectionName))
+			.toList();
+	}
 
-			List<T> updateEntities = entities.stream()
-				.filter(entity -> Objects.nonNull(entity) && Objects.nonNull(entity.getId()))
-				.toList();
-			if (!updateEntities.isEmpty()) {
-				for (T updateEntity : updateEntities) {
-					mongoOperations.save(updateEntity, this.collectionName);
-				}
-			}
+	public <V> boolean updateKeyValueById(String key, V value, String id) {
+		Assert.hasText(key, "key 不可为空");
+		Assert.hasText(id, "id 不可为空");
+
+		UpdateResult result = mongoOperations.updateFirst(idQuery(id), new Update().set(key, value),
+			this.collectionName);
+		return result.wasAcknowledged() && result.getModifiedCount() == 1;
+	}
+
+	public <V> boolean updateKeyValueByObjectId(String key, V value, ObjectId objectId) {
+		Assert.hasText(key, "key 不可为空");
+		Assert.notNull(objectId, "objectId 不可为null");
+
+		UpdateResult result = mongoOperations.updateFirst(objectIdQuery(objectId), new Update().set(key, value),
+			this.collectionName);
+		return result.wasAcknowledged() && result.getModifiedCount() == 1;
+	}
+
+	public <V> long replaceKeyValue(String key, V newValue, V oldValue) {
+		Assert.hasText(key, "key 不可为空");
+
+		UpdateResult result;
+		if (Objects.isNull(oldValue)) {
+			result = mongoOperations.updateMulti(Query.query(nullCriteria(key)),
+				new Update().set(key, newValue), this.collectionName);
+		} else {
+			result = mongoOperations.updateMulti(Query.query(Criteria.where(key).is(oldValue)),
+				new Update().set(key, newValue), this.collectionName);
 		}
+		return result.wasAcknowledged() ? result.getModifiedCount() : 0;
 	}
 
 	public boolean removeById(String id) {
-		DeleteResult result = mongoOperations.remove(queryById(id), this.entityClass, this.collectionName);
+		Assert.hasText(id, "id 不可为空");
+
+		DeleteResult result = mongoOperations.remove(idQuery(id), this.collectionName);
 		return result.wasAcknowledged() && result.getDeletedCount() == 1;
 	}
 
-	public boolean removeByIds(Collection<String> ids) {
-		List<String> validIds = StringUtils.getUniqueNotBlankElements(ids);
-		Query query = new Query(new Criteria(MongoConstants.ID_FIELD_NAME).in(validIds));
-		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
-		return result.wasAcknowledged() && result.getDeletedCount() == validIds.size();
+	public long removeByIds(Collection<String> ids) {
+		List<String> validIds = CollectionUtils.emptyIfNull(ids)
+			.stream()
+			.filter(StringUtils::isNotBlank)
+			.toList();
+		if (validIds.isEmpty()) {
+			return 0;
+		}
+		Query query = Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).in(validIds));
+		return remove(query);
 	}
 
-	public boolean removeByObjectId(ObjectId id) {
-		DeleteResult result = mongoOperations.remove(queryByObjectId(id), this.entityClass, this.collectionName);
+	public boolean removeByObjectId(ObjectId objectId) {
+		Assert.notNull(objectId, "objectId 不可为null");
+
+		DeleteResult result = mongoOperations.remove(objectIdQuery(objectId), this.entityClass, this.collectionName);
 		return result.wasAcknowledged() && result.getDeletedCount() == 1;
 	}
 
-	public boolean removeByObjectIds(Collection<ObjectId> ids) {
-		Set<String> validIds = ids.stream()
+	public long removeByObjectIds(Collection<ObjectId> objectIds) {
+		List<String> validIds = CollectionUtils.emptyIfNull(objectIds)
+			.stream()
 			.filter(Objects::nonNull)
 			.map(ObjectId::toHexString)
-			.collect(Collectors.toSet());
-		Query query = new Query(new Criteria(MongoConstants.ID_FIELD_NAME).in(validIds));
+			.toList();
+		if (validIds.isEmpty()) {
+			return 0;
+		}
+		Query query = Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).in(validIds));
+		return remove(query);
+	}
+
+	public long remove(Query query) {
+		Assert.notNull(query, "query 不可为null");
+
 		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
-		return result.wasAcknowledged() && result.getDeletedCount() == validIds.size();
+		return result.wasAcknowledged() ? result.getDeletedCount() : 0;
 	}
 
-	public boolean remove(Query query) {
-		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
-		return result.wasAcknowledged() && result.getDeletedCount() > 0;
+	protected Query objectIdQuery(ObjectId id) {
+		return Query.query(objectIdCriteria(id));
 	}
 
-	protected Query queryByObjectId(ObjectId id) {
-		Criteria criteria = criteriaById(id.toHexString());
-		return new Query(criteria);
+	protected Query idQuery(String id) {
+		return Query.query(idCriteria(id));
 	}
 
-	protected Query queryById(String id) {
-		Criteria criteria = criteriaById(id);
-		return new Query(criteria);
+	public Criteria idCriteria(String id) {
+		return Criteria.where(MongoConstants.ID_FIELD_NAME).is(id);
 	}
 
-	protected Query queryByIds(Collection<String> ids) {
-		List<String> validIds = StringUtils.getUniqueNotBlankElements(ids);
-		return new Query(new Criteria(MongoConstants.ID_FIELD_NAME).in(validIds));
-	}
-
-	protected Query queryByObjectIds(Collection<ObjectId> ids) {
-		Set<String> validIds = ids.stream()
-			.filter(Objects::nonNull)
-			.map(ObjectId::toHexString)
-			.collect(Collectors.toSet());
-		return new Query(new Criteria(MongoConstants.ID_FIELD_NAME).in(validIds));
-	}
-
-	protected Criteria criteriaById(String id) {
-		return new Criteria(MongoConstants.ID_FIELD_NAME).is(id);
+	public Criteria objectIdCriteria(ObjectId id) {
+		return Criteria.where(MongoConstants.ID_FIELD_NAME).is(id.toHexString());
 	}
 
 	protected Criteria nullCriteria(String key) {
