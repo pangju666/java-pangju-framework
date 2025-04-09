@@ -20,7 +20,22 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.github.pangju666.framework.data.mybatisplus.model.entity.base.BasicDO;
 
+/**
+ * 雪花ID基础实体类
+ * <p>
+ * 基于{@link BasicDO}，使用雪花ID作为主键ID。
+ * 适用于需要雪花ID主键的基础实体类。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public abstract class SnowflakeIDBasicDO extends BasicDO implements SnowflakeId {
+	/**
+	 * 雪花算法主键ID
+	 *
+	 * @since 1.0.0
+	 */
 	@TableId(type = IdType.ASSIGN_ID)
 	protected Long id;
 

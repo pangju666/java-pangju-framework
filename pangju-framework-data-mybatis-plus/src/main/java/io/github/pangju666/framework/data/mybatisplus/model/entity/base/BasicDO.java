@@ -22,9 +22,29 @@ import io.github.pangju666.commons.lang.utils.DateUtils;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * 基础实体类
+ * <p>
+ * 提供基础的创建时间和更新时间字段。
+ * 所有实体类的基类，实现了序列化接口。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public abstract class BasicDO implements Serializable {
+	/**
+	 * 创建时间，默认为当前时间
+	 *
+	 * @since 1.0.0
+	 */
 	@TableField("create_time")
 	protected Date createTime = DateUtils.nowDate();
+	/**
+	 * 更新时间，数据更新时自动设置为当前时间
+	 *
+	 * @since 1.0.0
+	 */
 	@TableField(value = "update_time", update = "CURRENT_TIMESTAMP")
 	protected Date updateTime;
 

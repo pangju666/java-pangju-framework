@@ -20,7 +20,22 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.github.pangju666.framework.data.mybatisplus.model.entity.base.VersionLogicStatusBasicDO;
 
+/**
+ * 自增ID、乐观锁和逻辑删除状态基础实体类
+ * <p>
+ * 基于{@link VersionLogicStatusBasicDO}，使用自增ID作为主键ID。
+ * 适用于需要自增主键、乐观锁和状态标记逻辑删除功能的实体类。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public abstract class AutoIdVersionLogicStatusBasicDO extends VersionLogicStatusBasicDO<Long> implements AutoId {
+	/**
+	 * 自增主键ID
+	 *
+	 * @since 1.0.0
+	 */
 	@TableId(type = IdType.AUTO)
 	protected Long id;
 

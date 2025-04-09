@@ -21,6 +21,16 @@ import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
+/**
+ * 必填雪花ID列表数据传输对象
+ * <p>
+ * 用于传输雪花算法生成的ID列表，支持ID的唯一性校验。
+ * 列表不允许为空，且列表中的元素必须符合雪花ID格式。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public record SnowflakeIdRequiredListDTO(@UniqueElements(message = "存在重复的id")
 										 @SnowflakeIds(notEmpty = true)
 										 List<Long> ids) {

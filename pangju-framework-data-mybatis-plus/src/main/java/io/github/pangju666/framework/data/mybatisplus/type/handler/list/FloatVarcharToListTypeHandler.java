@@ -21,14 +21,13 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
-import java.math.BigInteger;
 import java.util.List;
 
 /**
- * BigInteger类型的VARCHAR转List类型处理器
+ * Float类型的VARCHAR转List类型处理器
  * <p>
- * 用于处理数据库VARCHAR类型与List<BigInteger>类型之间的转换。
- * 将以分隔符分隔的字符串转换为BigInteger列表，或将BigInteger列表转换为分隔的字符串。
+ * 用于处理数据库VARCHAR类型与List<Float>类型之间的转换。
+ * 将以分隔符分隔的字符串转换为Float列表，或将Float列表转换为分隔的字符串。
  * </p>
  *
  * @author pangju666
@@ -36,8 +35,8 @@ import java.util.List;
  */
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
-public final class BigIntegerVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<BigInteger> {
-	public BigIntegerVarcharToListTypeHandler() {
-		super((value) -> StringUtils.isBlank(value) ? null : new BigInteger(value));
+public final class FloatVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<Float> {
+	public FloatVarcharToListTypeHandler() {
+		super((value) -> StringUtils.isBlank(value) ? null : Float.valueOf(value));
 	}
 }

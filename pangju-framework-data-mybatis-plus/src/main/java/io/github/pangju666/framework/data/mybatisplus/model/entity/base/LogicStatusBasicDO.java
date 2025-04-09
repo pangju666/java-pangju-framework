@@ -19,7 +19,23 @@ package io.github.pangju666.framework.data.mybatisplus.model.entity.base;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 
+/**
+ * 逻辑删除状态基础实体类
+ * <p>
+ * 在{@link BasicDO}基础上增加了删除状态字段，
+ * 用于支持仅使用状态标记的逻辑删除功能。
+ * </p>
+ *
+ * @param <ID> ID的类型参数
+ * @author pangju666
+ * @since 1.0.0
+ */
 public abstract class LogicStatusBasicDO<ID> extends BasicDO {
+	/**
+	 * 删除状态，0表示未删除，删除时设置为表数据行ID
+	 *
+	 * @since 1.0.0
+	 */
 	@TableField("delete_status")
 	@TableLogic(value = "0", delval = "id")
 	protected ID deleteStatus;

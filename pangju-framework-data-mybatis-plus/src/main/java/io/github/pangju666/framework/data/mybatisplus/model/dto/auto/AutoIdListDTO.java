@@ -21,6 +21,16 @@ import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
+/**
+ * 自增ID列表数据传输对象
+ * <p>
+ * 用于传输自增类型的ID列表，支持ID的唯一性校验。
+ * 列表允许为空，但列表中的元素必须为有效的自增ID。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public record AutoIdListDTO(@UniqueElements(message = "存在重复的id")
 							@AutoIds List<Long> ids) {
 }

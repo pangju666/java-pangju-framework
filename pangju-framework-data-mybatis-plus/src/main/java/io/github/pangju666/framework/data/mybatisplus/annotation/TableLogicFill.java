@@ -18,9 +18,24 @@ package io.github.pangju666.framework.data.mybatisplus.annotation;
 
 import java.lang.annotation.*;
 
+/**
+ * 逻辑删除字段填充注解
+ * <p>
+ * 用于标注需要在逻辑删除时自动填充值的字段
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface TableLogicFill {
+	/**
+	 * 逻辑删除时需要填充的值
+	 *
+	 * @return 填充值
+	 * @since 1.0.0
+	 */
 	String value();
 }

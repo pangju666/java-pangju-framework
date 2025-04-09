@@ -20,7 +20,22 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.github.pangju666.framework.data.mybatisplus.model.entity.base.VersionLogicStatusBasicDO;
 
+/**
+ * UUID、乐观锁和逻辑删除状态基础实体类
+ * <p>
+ * 基于{@link VersionLogicStatusBasicDO}，使用UUID作为主键ID。
+ * 适用于需要UUID主键、乐观锁和状态标记逻辑删除功能的实体类。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public abstract class UUIdVersionLogicStatusBasicDO extends VersionLogicStatusBasicDO<String> implements UUId {
+	/**
+	 * UUID主键ID
+	 *
+	 * @since 1.0.0
+	 */
 	@TableId(type = IdType.ASSIGN_UUID)
 	protected String id;
 

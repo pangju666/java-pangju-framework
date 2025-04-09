@@ -16,6 +16,16 @@
 
 package io.github.pangju666.framework.data.mybatisplus.model.entity.base;
 
+/**
+ * ID接口
+ * <p>
+ * 定义实体类ID的getter和setter方法。
+ * </p>
+ *
+ * @param <ID> ID的类型参数
+ * @author pangju666
+ * @since 1.0.0
+ */
 public interface Id<ID> {
 	ID getId();
 

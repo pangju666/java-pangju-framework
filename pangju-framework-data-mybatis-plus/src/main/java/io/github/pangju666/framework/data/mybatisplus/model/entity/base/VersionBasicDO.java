@@ -19,7 +19,22 @@ package io.github.pangju666.framework.data.mybatisplus.model.entity.base;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.Version;
 
+/**
+ * 乐观锁基础实体类
+ * <p>
+ * 在{@link BasicDO}基础上增加了版本号字段，
+ * 用于支持乐观锁功能。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public abstract class VersionBasicDO extends BasicDO {
+	/**
+	 * 版本号，用于乐观锁控制
+	 *
+	 * @since 1.0.0
+	 */
 	@TableField("version")
 	@Version
 	private Integer version;

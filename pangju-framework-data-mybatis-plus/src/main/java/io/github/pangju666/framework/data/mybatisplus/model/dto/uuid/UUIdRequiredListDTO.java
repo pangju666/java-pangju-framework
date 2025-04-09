@@ -21,6 +21,16 @@ import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
+/**
+ * 必填UUID列表数据传输对象
+ * <p>
+ * 用于传输UUID类型的ID列表，支持ID的唯一性校验。
+ * 列表不允许为空，且列表中的元素必须符合UUID格式。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public record UUIdRequiredListDTO(@UniqueElements(message = "存在重复的id")
 								  @UUIds(notEmpty = true)
 								  List<String> ids) {

@@ -24,6 +24,16 @@ import org.apache.ibatis.type.MappedTypes;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * BigDecimal类型的VARCHAR转List类型处理器
+ * <p>
+ * 用于处理数据库VARCHAR类型与List<BigDecimal>类型之间的转换。
+ * 将以分隔符分隔的字符串转换为BigDecimal列表，或将BigDecimal列表转换为分隔的字符串。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
 public final class BigDecimalVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<BigDecimal> {

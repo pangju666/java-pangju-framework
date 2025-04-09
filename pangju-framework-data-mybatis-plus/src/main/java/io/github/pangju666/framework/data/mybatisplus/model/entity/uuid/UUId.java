@@ -26,7 +26,27 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * UUID主键接口
+ * <p>
+ * 定义使用UUID字符串类型作为主键ID的实体类接口。
+ * 提供从实体集合中提取UUID的工具方法。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public interface UUId extends Id<String> {
+	/**
+	 * 获取实体集合中的UUID列表
+	 * <p>
+	 * 提取集合中所有非空的UUID值，保持原有顺序。
+	 * 会过滤掉空白字符串。
+	 * </p>
+	 *
+	 * @param collection 实体集合
+	 * @return UUID列表，如果集合为空则返回空列表
+	 */
 	static List<String> getIdList(final Collection<? extends UUId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyList();
@@ -37,6 +57,16 @@ public interface UUId extends Id<String> {
 			.toList();
 	}
 
+	/**
+	 * 获取实体集合中的UUID集合
+	 * <p>
+	 * 提取集合中所有非空的UUID值，自动去重。
+	 * 会过滤掉空白字符串。
+	 * </p>
+	 *
+	 * @param collection 实体集合
+	 * @return UUID集合，如果集合为空则返回空集合
+	 */
 	static Set<String> getIdSet(final Collection<? extends UUId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptySet();
@@ -47,6 +77,16 @@ public interface UUId extends Id<String> {
 			.collect(Collectors.toSet());
 	}
 
+	/**
+	 * 获取实体集合中的唯一UUID列表
+	 * <p>
+	 * 提取集合中所有非空的UUID值，去重并保持顺序。
+	 * 会过滤掉空白字符串。
+	 * </p>
+	 *
+	 * @param collection 实体集合
+	 * @return 去重后的UUID列表，如果集合为空则返回空列表
+	 */
 	static List<String> getUniqueIdList(final Collection<? extends UUId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyList();

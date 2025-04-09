@@ -27,7 +27,34 @@ import org.apache.ibatis.session.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 逻辑删除字段填充SQL注入器
+ * <p>
+ * 继承自{@link DefaultSqlInjector}，重写了{@link DefaultSqlInjector#getMethodList getMethodList}方法，
+ * 用于在逻辑删除时支持自定义字段填充功能。
+ * 通过替换默认的{@link com.baomidou.mybatisplus.core.injector.methods.Delete Delete}、
+ * {@link com.baomidou.mybatisplus.core.injector.methods.DeleteById DeleteById}和
+ * {@link com.baomidou.mybatisplus.core.injector.methods.DeleteByIds DeleteByIds}方法实现。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public class TableLogicFillSqlInjector extends DefaultSqlInjector {
+	/**
+	 * 获取SQL方法列表
+	 * <p>
+	 * 重写父类方法，添加自定义的Delete、DeleteById和DeleteByIds方法，
+	 * 以支持逻辑删除时的字段自动填充功能。
+	 * 注意：自定义的方法需要先于父类的方法注入，否则会导致注入失败。
+	 * </p>
+	 *
+	 * @param configuration MyBatis配置对象
+	 * @param mapperClass   Mapper接口类
+	 * @param tableInfo     表信息对象
+	 * @return 包含所有SQL方法的列表
+	 * @since 1.0.0
+	 */
 	@Override
 	public List<AbstractMethod> getMethodList(Configuration configuration, Class<?> mapperClass, TableInfo tableInfo) {
 		List<AbstractMethod> oldMethods = super.getMethodList(configuration, mapperClass, tableInfo);

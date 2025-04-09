@@ -19,7 +19,23 @@ package io.github.pangju666.framework.data.mybatisplus.model.entity.base;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.Version;
 
+/**
+ * 乐观锁和逻辑删除状态基础实体类
+ * <p>
+ * 结合了{@link VersionBasicDO}和{@link LogicStatusBasicDO}的功能，
+ * 同时支持乐观锁和状态标记的逻辑删除功能。
+ * </p>
+ *
+ * @param <ID> 删除状态的类型参数
+ * @author pangju666
+ * @since 1.0.0
+ */
 public abstract class VersionLogicStatusBasicDO<ID> extends LogicStatusBasicDO<ID> {
+	/**
+	 * 版本号，用于乐观锁控制
+	 *
+	 * @since 1.0.0
+	 */
 	@TableField("version")
 	@Version
 	private Integer version;

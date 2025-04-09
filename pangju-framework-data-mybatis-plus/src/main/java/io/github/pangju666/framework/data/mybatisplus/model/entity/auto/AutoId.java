@@ -22,7 +22,27 @@ import org.apache.commons.collections4.CollectionUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 自增ID接口
+ * <p>
+ * 定义使用自增Long类型作为主键ID的实体类接口。
+ * 提供从实体集合中提取ID的工具方法。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public interface AutoId extends Id<Long> {
+	/**
+	 * 获取实体集合中的ID列表
+	 * <p>
+	 * 提取集合中所有非空的ID值，保持原有顺序。
+	 * </p>
+	 *
+	 * @param collection 实体集合
+	 * @return ID列表，如果集合为空则返回空列表
+	 * @since 1.0.0
+	 */
 	static List<Long> getIdList(final Collection<? extends AutoId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyList();
@@ -33,6 +53,16 @@ public interface AutoId extends Id<Long> {
 			.toList();
 	}
 
+	/**
+	 * 获取实体集合中的ID集合
+	 * <p>
+	 * 提取集合中所有非空的ID值，自动去重。
+	 * </p>
+	 *
+	 * @param collection 实体集合
+	 * @return ID集合，如果集合为空则返回空集合
+	 * @since 1.0.0
+	 */
 	static Set<Long> getIdSet(final Collection<? extends AutoId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptySet();
@@ -43,6 +73,16 @@ public interface AutoId extends Id<Long> {
 			.collect(Collectors.toSet());
 	}
 
+	/**
+	 * 获取实体集合中的唯一ID列表
+	 * <p>
+	 * 提取集合中所有非空的ID值，去重并保持顺序。
+	 * </p>
+	 *
+	 * @param collection 实体集合
+	 * @return 去重后的ID列表，如果集合为空则返回空列表
+	 * @since 1.0.0
+	 */
 	static List<Long> getUniqueIdList(final Collection<? extends AutoId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyList();

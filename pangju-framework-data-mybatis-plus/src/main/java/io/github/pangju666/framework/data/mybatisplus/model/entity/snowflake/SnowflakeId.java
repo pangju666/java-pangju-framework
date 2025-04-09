@@ -22,7 +22,26 @@ import org.apache.commons.collections4.CollectionUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 雪花算法ID主键接口
+ * <p>
+ * 定义使用雪花算法生成的Long类型作为主键ID的实体类接口。
+ * 提供从实体集合中提取雪花ID的工具方法。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public interface SnowflakeId extends Id<Long> {
+	/**
+	 * 获取实体集合中的雪花ID列表
+	 * <p>
+	 * 提取集合中所有非空的雪花ID值，保持原有顺序。
+	 * </p>
+	 *
+	 * @param collection 实体集合
+	 * @return 雪花ID列表，如果集合为空则返回空列表
+	 */
 	static List<Long> getIdList(final Collection<? extends SnowflakeId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyList();
@@ -33,6 +52,15 @@ public interface SnowflakeId extends Id<Long> {
 			.toList();
 	}
 
+	/**
+	 * 获取实体集合中的雪花ID集合
+	 * <p>
+	 * 提取集合中所有非空的雪花ID值，自动去重。
+	 * </p>
+	 *
+	 * @param collection 实体集合
+	 * @return 雪花ID集合，如果集合为空则返回空集合
+	 */
 	static Set<Long> getIdSet(final Collection<? extends SnowflakeId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptySet();
@@ -43,6 +71,15 @@ public interface SnowflakeId extends Id<Long> {
 			.collect(Collectors.toSet());
 	}
 
+	/**
+	 * 获取实体集合中的唯一雪花ID列表
+	 * <p>
+	 * 提取集合中所有非空的雪花ID值，去重并保持顺序。
+	 * </p>
+	 *
+	 * @param collection 实体集合
+	 * @return 去重后的雪花ID列表，如果集合为空则返回空列表
+	 */
 	static List<Long> getUniqueIdList(final Collection<? extends SnowflakeId> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyList();

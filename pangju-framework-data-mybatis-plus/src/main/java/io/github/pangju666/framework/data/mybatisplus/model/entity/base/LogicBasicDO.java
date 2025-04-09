@@ -21,9 +21,30 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 
 import java.util.Date;
 
+/**
+ * 逻辑删除基础实体类
+ * <p>
+ * 在{@link BasicDO}基础上增加了删除时间和删除状态字段，
+ * 用于支持逻辑删除功能。
+ * </p>
+ *
+ * @param <ID> ID的类型参数
+ * @author pangju666
+ * @since 1.0.0
+ */
 public abstract class LogicBasicDO<ID> extends BasicDO {
+	/**
+	 * 删除时间
+	 *
+	 * @since 1.0.0
+	 */
 	@TableField("delete_time")
 	protected Date deleteTime;
+	/**
+	 * 删除状态，0表示未删除，删除时设置为表数据行ID
+	 *
+	 * @since 1.0.0
+	 */
 	@TableField("delete_status")
 	@TableLogic(value = "0", delval = "id")
 	protected ID deleteStatus;
