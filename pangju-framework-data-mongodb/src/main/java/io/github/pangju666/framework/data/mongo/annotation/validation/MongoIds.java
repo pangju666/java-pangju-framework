@@ -27,6 +27,17 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * MongoDB ObjectId集合格式校验注解
+ * <p>
+ * 用于验证字符串集合中的每个元素是否符合MongoDB的ObjectId格式。
+ * 可以应用于方法、字段、注解、构造函数、参数和类型使用处。
+ * 支持配置是否允许空集合。
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)

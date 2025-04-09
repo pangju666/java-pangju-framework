@@ -16,7 +16,18 @@
 
 package io.github.pangju666.framework.data.mongo.pool;
 
+/**
+ * MongoDB相关常量
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public class MongoConstants {
+	/**
+	 * MongoDB文档ID字段名称
+	 *
+	 * @since 1.0.0
+	 */
 	public static final String ID_FIELD_NAME = "_id";
 
 	protected MongoConstants() {

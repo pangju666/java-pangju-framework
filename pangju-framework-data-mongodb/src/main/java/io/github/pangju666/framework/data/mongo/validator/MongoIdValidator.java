@@ -17,24 +17,33 @@
 package io.github.pangju666.framework.data.mongo.validator;
 
 import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
-import io.github.pangju666.framework.data.mongo.annotation.validation.MongoIds;
+import io.github.pangju666.framework.data.mongo.annotation.validation.MongoId;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.bson.types.ObjectId;
 
-import java.util.Collection;
-
-public class MongoIdValidator implements ConstraintValidator<MongoIds, Collection<String>> {
-	private boolean notEmpty;
-
+/**
+ * MongoDB ObjectId格式验证器
+ * <p>
+ * 实现{@link MongoId}注解的验证逻辑：
+ * <ul>
+ *     <li>支持验证单个字符串是否符合ObjectId格式</li>
+ *     <li>使用{@link ObjectId#isValid(String)}进行格式验证</li>
+ *     <li>允许值为null（由ConstraintValidatorUtils控制）</li>
+ *     <li>允许值为空字符串（由ConstraintValidatorUtils控制）</li>
+ *     <li>处理验证过程中可能出现的IllegalArgumentException异常</li>
+ * </ul>
+ * </p>
+ *
+ * @author pangju666
+ * @see MongoId
+ * @see ConstraintValidator
+ * @since 1.0.0
+ */
+public class MongoIdValidator implements ConstraintValidator<MongoId, String> {
 	@Override
-	public void initialize(MongoIds constraintAnnotation) {
-		this.notEmpty = constraintAnnotation.notEmpty();
-	}
-
-	@Override
-	public boolean isValid(Collection<String> value, ConstraintValidatorContext context) {
-		return ConstraintValidatorUtils.validate(value, true, notEmpty, id -> {
+	public boolean isValid(String value, ConstraintValidatorContext context) {
+		return ConstraintValidatorUtils.validate(value, true, true, id -> {
 			try {
 				return ObjectId.isValid(id);
 			} catch (IllegalArgumentException e) {
