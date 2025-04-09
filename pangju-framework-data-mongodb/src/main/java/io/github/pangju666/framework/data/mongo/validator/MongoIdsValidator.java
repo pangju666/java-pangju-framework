@@ -14,41 +14,23 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.validator;
+package io.github.pangju666.framework.data.mongo.validator;
 
 import io.github.pangju666.commons.validation.utils.ConstraintValidatorUtils;
-import io.github.pangju666.framework.data.mybatisplus.annotation.validation.UUId;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
-import java.util.UUID;
-
-/**
- * UUID校验器
- * <p>
- * 用于校验UUID格式字符串的有效性。
- * 校验规则：
- * <ul>
- *     <li>不允许为null</li>
- *     <li>不允许为空字符串</li>
- *     <li>必须是有效的UUID格式</li>
- * </ul>
- * </p>
- *
- * @author pangju666
- * @since 1.0.0
- * @see io.github.pangju666.framework.data.mybatisplus.annotation.validation.UUId
- */
-public class UuIdValidator implements ConstraintValidator<UUId, String> {
+public class MongoIdsValidator implements ConstraintValidator<MongoId, String> {
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext context) {
 		return ConstraintValidatorUtils.validate(value, true, true, id -> {
-				try {
-					UUID.fromString(id);
-					return true;
-				} catch (IllegalArgumentException e) {
-					return false;
-				}
-			});
+			try {
+				return ObjectId.isValid(id);
+			} catch (IllegalArgumentException e) {
+				return false;
+			}
+		});
 	}
 }

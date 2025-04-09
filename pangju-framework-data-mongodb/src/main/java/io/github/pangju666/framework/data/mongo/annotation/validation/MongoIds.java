@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.annotation.validation;
+package io.github.pangju666.framework.data.mongo.annotation.validation;
 
-import io.github.pangju666.framework.data.mybatisplus.validator.UuIdsValidator;
+import io.github.pangju666.framework.data.mongo.validator.MongoIdsValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -27,27 +27,11 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/**
- * UUID集合校验注解
- * <p>
- * 用于校验UUID格式字符串集合的有效性。
- * 校验规则：
- * <ul>
- *     <li>允许为null</li>
- *     <li>集合中的元素不允许为null或空字符串</li>
- *     <li>集合中的每个元素必须是有效的UUID格式</li>
- *     <li>可通过notEmpty参数控制是否允许空集合</li>
- * </ul>
- * </p>
- *
- * @author pangju666
- * @since 1.0.0
- */
 @Documented
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = UuIdsValidator.class)
-public @interface UUIds {
+@Constraint(validatedBy = MongoIdsValidator.class)
+public @interface MongoIds {
 	String message() default "不是有效的id";
 
 	Class<?>[] groups() default {};
