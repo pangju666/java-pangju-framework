@@ -58,11 +58,14 @@ public class TableLogicFillSqlInjector extends DefaultSqlInjector {
 	@Override
 	public List<AbstractMethod> getMethodList(Configuration configuration, Class<?> mapperClass, TableInfo tableInfo) {
 		List<AbstractMethod> oldMethods = super.getMethodList(configuration, mapperClass, tableInfo);
+		boolean hasPk = tableInfo.havePK();
 		// 重写的注入要先于父类的注入，否则会导致注入失败
-		List<AbstractMethod> newMethods = new ArrayList<>(oldMethods.size() + 3);
+		List<AbstractMethod> newMethods = new ArrayList<>(oldMethods.size() + (hasPk ? 3 : 1));
 		newMethods.add(new Delete());
-		newMethods.add(new DeleteByIds());
-		newMethods.add(new DeleteById());
+		if (hasPk) {
+			newMethods.add(new DeleteByIds());
+			newMethods.add(new DeleteById());
+		}
 		newMethods.addAll(oldMethods);
 		return newMethods;
 	}
