@@ -14,10 +14,20 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.redis.lang.pool;
+package io.github.pangju666.framework.data.redis.pool;
 
+/**
+ * Redis相关常量
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public class RedisConstants {
-	// Redis相关常量
+	/**
+	 * Redis路径分隔符
+	 *
+	 * @since 1.0.0
+	 */
 	public static final String REDIS_PATH_DELIMITER = "::";
 
 	protected RedisConstants() {
