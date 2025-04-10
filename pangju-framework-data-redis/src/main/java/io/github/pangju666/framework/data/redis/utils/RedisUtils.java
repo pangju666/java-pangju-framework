@@ -237,7 +237,7 @@ public class RedisUtils {
 	 * <ul>
 	 *     <li>suffix="score" 将匹配 "user:score"、"game:score" 等</li>
 	 *     <li>使用 "*suffix" 模式进行匹配</li>
-	 *     <li>返回结果按分数升序排序</li>
+	 *     <li>返回结果按分数降序排序</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -276,7 +276,7 @@ public class RedisUtils {
 	 * <ul>
 	 *     <li>prefix="user" 将匹配 "user:1"、"user:score" 等</li>
 	 *     <li>使用 "prefix*" 模式进行匹配</li>
-	 *     <li>返回结果按分数升序排序</li>
+	 *     <li>返回结果按分数降序排序</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -315,7 +315,7 @@ public class RedisUtils {
 	 * <ul>
 	 *     <li>keyword="score" 将匹配 "high:score"、"user:score:100" 等</li>
 	 *     <li>使用 "*keyword*" 模式进行匹配</li>
-	 *     <li>返回结果按分数升序排序</li>
+	 *     <li>返回结果按分数降序排序</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -353,7 +353,7 @@ public class RedisUtils {
 	 * 特点：
 	 * <ul>
 	 *     <li>不使用任何匹配模式，返回所有成员</li>
-	 *     <li>返回结果按分数升序排序</li>
+	 *     <li>返回结果按分数降序排序</li>
 	 *     <li>支持大数据量的有序集合扫描</li>
 	 * </ul>
 	 * </p>
@@ -386,7 +386,7 @@ public class RedisUtils {
 	 * <ul>
 	 *     <li>支持自定义匹配模式</li>
 	 *     <li>支持指定每次扫描返回的数量</li>
-	 *     <li>返回结果按分数升序排序</li>
+	 *     <li>返回结果按分数降序排序</li>
 	 * </ul>
 	 * </p>
 	 *
