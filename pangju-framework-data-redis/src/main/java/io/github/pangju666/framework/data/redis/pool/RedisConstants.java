@@ -29,6 +29,19 @@ public class RedisConstants {
 	 * @since 1.0.0
 	 */
 	public static final String REDIS_PATH_DELIMITER = "::";
+	/**
+	 * Redis游标匹配模式通配符
+	 * <p>
+	 * 用于SCAN、SSCAN、HSCAN、ZSCAN等命令的模式匹配：
+	 * <ul>
+	 *     <li>前缀匹配：prefix* （例如：user*）</li>
+	 *     <li>后缀匹配：*suffix （例如：*_score）</li>
+	 *     <li>关键字匹配：*keyword* （例如：*user*）</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
 	public static final String CURSOR_PATTERN_SYMBOL = "*";
 
 	protected RedisConstants() {
