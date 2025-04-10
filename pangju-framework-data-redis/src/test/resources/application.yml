@@ -1,5 +1,7 @@
 spring:
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: 172.16.0.120
+      port: 30202
+      database: 15
+      password: gTz_2021

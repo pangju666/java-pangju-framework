@@ -16,6 +16,7 @@
 
 package io.github.pangju666.framework.data.redis.model;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.redis.core.ZSetOperations;
 
 /**
@@ -32,8 +33,20 @@ import org.springframework.data.redis.core.ZSetOperations;
  * @author pangju666
  * @since 1.0.0
  */
-public record ZSetValue<T>(T value, Double score) {
+public record ZSetValue<T>(T value, Double score) implements Comparable<ZSetValue<T>> {
 	public static <T> ZSetValue<T> of(final ZSetOperations.TypedTuple<T> typedTuple) {
 		return new ZSetValue<>(typedTuple.getValue(), typedTuple.getScore());
+	}
+
+	@Override
+	public int compareTo(ZSetValue<T> o) {
+		if (ObjectUtils.allNull(o.score, this.score)) {
+			return 0;
+		} else if (o.score == null) {
+			return -1;
+		} else if (this.score == null) {
+			return 1;
+		}
+		return this.score.compareTo(o.score);
 	}
 }

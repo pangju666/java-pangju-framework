@@ -29,6 +29,7 @@ public class RedisConstants {
 	 * @since 1.0.0
 	 */
 	public static final String REDIS_PATH_DELIMITER = "::";
+	public static final String CURSOR_PATTERN_SYMBOL = "*";
 
 	protected RedisConstants() {
 	}
