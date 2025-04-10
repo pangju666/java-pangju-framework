@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mongo.repository;
+package io.github.pangju666.framework.data.mongodb.repository;
 
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import io.github.pangju666.commons.lang.utils.ReflectionUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
-import io.github.pangju666.framework.data.mongo.pool.MongoConstants;
+import io.github.pangju666.framework.data.mongodb.pool.MongoConstants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;

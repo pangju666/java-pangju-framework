@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mongo.model;
+package io.github.pangju666.framework.data.mongodb.model;
 
-import io.github.pangju666.framework.data.mongo.pool.MongoConstants;
+import io.github.pangju666.framework.data.mongodb.pool.MongoConstants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;

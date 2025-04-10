@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mongo.annotation.validation;
+package io.github.pangju666.framework.data.mongodb.annotation.validation;
 
-import io.github.pangju666.framework.data.mongo.validator.MongoIdsValidator;
+import io.github.pangju666.framework.data.mongodb.validator.MongoIdsValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
