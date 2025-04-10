@@ -105,6 +105,6 @@ public record ZSetValue<T>(T value, Double score) implements Comparable<ZSetValu
 		} else if (this.score == null) {
 			return -1;
 		}
-		return this.score.compareTo(o.score);
+		return o.score.compareTo(this.score);
 	}
 }
