@@ -148,7 +148,7 @@ public class RedisUtils {
 	 * @since 1.0.0
 	 */
 	public static ScanOptions scanOptionsByDataType(final DataType dataType) {
-		return scanOptionsBySuffix(null, dataType, null);
+		return scanOptions(null, dataType, null);
 	}
 
 	/**
@@ -170,7 +170,7 @@ public class RedisUtils {
 	 * @since 1.0.0
 	 */
 	public static ScanOptions scanOptionsByDataType(final DataType dataType, final Long count) {
-		return scanOptionsBySuffix(null, dataType, count);
+		return scanOptions(null, dataType, count);
 	}
 
 	/**

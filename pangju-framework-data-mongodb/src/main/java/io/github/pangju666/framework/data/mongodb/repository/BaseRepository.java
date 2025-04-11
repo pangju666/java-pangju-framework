@@ -59,7 +59,6 @@ import java.util.stream.Stream;
  * 主要特性：
  * <ul>
  *     <li>自动处理集合名称映射</li>
- *     <li>支持ObjectId和字符串ID</li>
  *     <li>提供批量操作的并行处理选项</li>
  *     <li>统一的异常处理</li>
  *     <li>支持MongoDB的主要查询操作符</li>
