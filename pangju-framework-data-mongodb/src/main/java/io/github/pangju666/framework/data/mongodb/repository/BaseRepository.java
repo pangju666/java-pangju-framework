@@ -345,7 +345,7 @@ public abstract class BaseRepository<T> {
 	 * @throws IllegalArgumentException 当query为null时抛出
 	 * @since 1.0.0
 	 */
-	public T getOne(Query query) {
+	public T get(Query query) {
 		Assert.notNull(query, "query 不可为null");
 
 		return mongoOperations.findOne(query, this.entityClass, this.collectionName);

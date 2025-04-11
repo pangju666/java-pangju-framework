@@ -368,7 +368,7 @@ public class QueryUtils {
         Assert.hasText(key, "key 不可为空");
 
         Criteria notNullValueValueCriteria = Criteria.where(key).not().isNullValue();
-        Criteria notNullCriteria = Criteria.where(key).not().isNull();
+        Criteria notNullCriteria = Criteria.where(key).ne(null);
         return notNullValueValueCriteria.andOperator(notNullCriteria);
     }
 
