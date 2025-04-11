@@ -84,7 +84,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByKeyNullValue(String key) {
+	public static Query queryByKeyNullValue(final String key) {
         return Query.query(keyNullValueCriteria(key));
     }
 
@@ -103,7 +103,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByKeyNotNullValue(String key) {
+	public static Query queryByKeyNotNullValue(final String key) {
         return Query.query(keyNotNullValueCriteria(key));
     }
 
@@ -115,7 +115,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当id为空时抛出
      * @since 1.0.0
      */
-    public static Query queryById(Object id) {
+	public static Query queryById(final Object id) {
         Assert.notNull(id, "id 不可为null");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).is(id));
@@ -132,7 +132,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当ids为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByIds(Collection<?> ids) {
+	public static Query queryByIds(final Collection<?> ids) {
         Assert.notEmpty(ids, " ids 不可为空");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).in(ids));
@@ -149,7 +149,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当ids为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByNotIds(Collection<?> ids) {
+	public static Query queryByNotIds(final Collection<?> ids) {
         Assert.notEmpty(ids, "ids 不可为空");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).nin(ids));
@@ -170,7 +170,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByKeyValue(String key, Object value) {
+	public static Query queryByKeyValue(final String key, final Object value) {
         if (Objects.isNull(value)) {
             return Query.query(keyNullValueCriteria(key));
         }
@@ -195,7 +195,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByKeyNotValue(String key, Object value) {
+	public static Query queryByKeyNotValue(final String key, final Object value) {
         if (Objects.isNull(value)) {
             return Query.query(keyNotNullValueCriteria(key));
         }
@@ -217,7 +217,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空或values为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByKeyValues(String key, Collection<?> values) {
+	public static Query queryByKeyValues(final String key, final Collection<?> values) {
         Assert.hasText(key, "key 不可为空");
         Assert.notEmpty(values, "values 不可为空");
 
@@ -236,7 +236,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空或values为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByKeyNotValues(String key, Collection<?> values) {
+	public static Query queryByKeyNotValues(final String key, final Collection<?> values) {
         Assert.hasText(key, "key 不可为空");
         Assert.notEmpty(values, "values 不可为空");
 
@@ -255,7 +255,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空或regex为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByRegex(String key, String regex) {
+	public static Query queryByRegex(final String key, final String regex) {
         Assert.hasText(key, "key 不可为空");
         Assert.hasText(regex, "regex 不可为空");
 
@@ -274,7 +274,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空或pattern为null时抛出
      * @since 1.0.0
      */
-    public static Query queryByRegex(String key, Pattern pattern) {
+	public static Query queryByRegex(final String key, final Pattern pattern) {
         Assert.hasText(key, "key 不可为空");
         Assert.notNull(pattern, "pattern 不可为null");
 
@@ -293,7 +293,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空或regex为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByNotRegex(String key, String regex) {
+	public static Query queryByNotRegex(final String key, final String regex) {
         Assert.hasText(key, "key 不可为空");
         Assert.hasText(regex, "regex 不可为空");
 
@@ -312,7 +312,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空或pattern为null时抛出
      * @since 1.0.0
      */
-    public static Query queryByNotRegex(String key, Pattern pattern) {
+	public static Query queryByNotRegex(final String key, final Pattern pattern) {
         Assert.hasText(key, "key 不可为空");
         Assert.notNull(pattern, "pattern 不可为null");
 
@@ -330,7 +330,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空时抛出
      * @since 1.0.0
      */
-    protected static Criteria keyNullValueCriteria(String key) {
+	protected static Criteria keyNullValueCriteria(final String key) {
         Assert.hasText(key, "key 不可为空");
 
         Criteria nullValueCriteria = Criteria.where(key).isNullValue();
@@ -349,7 +349,7 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当key为空时抛出
      * @since 1.0.0
      */
-    protected static Criteria keyNotNullValueCriteria(String key) {
+	protected static Criteria keyNotNullValueCriteria(final String key) {
         Assert.hasText(key, "key 不可为空");
 
         Criteria notNullValueValueCriteria = Criteria.where(key).not().isNullValue();
