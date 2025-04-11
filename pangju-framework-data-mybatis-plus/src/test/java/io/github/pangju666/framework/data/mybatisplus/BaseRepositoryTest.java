@@ -1,5 +1,7 @@
 package io.github.pangju666.framework.data.mybatisplus;
 
+import com.google.gson.reflect.TypeToken;
+import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.data.mybatisplus.entity.TestEntity;
 import io.github.pangju666.framework.data.mybatisplus.repository.TestRepository;
 import org.junit.jupiter.api.Test;
@@ -8,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,6 +19,81 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BaseRepositoryTest {
 	@Autowired
 	TestRepository repository;
+
+	@Test
+	public void cleanData() {
+		repository.removeByColumnValues(TestEntity::getName, Arrays.asList("test1", "test2"));
+	}
+
+	@Test
+	public void testListByJsonObjectValue() {
+		List<TestEntity> result1 = repository.listByJsonObjectValue("json_value", "test",
+			"hello world");
+		assertEquals(1, result1.size());
+
+		List<TestEntity> result2 = repository.listByJsonObjectValue("json_value", "age",
+			1);
+		assertEquals(1, result2.size());
+
+		List<TestEntity> result3 = repository.listByJsonObjectValue("json_value", "flag",
+			false);
+		assertEquals(1, result3.size());
+
+		List<TestEntity> result4 = repository.listByJsonObjectValue("json_value", "null_value",
+			null);
+		assertEquals(1, result4.size());
+
+		List<TestEntity> result5 = repository.listByJsonObjectValue("json_value", "flag",
+			true);
+		assertTrue(result5.isEmpty());
+
+		List<TestEntity> result6 = repository.listByJsonObjectValue("json_value", "abcd",
+			true);
+		assertTrue(result6.isEmpty());
+
+		List<TestEntity> result7 = repository.listByJsonObjectValue("json_value", "obj",
+			JsonUtils.fromString("{\"child\": \"test\"}", new TypeToken<Map<String, Object>>() {
+			}));
+		assertEquals(1, result7.size());
+
+		List<TestEntity> result8 = repository.listByJsonObjectValue("json_value", "array",
+			JsonUtils.fromString("{\"child\": \"test\"}", new TypeToken<Map<String, Object>>() {
+			}));
+		assertEquals(1, result8.size());
+
+		List<TestEntity> result9 = repository.listByJsonObjectValue("json_value", "array",
+			"hello world");
+		assertEquals(1, result9.size());
+
+		List<TestEntity> result10 = repository.listByJsonObjectValue("json_value", "array",
+			null);
+		assertEquals(1, result10.size());
+
+		List<TestEntity> result11 = repository.listByJsonObjectValue("json_value", "obj.child",
+			"test");
+		assertEquals(1, result11.size());
+
+		List<TestEntity> result12 = repository.listByJsonObjectValue("json_value", "obj.child",
+			"test1");
+		assertTrue(result12.isEmpty());
+	}
+
+	@Test
+	public void testListByJsonArrayValue() {
+		List<TestEntity> result1 = repository.listByJsonArrayValue("json_array", "hello world");
+		assertFalse(result1.isEmpty());
+
+		List<TestEntity> result2 = repository.listByJsonArrayValue("json_array", null);
+		assertFalse(result2.isEmpty());
+
+		List<TestEntity> result3 = repository.listByJsonArrayValue("json_array",
+			JsonUtils.fromString("{\"child\": \"test\"}", new TypeToken<Map<String, Object>>() {
+			}));
+		assertFalse(result3.isEmpty());
+
+		List<TestEntity> result4 = repository.listByJsonArrayValue("json_array", "aaaaahello world");
+		assertTrue(result4.isEmpty());
+	}
 
 	@Test
 	public void listByEmptyJsonObject() {

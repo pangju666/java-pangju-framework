@@ -1,32 +1,26 @@
 package io.github.pangju666.framework.data.mybatisplus.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.github.pangju666.framework.data.mybatisplus.model.entity.auto.AutoIdLogicBasicDO;
+import io.github.pangju666.framework.data.mybatisplus.type.handler.ClassTypeHandler;
 import io.github.pangju666.framework.data.mybatisplus.type.handler.JsonTypeHandler;
+import io.github.pangju666.framework.data.mybatisplus.type.handler.list.LongVarcharToListTypeHandler;
 
 import java.util.List;
 import java.util.Map;
 
-@TableName(value = "TEST")
-public class TestEntity {
-	@TableId(value = "ID", type = IdType.AUTO)
-	private Long id;
-	@TableField(value = "NAME")
+@TableName(value = "test", autoResultMap = true)
+public class TestEntity extends AutoIdLogicBasicDO {
 	private String name;
-	@TableField(value = "JSON_VALUE", typeHandler = JsonTypeHandler.class)
+	@TableField(typeHandler = JsonTypeHandler.class)
 	private Map<String, Object> jsonValue;
-	@TableField(value = "JSON_ARRAY", typeHandler = JsonTypeHandler.class)
+	@TableField(typeHandler = JsonTypeHandler.class)
 	private List<String> jsonArray;
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
+	@TableField(typeHandler = LongVarcharToListTypeHandler.class)
+	private List<Long> list;
+	@TableField(typeHandler = ClassTypeHandler.class)
+	private Class<?> clz;
 
 	public String getName() {
 		return name;
@@ -50,5 +44,21 @@ public class TestEntity {
 
 	public void setJsonArray(List<String> jsonArray) {
 		this.jsonArray = jsonArray;
+	}
+
+	public Class<?> getClz() {
+		return clz;
+	}
+
+	public void setClz(Class<?> clz) {
+		this.clz = clz;
+	}
+
+	public List<Long> getList() {
+		return list;
+	}
+
+	public void setList(List<Long> list) {
+		this.list = list;
 	}
 }

@@ -175,7 +175,7 @@ public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandle
 			return Collections.emptyList();
 		}
 		return Arrays.stream(result.split(delimiter))
-			.map(value -> converter.convert(result))
+			.map(converter::convert)
 			.toList();
 	}
 }

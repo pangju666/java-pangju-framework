@@ -18,6 +18,7 @@ package io.github.pangju666.framework.data.mybatisplus.model.entity.base;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import io.github.pangju666.framework.data.mybatisplus.annotation.TableLogicFill;
 
 import java.util.Date;
 
@@ -38,6 +39,7 @@ public abstract class LogicBasicDO<ID> extends BasicDO {
 	 *
 	 * @since 1.0.0
 	 */
+	@TableLogicFill(value = "CURRENT_TIMESTAMP")
 	@TableField("delete_time")
 	protected Date deleteTime;
 	/**

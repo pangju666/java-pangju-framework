@@ -26,6 +26,8 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class类型处理器
@@ -40,6 +42,8 @@ import java.sql.SQLException;
 @MappedTypes({Object.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
 public final class ClassTypeHandler extends BaseTypeHandler<Class<?>> {
+	private static final Map<String, Class<?>> CLASS_NAME_MAP = new ConcurrentHashMap<>(10);
+
 	/**
 	 * 设置非空参数
 	 * <p>
@@ -121,9 +125,19 @@ public final class ClassTypeHandler extends BaseTypeHandler<Class<?>> {
 	 * @since 1.0.0
 	 */
 	private Class<?> getClass(String className) throws SQLException {
+		if (StringUtils.isBlank(className)) {
+			return null;
+		}
+		if (CLASS_NAME_MAP.containsKey(className)) {
+			return CLASS_NAME_MAP.get(className);
+		}
+
 		try {
-			return StringUtils.isBlank(className) ? null : Class.forName(className);
+			Class<?> clz = Class.forName(className);
+			CLASS_NAME_MAP.put(className, clz);
+			return clz;
 		} catch (ClassNotFoundException e) {
+			CLASS_NAME_MAP.put(className, null);
 			throw new SQLException("无法将值" + className + "转换为Class对象");
 		}
 	}
