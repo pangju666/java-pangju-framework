@@ -1324,7 +1324,7 @@ public abstract class BaseRepository<ID, T> {
 		Assert.hasText(key, "key 不可为空");
 
 		UpdateResult result = mongoOperations.updateFirst(QueryUtils.queryById(id), new Update().set(key, value),
-			this.collectionName);
+			this.entityClass, this.collectionName);
 		return result.wasAcknowledged() && result.getModifiedCount() == 1;
 	}
 
@@ -1350,7 +1350,7 @@ public abstract class BaseRepository<ID, T> {
 		Assert.hasText(key, "key 不可为空");
 
 		UpdateResult result = mongoOperations.updateMulti(QueryUtils.queryByKeyValue(key, oldValue),
-			new Update().set(key, newValue), this.collectionName);
+			new Update().set(key, newValue), this.entityClass, this.collectionName);
 		return result.wasAcknowledged() ? result.getModifiedCount() : 0;
 	}
 
@@ -1368,7 +1368,7 @@ public abstract class BaseRepository<ID, T> {
 	public boolean removeById(ID id) {
 		Assert.notNull(id, "id 不可为null");
 
-		DeleteResult result = mongoOperations.remove(QueryUtils.queryById(id), this.collectionName);
+		DeleteResult result = mongoOperations.remove(QueryUtils.queryById(id), this.entityClass, this.collectionName);
 		return result.wasAcknowledged() && result.getDeletedCount() == 1;
 	}
 

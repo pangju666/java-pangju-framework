@@ -335,7 +335,7 @@ public class QueryUtils {
 
         Criteria nullValueCriteria = Criteria.where(key).isNullValue();
         Criteria nullCriteria = Criteria.where(key).isNull();
-        return nullValueCriteria.orOperator(nullCriteria);
+        return new Criteria().orOperator(nullValueCriteria, nullCriteria);
     }
 
     /**
@@ -354,7 +354,7 @@ public class QueryUtils {
 
         Criteria notNullValueValueCriteria = Criteria.where(key).not().isNullValue();
         Criteria notNullCriteria = Criteria.where(key).ne(null);
-        return notNullValueValueCriteria.andOperator(notNullCriteria);
+        return new Criteria().andOperator(notNullValueValueCriteria, notNullCriteria);
     }
 
     /**
