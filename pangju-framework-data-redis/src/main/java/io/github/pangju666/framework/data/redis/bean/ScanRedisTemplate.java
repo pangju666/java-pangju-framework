@@ -6,60 +6,69 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Redis扫描操作模板类
+ * Redis渐进式扫描操作模板类
  * <p>
- * 该类扩展了Spring的RedisTemplate，提供了一系列基于SCAN命令的高效扫描操作。
- * 主要特点：
+ * 该类扩展了{@link RedisTemplate}，专注于提供基于SCAN命令族的高效数据扫描操作。
+ * 主要功能：
  * <ul>
- *     <li>支持键（Key）的渐进式扫描</li>
- *     <li>支持有序集合（ZSet）的渐进式扫描</li>
- *     <li>支持集合（Set）的渐进式扫描</li>
- *     <li>支持哈希表（Hash）的渐进式扫描</li>
- *     <li>所有操作都避免使用KEYS、SMEMBERS等全量命令，提供更好的性能</li>
+ *     <li>键空间扫描：使用SCAN命令</li>
+ *     <li>有序集合扫描：使用ZSCAN命令</li>
+ *     <li>集合扫描：使用SSCAN命令</li>
+ *     <li>哈希表扫描：使用HSCAN命令</li>
  * </ul>
  * </p>
  *
  * <p>
- * 支持的匹配模式：
+ * 序列化要求：
  * <ul>
- *     <li>前缀匹配：使用 "prefix*" 模式</li>
- *     <li>后缀匹配：使用 "*suffix" 模式</li>
- *     <li>关键字匹配：使用 "*keyword*" 模式</li>
- *     <li>自定义匹配：支持通过ScanOptions自定义匹配模式</li>
+ *     <li>键匹配模式扫描：要求键序列化器为{@link StringRedisSerializer}</li>
+ *     <li>值匹配模式扫描：要求值序列化器为{@link StringRedisSerializer}</li>
+ *     <li>哈希匹配模式扫描：要求哈希键序列化器为{@link StringRedisSerializer}</li>
  * </ul>
  * </p>
  *
  * <p>
- * 使用示例：
- * <pre>{@code
- * @Autowired
- * private ScanRedisTemplate<String, Object> scanRedisTemplate;
- *
- * // 按前缀扫描键
- * Set<String> keys = scanRedisTemplate.scanKeysByPrefix("user:");
- *
- * // 按后缀扫描有序集合成员
- * SortedSet<ZSetValue<Object>> values = scanRedisTemplate.scanZSetValuesBySuffix("myset", ":score");
- *
- * // 按关键字扫描哈希表字段
- * Map<String, Object> fields = scanRedisTemplate.scanHashValuesByKeyword("myhash", "name");
- * }</pre>
+ * 扫描特性：
+ * <ul>
+ *     <li>渐进式扫描：避免阻塞操作</li>
+ *     <li>自动资源管理：使用try-with-resources处理游标</li>
+ *     <li>类型安全：支持泛型</li>
+ *     <li>结果处理：自动去重和排序</li>
+ * </ul>
  * </p>
  *
  * @param <K> 键的类型
  * @param <V> 值的类型
  * @author pangju666
- * @see RedisTemplate
- * @see ScanOptions
- * @see RedisUtils
  * @since 1.0.0
  */
 public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
+	/**
+	 * 是否支持键扫描操作
+	 *
+	 * @since 1.0.0
+	 */
+	protected boolean supportKeyScan = false;
+	/**
+	 * 是否支持值扫描操作
+	 *
+	 * @since 1.0.0
+	 */
+	protected boolean supportValueScan = false;
+	/**
+	 * 是否支持哈希表键扫描操作
+	 *
+	 * @since 1.0.0
+	 */
+	protected boolean supportHashKeyScan = false;
+
 	/**
 	 * 构造一个新的 <code>ScanRedisTemplate</code> 实例。
 	 * <p>{@link #setConnectionFactory(RedisConnectionFactory)} 和 {@link #afterPropertiesSet()} 仍需调用。</p>
@@ -79,6 +88,66 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 		this();
 		setConnectionFactory(connectionFactory);
 		afterPropertiesSet();
+	}
+
+	/**
+	 * 设置键序列化器并更新扫描支持状态
+	 * <p>
+	 * 当键序列化器为{@link StringRedisSerializer}时启用键扫描支持
+	 * </p>
+	 *
+	 * @param serializer 键序列化器
+	 * @since 1.0.0
+	 */
+	@Override
+	public void setKeySerializer(RedisSerializer<?> serializer) {
+		super.setKeySerializer(serializer);
+		if (serializer instanceof StringRedisSerializer) {
+			supportKeyScan = true;
+		}
+	}
+
+	/**
+	 * 设置值序列化器并更新扫描支持状态
+	 * <p>
+	 * 当值序列化器为{@link StringRedisSerializer}时启用值扫描支持。
+	 * 此设置影响：
+	 * <ul>
+	 *     <li>有序集合（ZSet）成员的匹配模式扫描</li>
+	 *     <li>集合（Set）成员的匹配模式扫描</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param serializer 值序列化器
+	 * @since 1.0.0
+	 */
+	@Override
+	public void setValueSerializer(RedisSerializer<?> serializer) {
+		super.setValueSerializer(serializer);
+		if (serializer instanceof StringRedisSerializer) {
+			supportValueScan = true;
+		}
+	}
+
+	/**
+	 * 设置哈希键序列化器并更新扫描支持状态
+	 * <p>
+	 * 当哈希键序列化器为{@link StringRedisSerializer}时启用哈希键扫描支持。
+	 * 此设置影响：
+	 * <ul>
+	 *     <li>哈希表字段的匹配模式扫描</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param hashKeySerializer 哈希键序列化器
+	 * @since 1.0.0
+	 */
+	@Override
+	public void setHashKeySerializer(RedisSerializer<?> hashKeySerializer) {
+		super.setHashKeySerializer(hashKeySerializer);
+		if (hashKeySerializer instanceof StringRedisSerializer) {
+			supportHashKeyScan = true;
+		}
 	}
 
 	/**
@@ -110,26 +179,28 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按后缀扫描键
 	 * <p>
-	 * 此方法使用SCAN命令进行渐进式扫描，避免使用KEYS命令可能带来的性能问题。
-	 * 扫描所有以指定后缀结尾的键，例如：
+	 * 使用SCAN命令渐进式扫描以指定后缀结尾的键：
 	 * <ul>
-	 *     <li>suffix="user" 将匹配 "app:user"、"system:user" 等</li>
 	 *     <li>使用 "*suffix" 模式进行匹配</li>
+	 *     <li>要求键序列化器为StringRedisSerializer</li>
 	 *     <li>返回结果自动去重</li>
 	 * </ul>
 	 * </p>
 	 *
 	 * @param suffix 后缀字符串
 	 * @return 匹配的键集合，如果suffix为空则返回空集合
+	 * @throws UnsupportedOperationException 当键序列化器不是StringRedisSerializer时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsBySuffix(String)
 	 */
 	public Set<K> scanKeysBySuffix(final String suffix) {
+		if (!supportKeyScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(suffix)) {
 			return Collections.emptySet();
 		}
 
-		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsBySuffix(suffix))) {
+		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsBySuffix(suffix, null, null))) {
 			return cursor.stream().collect(Collectors.toSet());
 		}
 	}
@@ -137,26 +208,28 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按前缀扫描键
 	 * <p>
-	 * 此方法使用SCAN命令进行渐进式扫描，避免使用KEYS命令可能带来的性能问题。
-	 * 扫描所有以指定前缀开头的键，例如：
+	 * 使用SCAN命令渐进式扫描以指定前缀开头的键：
 	 * <ul>
-	 *     <li>prefix="user" 将匹配 "user:1"、"user:profile" 等</li>
 	 *     <li>使用 "prefix*" 模式进行匹配</li>
+	 *     <li>要求键序列化器为StringRedisSerializer</li>
 	 *     <li>返回结果自动去重</li>
 	 * </ul>
 	 * </p>
 	 *
 	 * @param prefix 前缀字符串
 	 * @return 匹配的键集合，如果prefix为空则返回空集合
+	 * @throws UnsupportedOperationException 当键序列化器不是StringRedisSerializer时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsByPrefix(String)
 	 */
 	public Set<K> scanKeysByPrefix(final String prefix) {
+		if (!supportKeyScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(prefix)) {
 			return Collections.emptySet();
 		}
 
-		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsByPrefix(prefix))) {
+		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsByPrefix(prefix, null, null))) {
 			return cursor.stream().collect(Collectors.toSet());
 		}
 	}
@@ -164,26 +237,28 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按关键字扫描键
 	 * <p>
-	 * 此方法使用SCAN命令进行渐进式扫描，避免使用KEYS命令可能带来的性能问题。
-	 * 扫描所有包含指定关键字的键，例如：
+	 * 使用SCAN命令渐进式扫描包含指定关键字的键：
 	 * <ul>
-	 *     <li>keyword="user" 将匹配 "app:user:1"、"system:user:profile" 等</li>
 	 *     <li>使用 "*keyword*" 模式进行匹配</li>
+	 *     <li>要求键序列化器为StringRedisSerializer</li>
 	 *     <li>返回结果自动去重</li>
 	 * </ul>
 	 * </p>
 	 *
 	 * @param keyword 关键字
 	 * @return 匹配的键集合，如果keyword为空则返回空集合
+	 * @throws UnsupportedOperationException 当键序列化器不是StringRedisSerializer时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsByKeyword(String)
 	 */
 	public Set<K> scanKeysByKeyword(final String keyword) {
+		if (!supportKeyScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(keyword)) {
 			return Collections.emptySet();
 		}
 
-		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsByKeyword(keyword))) {
+		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsByKeyword(keyword, null, null))) {
 			return cursor.stream().collect(Collectors.toSet());
 		}
 	}
@@ -191,21 +266,24 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按数据类型扫描键
 	 * <p>
-	 * 扫描指定数据类型的所有键。此方法使用SCAN命令进行渐进式扫描，
-	 * 避免使用KEYS命令可能带来的性能问题。
+	 * 使用SCAN命令渐进式扫描指定数据类型的键：
+	 * <ul>
+	 *     <li>支持STRING、LIST、SET、ZSET、HASH等类型</li>
+	 *     <li>不使用匹配模式</li>
+	 *     <li>返回结果自动去重</li>
+	 * </ul>
 	 * </p>
 	 *
-	 * @param dataType 数据类型，支持的类型包括：STRING、LIST、SET、ZSET、HASH、STREAM
-	 * @return 匹配数据类型的键集合，如果dataType为null则返回空集合
+	 * @param dataType 数据类型
+	 * @return 匹配的键集合，如果dataType为null则返回空集合
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsByDataType(DataType)
 	 */
 	public Set<K> scanKeysByDataType(final DataType dataType) {
 		if (Objects.isNull(dataType)) {
 			return Collections.emptySet();
 		}
 
-		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsByDataType(dataType))) {
+		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptions(null, dataType, null))) {
 			return cursor.stream().collect(Collectors.toSet());
 		}
 	}
@@ -229,19 +307,26 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 使用自定义扫描选项扫描键
 	 * <p>
-	 * 根据提供的扫描选项扫描Redis中的键。此方法使用SCAN命令进行渐进式扫描，
-	 * 可以通过ScanOptions自定义匹配模式、数据类型和返回数量等选项。
+	 * 使用SCAN命令根据自定义选项进行渐进式扫描：
+	 * <ul>
+	 *     <li>支持自定义匹配模式</li>
+	 *     <li>支持指定数据类型</li>
+	 *     <li>支持设置返回数量</li>
+	 *     <li>使用匹配模式时要求键序列化器为StringRedisSerializer</li>
+	 * </ul>
 	 * </p>
 	 *
-	 * @param scanOptions 扫描选项，可以指定匹配模式、数据类型和返回数量
+	 * @param scanOptions 扫描选项
 	 * @return 匹配的键集合，如果scanOptions为null则返回空集合
-	 * @see ScanOptions
-	 * @see RedisUtils#scanOptions(String, DataType, Long)
+	 * @throws UnsupportedOperationException 当使用匹配模式且键序列化器不是StringRedisSerializer时抛出
 	 * @since 1.0.0
 	 */
 	public Set<K> scanKeys(final ScanOptions scanOptions) {
 		if (Objects.isNull(scanOptions)) {
 			return Collections.emptySet();
+		}
+		if (StringUtils.isNotBlank(scanOptions.getPattern()) && !supportKeyScan) {
+			throw new UnsupportedOperationException();
 		}
 
 		try (Cursor<K> cursor = super.scan(scanOptions)) {
@@ -252,28 +337,30 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按后缀扫描有序集合成员
 	 * <p>
-	 * 此方法使用ZSCAN命令进行渐进式扫描，避免使用ZRANGE等命令可能带来的性能问题。
-	 * 扫描所有以指定后缀结尾的成员，例如：
+	 * 使用ZSCAN命令渐进式扫描以指定后缀结尾的成员：
 	 * <ul>
-	 *     <li>suffix="score" 将匹配 "user:score"、"game:score" 等</li>
 	 *     <li>使用 "*suffix" 模式进行匹配</li>
+	 *     <li>要求值序列化器为StringRedisSerializer</li>
 	 *     <li>返回结果按分数降序排序</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param key    有序集合的键
+	 * @param key 有序集合的键
 	 * @param suffix 后缀字符串
 	 * @return 匹配的成员及其分数的有序集合，如果suffix为空则返回空集合
+	 * @throws UnsupportedOperationException 当值序列化器不是StringRedisSerializer时抛出
 	 * @throws IllegalArgumentException 当key为null时抛出
-	 * @see RedisUtils#scanOptionsBySuffix(String, DataType, Long)
 	 * @since 1.0.0
 	 */
 	public SortedSet<ZSetValue<V>> scanZSetValuesBySuffix(final K key, final String suffix) {
+		if (!supportValueScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(suffix)) {
 			return Collections.emptySortedSet();
 		}
 
-		ScanOptions scanOptions = RedisUtils.scanOptionsBySuffix(suffix, DataType.ZSET, null);
+		ScanOptions scanOptions = RedisUtils.scanOptionsBySuffix(suffix, null, null);
 		try (Cursor<ZSetOperations.TypedTuple<V>> cursor = super.opsForZSet().scan(key, scanOptions)) {
 			return cursor.stream()
 				.map(ZSetValue::of)
@@ -285,28 +372,30 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按前缀扫描有序集合成员
 	 * <p>
-	 * 此方法使用ZSCAN命令进行渐进式扫描，避免使用ZRANGE等命令可能带来的性能问题。
-	 * 扫描所有以指定前缀开头的成员，例如：
+	 * 使用ZSCAN命令渐进式扫描以指定前缀开头的成员：
 	 * <ul>
-	 *     <li>prefix="user" 将匹配 "user:1"、"user:score" 等</li>
 	 *     <li>使用 "prefix*" 模式进行匹配</li>
+	 *     <li>要求值序列化器为StringRedisSerializer</li>
 	 *     <li>返回结果按分数降序排序</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param key    有序集合的键
+	 * @param key 有序集合的键
 	 * @param prefix 前缀字符串
 	 * @return 匹配的成员及其分数的有序集合，如果prefix为空则返回空集合
+	 * @throws UnsupportedOperationException 当值序列化器不是StringRedisSerializer时抛出
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsByPrefix(String, DataType, Long)
 	 */
 	public SortedSet<ZSetValue<V>> scanZSetValuesByPrefix(final K key, final String prefix) {
+		if (!supportValueScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(prefix)) {
 			return Collections.emptySortedSet();
 		}
 
-		ScanOptions scanOptions = RedisUtils.scanOptionsByPrefix(prefix, DataType.ZSET, null);
+		ScanOptions scanOptions = RedisUtils.scanOptionsByPrefix(prefix, null, null);
 		try (Cursor<ZSetOperations.TypedTuple<V>> cursor = super.opsForZSet().scan(key, scanOptions)) {
 			return cursor.stream()
 				.map(ZSetValue::of)
@@ -318,28 +407,30 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按关键字扫描有序集合成员
 	 * <p>
-	 * 此方法使用ZSCAN命令进行渐进式扫描，避免使用ZRANGE等命令可能带来的性能问题。
-	 * 扫描所有包含指定关键字的成员，例如：
+	 * 使用ZSCAN命令渐进式扫描包含指定关键字的成员：
 	 * <ul>
-	 *     <li>keyword="score" 将匹配 "high:score"、"user:score:100" 等</li>
 	 *     <li>使用 "*keyword*" 模式进行匹配</li>
+	 *     <li>要求值序列化器为StringRedisSerializer</li>
 	 *     <li>返回结果按分数降序排序</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param key     有序集合的键
+	 * @param key 有序集合的键
 	 * @param keyword 关键字
 	 * @return 匹配的成员及其分数的有序集合，如果keyword为空则返回空集合
+	 * @throws UnsupportedOperationException 当值序列化器不是StringRedisSerializer时抛出
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsByKeyword(String, DataType, Long)
 	 */
 	public SortedSet<ZSetValue<V>> scanZSetValuesByKeyword(final K key, final String keyword) {
+		if (!supportValueScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(keyword)) {
 			return Collections.emptySortedSet();
 		}
 
-		ScanOptions scanOptions = RedisUtils.scanOptionsByKeyword(keyword, DataType.ZSET, null);
+		ScanOptions scanOptions = RedisUtils.scanOptionsByKeyword(keyword, null, null);
 		try (Cursor<ZSetOperations.TypedTuple<V>> cursor = super.opsForZSet().scan(key, scanOptions)) {
 			return cursor.stream()
 				.map(ZSetValue::of)
@@ -375,63 +466,32 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	}
 
 	/**
-	 * 使用自定义扫描选项扫描有序集合成员
-	 * <p>
-	 * 此方法使用ZSCAN命令进行渐进式扫描，避免使用ZRANGE等命令可能带来的性能问题。
-	 * 特点：
-	 * <ul>
-	 *     <li>支持自定义匹配模式</li>
-	 *     <li>支持指定每次扫描返回的数量</li>
-	 *     <li>返回结果按分数降序排序</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param key         有序集合的键
-	 * @param scanOptions 扫描选项，可以指定匹配模式和返回数量
-	 * @return 匹配的成员及其分数的有序集合，如果scanOptions为null则返回空集合
-	 * @throws IllegalArgumentException 当key为null时抛出
-	 * @see ScanOptions
-	 * @see RedisUtils#scanOptions(String, DataType, Long)
-	 * @since 1.0.0
-	 */
-	public SortedSet<ZSetValue<V>> scanZSetValues(final K key, final ScanOptions scanOptions) {
-		if (Objects.isNull(scanOptions)) {
-			return Collections.emptySortedSet();
-		}
-
-		try (Cursor<ZSetOperations.TypedTuple<V>> cursor = super.opsForZSet().scan(key, scanOptions)) {
-			return cursor.stream()
-				.map(ZSetValue::of)
-				.sorted()
-				.collect(Collectors.toCollection(TreeSet::new));
-		}
-	}
-
-	/**
 	 * 按后缀扫描集合成员
 	 * <p>
-	 * 此方法使用SSCAN命令进行渐进式扫描，避免使用SMEMBERS命令可能带来的性能问题。
-	 * 扫描所有以指定后缀结尾的成员，例如：
+	 * 使用SSCAN命令渐进式扫描以指定后缀结尾的成员：
 	 * <ul>
-	 *     <li>suffix="user" 将匹配 "app:user"、"system:user" 等</li>
 	 *     <li>使用 "*suffix" 模式进行匹配</li>
+	 *     <li>要求值序列化器为StringRedisSerializer</li>
 	 *     <li>返回结果无序且自动去重</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param key    集合的键
+	 * @param key 集合的键
 	 * @param suffix 后缀字符串
 	 * @return 匹配的成员集合，如果suffix为空则返回空集合
+	 * @throws UnsupportedOperationException 当值序列化器不是StringRedisSerializer时抛出
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsBySuffix(String, DataType, Long)
 	 */
 	public Set<V> scanSetValuesBySuffix(final K key, final String suffix) {
+		if (!supportValueScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(suffix)) {
 			return Collections.emptySet();
 		}
 
-		ScanOptions scanOptions = RedisUtils.scanOptionsBySuffix(suffix, DataType.SET, null);
+		ScanOptions scanOptions = RedisUtils.scanOptionsBySuffix(suffix, null, null);
 		try (Cursor<V> cursor = super.opsForSet().scan(key, scanOptions)) {
 			return cursor.stream().collect(Collectors.toSet());
 		}
@@ -440,23 +500,25 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按前缀扫描集合成员
 	 * <p>
-	 * 此方法使用SSCAN命令进行渐进式扫描，避免使用SMEMBERS命令可能带来的性能问题。
-	 * 扫描所有以指定前缀开头的成员，例如：
+	 * 使用SSCAN命令渐进式扫描以指定前缀开头的成员：
 	 * <ul>
-	 *     <li>prefix="user" 将匹配 "user:1"、"user:profile" 等</li>
 	 *     <li>使用 "prefix*" 模式进行匹配</li>
+	 *     <li>要求值序列化器为StringRedisSerializer</li>
 	 *     <li>返回结果无序且自动去重</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param key    集合的键
+	 * @param key 集合的键
 	 * @param prefix 前缀字符串
 	 * @return 匹配的成员集合，如果prefix为空则返回空集合
+	 * @throws UnsupportedOperationException 当值序列化器不是StringRedisSerializer时抛出
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsByPrefix(String, DataType, Long)
 	 */
 	public Set<V> scanSetValuesByPrefix(final K key, final String prefix) {
+		if (!supportValueScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(prefix)) {
 			return Collections.emptySet();
 		}
@@ -470,23 +532,25 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按关键字扫描集合成员
 	 * <p>
-	 * 此方法使用SSCAN命令进行渐进式扫描，避免使用SMEMBERS命令可能带来的性能问题。
-	 * 扫描所有包含指定关键字的成员，例如：
+	 * 使用SSCAN命令渐进式扫描包含指定关键字的成员：
 	 * <ul>
-	 *     <li>keyword="user" 将匹配 "app:user:1"、"system:user:profile" 等</li>
 	 *     <li>使用 "*keyword*" 模式进行匹配</li>
+	 *     <li>要求值序列化器为StringRedisSerializer</li>
 	 *     <li>返回结果无序且自动去重</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param key     集合的键
+	 * @param key 集合的键
 	 * @param keyword 关键字
 	 * @return 匹配的成员集合，如果keyword为空则返回空集合
+	 * @throws UnsupportedOperationException 当值序列化器不是StringRedisSerializer时抛出
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsByKeyword(String, DataType, Long)
 	 */
 	public Set<V> scanSetValuesByKeyword(final K key, final String keyword) {
+		if (!supportValueScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(keyword)) {
 			return Collections.emptySet();
 		}
@@ -521,58 +585,29 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	}
 
 	/**
-	 * 使用自定义扫描选项扫描集合成员
-	 * <p>
-	 * 此方法使用SSCAN命令进行渐进式扫描，避免使用SMEMBERS命令可能带来的性能问题。
-	 * 特点：
-	 * <ul>
-	 *     <li>支持自定义匹配模式</li>
-	 *     <li>支持指定每次扫描返回的数量</li>
-	 *     <li>返回结果无序且自动去重</li>
-	 *     <li>使用try-with-resources自动关闭游标</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param key         集合的键
-	 * @param scanOptions 扫描选项，可以指定匹配模式和返回数量
-	 * @return 匹配的成员集合，如果scanOptions为null则返回空集合
-	 * @throws IllegalArgumentException 当key为null时抛出
-	 * @see ScanOptions
-	 * @see RedisUtils#scanOptions(String, DataType, Long)
-	 * @since 1.0.0
-	 */
-	public Set<V> scanSetValues(final K key, final ScanOptions scanOptions) {
-		if (Objects.isNull(scanOptions)) {
-			return Collections.emptySet();
-		}
-
-		try (Cursor<V> cursor = super.opsForSet().scan(key, scanOptions)) {
-			return cursor.stream().collect(Collectors.toSet());
-		}
-	}
-
-	/**
 	 * 按后缀扫描哈希表字段
 	 * <p>
-	 * 此方法使用HSCAN命令进行渐进式扫描，避免使用HGETALL命令可能带来的性能问题。
-	 * 扫描所有以指定后缀结尾的字段，例如：
+	 * 使用HSCAN命令渐进式扫描以指定后缀结尾的字段：
 	 * <ul>
-	 *     <li>suffix="name" 将匹配 "first:name"、"last:name" 等</li>
 	 *     <li>使用 "*suffix" 模式进行匹配</li>
-	 *     <li>返回结果为字段和值的映射关系</li>
+	 *     <li>要求哈希键序列化器为StringRedisSerializer</li>
+	 *     <li>返回匹配字段及其对应值的映射</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param key    哈希表的键
+	 * @param key 哈希表的键
 	 * @param suffix 后缀字符串
-	 * @param <HK>   哈希字段的类型
-	 * @param <HV>   哈希值的类型
+	 * @param <HK> 哈希字段的类型
+	 * @param <HV> 哈希值的类型
 	 * @return 匹配的字段和值的映射，如果suffix为空则返回空映射
+	 * @throws UnsupportedOperationException 当哈希键序列化器不是StringRedisSerializer时抛出
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsBySuffix(String, DataType, Long)
 	 */
 	public <HK, HV> Map<HK, HV> scanHashValuesBySuffix(final K key, final String suffix) {
+		if (!supportHashKeyScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(suffix)) {
 			return Collections.emptyMap();
 		}
@@ -587,25 +622,27 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按前缀扫描哈希表字段
 	 * <p>
-	 * 此方法使用HSCAN命令进行渐进式扫描，避免使用HGETALL命令可能带来的性能问题。
-	 * 扫描所有以指定前缀开头的字段，例如：
+	 * 使用HSCAN命令渐进式扫描以指定前缀开头的字段：
 	 * <ul>
-	 *     <li>prefix="user" 将匹配 "user:id"、"user:name" 等</li>
 	 *     <li>使用 "prefix*" 模式进行匹配</li>
-	 *     <li>返回结果为字段和值的映射关系</li>
+	 *     <li>要求哈希键序列化器为StringRedisSerializer</li>
+	 *     <li>返回匹配字段及其对应值的映射</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param key    哈希表的键
+	 * @param key 哈希表的键
 	 * @param prefix 前缀字符串
-	 * @param <HK>   哈希字段的类型
-	 * @param <HV>   哈希值的类型
+	 * @param <HK> 哈希字段的类型
+	 * @param <HV> 哈希值的类型
 	 * @return 匹配的字段和值的映射，如果prefix为空则返回空映射
+	 * @throws UnsupportedOperationException 当哈希键序列化器不是StringRedisSerializer时抛出
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsByPrefix(String, DataType, Long)
 	 */
 	public <HK, HV> Map<HK, HV> scanHashValuesByPrefix(final K key, final String prefix) {
+		if (!supportHashKeyScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(prefix)) {
 			return Collections.emptyMap();
 		}
@@ -620,25 +657,27 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	/**
 	 * 按关键字扫描哈希表字段
 	 * <p>
-	 * 此方法使用HSCAN命令进行渐进式扫描，避免使用HGETALL命令可能带来的性能问题。
-	 * 扫描所有包含指定关键字的字段，例如：
+	 * 使用HSCAN命令渐进式扫描包含指定关键字的字段：
 	 * <ul>
-	 *     <li>keyword="name" 将匹配 "first:name"、"user:name:full" 等</li>
 	 *     <li>使用 "*keyword*" 模式进行匹配</li>
-	 *     <li>返回结果为字段和值的映射关系</li>
+	 *     <li>要求哈希键序列化器为StringRedisSerializer</li>
+	 *     <li>返回匹配字段及其对应值的映射</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param key     哈希表的键
+	 * @param key 哈希表的键
 	 * @param keyword 关键字
-	 * @param <HK>    哈希字段的类型
-	 * @param <HV>    哈希值的类型
+	 * @param <HK> 哈希字段的类型
+	 * @param <HV> 哈希值的类型
 	 * @return 匹配的字段和值的映射，如果keyword为空则返回空映射
+	 * @throws UnsupportedOperationException 当哈希键序列化器不是StringRedisSerializer时抛出
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
-	 * @see RedisUtils#scanOptionsByKeyword(String, DataType, Long)
 	 */
 	public <HK, HV> Map<HK, HV> scanHashValuesByKeyword(final K key, final String keyword) {
+		if (!supportHashKeyScan) {
+			throw new UnsupportedOperationException();
+		}
 		if (StringUtils.isBlank(keyword)) {
 			return Collections.emptyMap();
 		}
@@ -672,40 +711,6 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	public <HK, HV> Map<HK, HV> scanHashValues(final K key) {
 		HashOperations<K, HK, HV> hashOperations = super.opsForHash();
 		try (Cursor<Map.Entry<HK, HV>> cursor = hashOperations.scan(key, ScanOptions.NONE)) {
-			return cursor.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-		}
-	}
-
-	/**
-	 * 使用自定义扫描选项扫描哈希表字段
-	 * <p>
-	 * 此方法使用HSCAN命令进行渐进式扫描，避免使用HGETALL命令可能带来的性能问题。
-	 * 特点：
-	 * <ul>
-	 *     <li>支持自定义匹配模式</li>
-	 *     <li>支持指定每次扫描返回的数量</li>
-	 *     <li>返回结果为字段和值的映射关系</li>
-	 *     <li>使用try-with-resources自动关闭游标</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param key         哈希表的键
-	 * @param scanOptions 扫描选项，可以指定匹配模式和返回数量
-	 * @param <HK>        哈希字段的类型
-	 * @param <HV>        哈希值的类型
-	 * @return 匹配的字段和值的映射，如果scanOptions为null则返回空映射
-	 * @throws IllegalArgumentException 当key为null时抛出
-	 * @see ScanOptions
-	 * @see RedisUtils#scanOptions(String, DataType, Long)
-	 * @since 1.0.0
-	 */
-	public <HK, HV> Map<HK, HV> scanHashValues(final K key, final ScanOptions scanOptions) {
-		if (Objects.isNull(scanOptions)) {
-			return Collections.emptyMap();
-		}
-
-		HashOperations<K, HK, HV> hashOperations = super.opsForHash();
-		try (Cursor<Map.Entry<HK, HV>> cursor = hashOperations.scan(key, scanOptions)) {
 			return cursor.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		}
 	}
