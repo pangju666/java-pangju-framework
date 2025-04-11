@@ -22,7 +22,6 @@ import io.github.pangju666.commons.lang.utils.ReflectionUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
 import io.github.pangju666.framework.data.mongodb.utils.QueryUtils;
 import org.apache.commons.collections4.CollectionUtils;
-import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -80,12 +79,13 @@ import java.util.stream.Stream;
  * }</pre>
  * </p>
  *
+ * @param <ID> ID类型
  * @param <T> 实体类型
  * @author pangju666
  * @since 1.0.0
  * @see QueryUtils
  */
-public abstract class BaseRepository<T> {
+public abstract class BaseRepository<ID, T> {
 	/**
 	 * 实体类类型
 	 *
@@ -112,7 +112,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	protected BaseRepository() {
-		this.entityClass = ReflectionUtils.getClassGenericType(this.getClass());
+		this.entityClass = ReflectionUtils.getClassGenericType(this.getClass(), 1);
 	}
 
 	/**
@@ -251,20 +251,8 @@ public abstract class BaseRepository<T> {
 	 * @throws IllegalArgumentException 当id为空时抛出
 	 * @since 1.0.0
 	 */
-	public boolean existsById(String id) {
+	public boolean existsById(ID id) {
 		return mongoOperations.exists(QueryUtils.queryById(id), this.entityClass, this.collectionName);
-	}
-
-	/**
-	 * 根据ObjectId检查文档是否存在
-	 *
-	 * @param objectId MongoDB的ObjectId
-	 * @return 如果存在返回true，否则返回false
-	 * @throws IllegalArgumentException 当id为null时抛出
-	 * @since 1.0.0
-	 */
-	public boolean existsByObjectId(ObjectId objectId) {
-		return mongoOperations.exists(QueryUtils.queryById(objectId), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -311,27 +299,10 @@ public abstract class BaseRepository<T> {
 	 * @throws IllegalArgumentException 当id为空时抛出
 	 * @since 1.0.0
 	 */
-	public T getById(String id) {
-		Assert.hasText(id, "id 不可为空");
+	public T getById(ID id) {
+		Assert.notNull(id, "id 不可为null");
 
 		return mongoOperations.findById(id, this.entityClass, this.collectionName);
-	}
-
-	/**
-	 * 根据ObjectId查询单个文档
-	 * <p>
-	 * 将ObjectId转换为字符串后使用MongoDB的_id字段进行精确匹配查询
-	 * </p>
-	 *
-	 * @param objectId MongoDB的ObjectId
-	 * @return 匹配的文档，如果没有找到则返回null
-	 * @throws IllegalArgumentException 当id为null时抛出
-	 * @since 1.0.0
-	 */
-	public T getByObjectId(ObjectId objectId) {
-		Assert.notNull(objectId, "objectId 不可为null");
-
-		return mongoOperations.findById(objectId.toHexString(), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -440,37 +411,10 @@ public abstract class BaseRepository<T> {
 	 * @return 匹配的文档列表，如果没有匹配则返回空列表
 	 * @since 1.0.0
 	 */
-	public List<T> listByIds(Collection<String> ids) {
-		List<String> validIds = CollectionUtils.emptyIfNull(ids)
-			.stream()
-			.filter(StringUtils::isNotBlank)
-			.toList();
-		if (validIds.isEmpty()) {
-			return Collections.emptyList();
-		}
-		return mongoOperations.find(QueryUtils.queryByIds(validIds), this.entityClass, this.collectionName);
-	}
-
-	/**
-	 * 根据ObjectId集合批量查询文档
-	 * <p>
-	 * <ul>
-	 *     <li>过滤null的ObjectId</li>
-	 *     <li>将ObjectId转换为十六进制字符串</li>
-	 *     <li>如果没有有效ID，返回空列表</li>
-	 *     <li>使用MongoDB的$in操作符进行批量查询</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param objectIds 要查询的ObjectId集合
-	 * @return 匹配的文档列表，如果没有匹配则返回空列表
-	 * @since 1.0.0
-	 */
-	public List<T> listByObjectIds(Collection<ObjectId> objectIds) {
-		List<String> validIds = CollectionUtils.emptyIfNull(objectIds)
+	public List<T> listByIds(Collection<ID> ids) {
+		List<ID> validIds = CollectionUtils.emptyIfNull(ids)
 			.stream()
 			.filter(Objects::nonNull)
-			.map(ObjectId::toHexString)
 			.toList();
 		if (validIds.isEmpty()) {
 			return Collections.emptyList();
@@ -819,37 +763,10 @@ public abstract class BaseRepository<T> {
 	 * @return 匹配的文档流，如果没有匹配则返回空流
 	 * @since 1.0.0
 	 */
-	public Stream<T> streamByIds(Collection<String> ids) {
-		List<String> validIds = CollectionUtils.emptyIfNull(ids)
-			.stream()
-			.filter(StringUtils::isNotBlank)
-			.toList();
-		if (validIds.isEmpty()) {
-			return Stream.empty();
-		}
-		return mongoOperations.stream(QueryUtils.queryByIds(validIds), this.entityClass, this.collectionName);
-	}
-
-	/**
-	 * 根据ObjectId集合批量查询文档并返回流
-	 * <p>
-	 * <ul>
-	 *     <li>过滤null的ObjectId</li>
-	 *     <li>将ObjectId转换为十六进制字符串</li>
-	 *     <li>如果没有有效ID，返回空流</li>
-	 *     <li>使用MongoDB的$in操作符进行批量查询</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param objectIds 要查询的ObjectId集合
-	 * @return 匹配的文档流，如果没有匹配则返回空流
-	 * @since 1.0.0
-	 */
-	public Stream<T> streamByObjectIds(Collection<ObjectId> objectIds) {
-		List<String> validIds = CollectionUtils.emptyIfNull(objectIds)
+	public Stream<T> streamByIds(Collection<ID> ids) {
+		List<ID> validIds = CollectionUtils.emptyIfNull(ids)
 			.stream()
 			.filter(Objects::nonNull)
-			.map(ObjectId::toHexString)
 			.toList();
 		if (validIds.isEmpty()) {
 			return Stream.empty();
@@ -1403,33 +1320,11 @@ public abstract class BaseRepository<T> {
 	 * @throws IllegalArgumentException 当key或id为空时抛出
 	 * @since 1.0.0
 	 */
-	public boolean updateKeyValueById(String key, Object value, String id) {
+	public boolean updateKeyValueById(String key, Object value, ID id) {
 		Assert.hasText(key, "key 不可为空");
 
 		UpdateResult result = mongoOperations.updateFirst(QueryUtils.queryById(id), new Update().set(key, value),
 			this.collectionName);
-		return result.wasAcknowledged() && result.getModifiedCount() == 1;
-	}
-
-	/**
-	 * 根据ObjectId更新文档的指定字段值
-	 * <p>
-	 * 使用MongoDB的$set操作符更新单个字段
-	 * </p>
-	 *
-	 * @param key      要更新的字段名
-	 * @param value    新的字段值
-	 * @param objectId 文档的ObjectId
-	 * @return 如果更新成功返回true，否则返回false
-	 * @throws IllegalArgumentException 当key为空或objectId为null时抛出
-	 * @since 1.0.0
-	 */
-	public boolean updateKeyValueByObjectId(String key, Object value, ObjectId objectId) {
-		Assert.hasText(key, "key 不可为空");
-		Assert.notNull(objectId, "objectId 不可为null");
-
-		UpdateResult result = mongoOperations.updateFirst(QueryUtils.queryById(objectId),
-			new Update().set(key, value), this.collectionName);
 		return result.wasAcknowledged() && result.getModifiedCount() == 1;
 	}
 
@@ -1470,8 +1365,8 @@ public abstract class BaseRepository<T> {
 	 * @throws IllegalArgumentException 当id为空时抛出
 	 * @since 1.0.0
 	 */
-	public boolean removeById(String id) {
-		Assert.hasText(id, "id 不可为空");
+	public boolean removeById(ID id) {
+		Assert.notNull(id, "id 不可为null");
 
 		DeleteResult result = mongoOperations.remove(QueryUtils.queryById(id), this.collectionName);
 		return result.wasAcknowledged() && result.getDeletedCount() == 1;
@@ -1491,34 +1386,16 @@ public abstract class BaseRepository<T> {
 	 * @return 成功删除的文档数量
 	 * @since 1.0.0
 	 */
-	public long removeByIds(Collection<String> ids) {
-		List<String> validIds = CollectionUtils.emptyIfNull(ids)
+	public long removeByIds(Collection<ID> ids) {
+		List<ID> validIds = CollectionUtils.emptyIfNull(ids)
 			.stream()
-			.filter(StringUtils::isNotBlank)
+			.filter(Objects::nonNull)
 			.toList();
 		if (validIds.isEmpty()) {
 			return 0;
 		}
 		DeleteResult result = mongoOperations.remove(QueryUtils.queryByIds(validIds), this.entityClass, this.collectionName);
 		return result.wasAcknowledged() ? result.getDeletedCount() : 0;
-	}
-
-	/**
-	 * 根据ObjectId删除单个文档
-	 * <p>
-	 * 使用MongoDB的remove操作删除指定ObjectId的文档
-	 * </p>
-	 *
-	 * @param objectId 要删除的文档ObjectId
-	 * @return 如果删除成功返回true，否则返回false
-	 * @throws IllegalArgumentException 当objectId为null时抛出
-	 * @since 1.0.0
-	 */
-	public boolean removeByObjectId(ObjectId objectId) {
-		Assert.notNull(objectId, "objectId 不可为null");
-
-		DeleteResult result = mongoOperations.remove(QueryUtils.queryById(objectId), this.entityClass, this.collectionName);
-		return result.wasAcknowledged() && result.getDeletedCount() == 1;
 	}
 
 	/**

@@ -3,4 +3,6 @@ spring:
     mongodb:
       host: 172.16.0.120
       port: 30015
+      #host: localhost
+      #port: 27017
       database: testdb

@@ -20,7 +20,6 @@ import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import io.github.pangju666.framework.data.mongodb.pool.MongoConstants;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.util.Assert;
@@ -111,29 +110,15 @@ public class QueryUtils {
     /**
      * 根据ID构建查询
      *
-     * @param id 文档ID
+     * @param id ID
      * @return 查询对象
      * @throws IllegalArgumentException 当id为空时抛出
      * @since 1.0.0
      */
-    public static Query queryById(String id) {
-        Assert.hasText(id, "id 不可为空");
-
-        return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).is(id));
-    }
-
-    /**
-     * 根据ObjectId构建查询
-     *
-     * @param id MongoDB的ObjectId
-     * @return 查询对象
-     * @throws IllegalArgumentException 当id为null时抛出
-     * @since 1.0.0
-     */
-    public static Query queryById(ObjectId id) {
+    public static Query queryById(Object id) {
         Assert.notNull(id, "id 不可为null");
 
-        return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).is(id.toHexString()));
+        return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).is(id));
     }
 
     /**
@@ -142,13 +127,13 @@ public class QueryUtils {
      * 使用MongoDB的$in操作符查询ID在指定集合中的文档
      * </p>
      *
-     * @param ids ID集合
+     * @param ids 文档ID集合
      * @return 查询对象
      * @throws IllegalArgumentException 当ids为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByIds(Collection<String> ids) {
-        Assert.notEmpty(ids, "id 不可为空");
+    public static Query queryByIds(Collection<?> ids) {
+        Assert.notEmpty(ids, " ids 不可为空");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).in(ids));
     }
@@ -164,8 +149,8 @@ public class QueryUtils {
      * @throws IllegalArgumentException 当ids为空时抛出
      * @since 1.0.0
      */
-    public static Query queryByNotIds(Collection<String> ids) {
-        Assert.notEmpty(ids, "id 不可为空");
+    public static Query queryByNotIds(Collection<?> ids) {
+        Assert.notEmpty(ids, "ids 不可为空");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).nin(ids));
     }

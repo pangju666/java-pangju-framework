@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootContextLoader
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.MongoOperations
+import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
@@ -23,25 +24,12 @@ class BaseRepositorySpec extends Specification {
 	TestDocument testDoc
 
 	def setup() {
-		mongoOperations = Mock(MongoOperations)
-		repository = new TestRepository(mongoOperations)
-		testDoc = new TestDocument(id: new ObjectId().toHexString(), name: "测试文档")
-	}
-
-	def "测试 existsByObjectId 方法"() {
-		given: "准备测试数据"
-		def objectId = new ObjectId()
-
-		when: "调用方法"
-		repository.existsByObjectId(objectId)
-
-		then: "验证交互"
-		1 * mongoOperations.exists(_, TestDocument, _) >> true
+		testDoc = new TestDocument(id: new ObjectId("67f8d48d520f597e6357647c"), name: "测试文档")
 	}
 
 	def "测试 exist 方法"() {
 		given: "准备测试数据"
-		def query = new Query()
+		def query = Query.query(Criteria.where("name").is("测试文档"))
 
 		when: "调用方法"
 		repository.exist(query)
@@ -71,17 +59,6 @@ class BaseRepositorySpec extends Specification {
 
 		then: "验证交互"
 		1 * mongoOperations.findById(id, TestDocument, _) >> testDoc
-	}
-
-	def "测试 getByObjectId 方法"() {
-		given: "准备测试数据"
-		def objectId = new ObjectId()
-
-		when: "调用方法"
-		repository.getByObjectId(objectId)
-
-		then: "验证交互"
-		1 * mongoOperations.findById(objectId.toHexString(), TestDocument, _) >> testDoc
 	}
 
 	def "测试 get 方法"() {
@@ -424,36 +401,6 @@ class BaseRepositorySpec extends Specification {
 		1 * mongoOperations.stream(_, TestDocument, _) >> [testDoc].stream()
 	}
 
-	def "测试 updateKeyValueByObjectId 方法"() {
-		given: "准备测试数据"
-		def key = "name"
-		def value = "新名称"
-		def objectId = new ObjectId()
-
-		when: "调用方法"
-		repository.updateKeyValueByObjectId(key, value, objectId)
-
-		then: "验证交互"
-		1 * mongoOperations.updateFirst(_, _, _) >> Mock(UpdateResult) {
-			wasAcknowledged() >> true
-			getModifiedCount() >> 1L
-		}
-	}
-
-	def "测试 removeByObjectId 方法"() {
-		given: "准备测试数据"
-		def objectId = new ObjectId()
-
-		when: "调用方法"
-		repository.removeByObjectId(objectId)
-
-		then: "验证交互"
-		1 * mongoOperations.remove(_, TestDocument, _) >> Mock(DeleteResult) {
-			wasAcknowledged() >> true
-			getDeletedCount() >> 1L
-		}
-	}
-
 	def "测试 removeByIds 方法"() {
 		given: "准备测试数据"
 		def ids = [new ObjectId().toHexString(), new ObjectId().toHexString()]
@@ -502,5 +449,140 @@ class BaseRepositorySpec extends Specification {
 
 		then: "抛出异常"
 		thrown(IllegalArgumentException)
+	}
+
+	def "测试 list(Query) 方法"() {
+		given: "准备测试数据"
+		def query = new Query()
+
+		when: "调用方法"
+		repository.list(query)
+
+		then: "验证交互"
+		1 * mongoOperations.find(query, TestDocument, _) >> [testDoc]
+	}
+
+	def "测试 page(Query) 方法"() {
+		given: "准备测试数据"
+		def query = new Query()
+		def pageable = PageRequest.of(0, 10)
+
+		when: "调用方法"
+		repository.page(pageable, query)
+
+		then: "验证交互"
+		1 * mongoOperations.count(query, _) >> 1L
+		1 * mongoOperations.find(_, TestDocument, _) >> [testDoc]
+	}
+
+	def "测试 page(Query, Sort) 方法"() {
+		given: "准备测试数据"
+		def query = new Query()
+		def pageable = PageRequest.of(0, 10)
+		def sort = Sort.by("name")
+
+		when: "调用方法"
+		repository.page(pageable, query, sort)
+
+		then: "验证交互"
+		1 * mongoOperations.count(query, _) >> 1L
+		1 * mongoOperations.find(_, TestDocument, _) >> [testDoc]
+	}
+
+	def "测试 stream(Query) 方法"() {
+		given: "准备测试数据"
+		def query = new Query()
+
+		when: "调用方法"
+		repository.stream(query)
+
+		then: "验证交互"
+		1 * mongoOperations.stream(query, TestDocument, _) >> [testDoc].stream()
+	}
+
+	def "测试 stream(Sort) 方法"() {
+		given: "准备测试数据"
+		def sort = Sort.by("name")
+
+		when: "调用方法"
+		repository.stream(sort)
+
+		then: "验证交互"
+		1 * mongoOperations.stream(_, TestDocument, _) >> [testDoc].stream()
+	}
+
+	def "测试 stream(Query, Sort) 方法"() {
+		given: "准备测试数据"
+		def query = new Query()
+		def sort = Sort.by("name")
+
+		when: "调用方法"
+		repository.stream(query.with(sort))
+
+		then: "验证交互"
+		1 * mongoOperations.stream(_, TestDocument, _) >> [testDoc].stream()
+	}
+
+	def "测试 saveBatch(Collection, boolean) 方法"() {
+		given: "准备测试数据"
+		def entities = [testDoc, testDoc]
+
+		when: "调用并行处理方法"
+		repository.saveBatch(entities, true)
+
+		then: "验证交互"
+		2 * mongoOperations.save(_, _) >> testDoc
+
+		when: "调用串行处理方法"
+		repository.saveBatch(entities, false)
+
+		then: "验证交互"
+		2 * mongoOperations.save(_, _) >> testDoc
+	}
+
+	def "测试边界值场景"() {
+		when: "传入空字符串key"
+		repository.getByKeyValue("", "value")
+
+		then: "抛出异常"
+		thrown(IllegalArgumentException)
+
+		when: "传入空白字符串key"
+		repository.getByKeyValue("  ", "value")
+
+		then: "抛出异常"
+		thrown(IllegalArgumentException)
+
+		when: "传入空集合values"
+		repository.listByKeyValues("key", [])
+
+		then: "抛出异常"
+		thrown(IllegalArgumentException)
+
+		when: "传入空正则表达式"
+		repository.listByRegex("key", "")
+
+		then: "抛出异常"
+		thrown(IllegalArgumentException)
+	}
+
+	def "测试复杂查询场景"() {
+		given: "准备复杂查询条件"
+		def query = new Query()
+		def sort = Sort.by(Sort.Direction.DESC, "name")
+		def pageable = PageRequest.of(0, 10, sort)
+
+		when: "执行分页排序查询"
+		repository.page(pageable, query, sort)
+
+		then: "验证交互"
+		1 * mongoOperations.count(query, _) >> 100L
+		1 * mongoOperations.find(_, TestDocument, _) >> [testDoc]
+
+		when: "执行流式查询"
+		repository.stream(query.with(sort))
+
+		then: "验证交互"
+		1 * mongoOperations.stream(_, TestDocument, _) >> [testDoc].stream()
 	}
 }
