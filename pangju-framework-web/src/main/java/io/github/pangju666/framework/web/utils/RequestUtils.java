@@ -178,4 +178,10 @@ public class RequestUtils {
 		return JsonUtils.fromJson(requestBody, new TypeToken<Map<String, Object>>() {
 		});
 	}
+
+	public static String getDomain(HttpServletRequest request) {
+		StringBuffer url = request.getRequestURL();
+		String contextPath = request.getServletContext().getContextPath();
+		return url.delete(url.length() - request.getRequestURI().length(), url.length()).append(contextPath).toString();
+	}
 }

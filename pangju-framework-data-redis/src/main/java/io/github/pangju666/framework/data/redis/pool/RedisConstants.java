@@ -28,7 +28,7 @@ public class RedisConstants {
 	 *
 	 * @since 1.0.0
 	 */
-	public static final String REDIS_PATH_DELIMITER = "::";
+	public static final String REDIS_PATH_DELIMITER = ":";
 	/**
 	 * Redis游标匹配模式通配符
 	 * <p>

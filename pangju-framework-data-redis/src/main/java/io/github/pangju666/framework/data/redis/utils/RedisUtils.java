@@ -22,7 +22,6 @@ import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.Assert;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -99,7 +98,7 @@ public class RedisUtils {
 	 * @since 1.0.0
 	 */
 	public static String computeKey(final String... keys) {
-		return StringUtils.join(Arrays.asList(keys), RedisConstants.REDIS_PATH_DELIMITER);
+		return StringUtils.join(keys, RedisConstants.REDIS_PATH_DELIMITER);
 	}
 
 	/**
