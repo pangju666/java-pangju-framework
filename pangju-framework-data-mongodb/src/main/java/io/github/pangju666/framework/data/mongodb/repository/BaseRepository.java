@@ -20,7 +20,7 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import io.github.pangju666.commons.lang.utils.ReflectionUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
-import io.github.pangju666.framework.data.mongodb.pool.MongoConstants;
+import io.github.pangju666.framework.data.mongodb.utils.QueryUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
@@ -42,16 +42,48 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * MongoDB基础仓库类
+ * MongoDB基础仓储类
  * <p>
- * 提供MongoDB文档的基础CRUD操作。
- * 支持按ID、字段值、正则表达式等多种方式查询。
- * 提供流式查询和分页查询功能。
+ * 提供MongoDB文档操作的基础功能，包括：
+ * <ul>
+ *     <li>文档的增删改查操作</li>
+ *     <li>单字段条件查询</li>
+ *     <li>批量操作支持</li>
+ *     <li>正则表达式查询</li>
+ *     <li>分页查询</li>
+ *     <li>流式处理</li>
+ *     <li>空值处理</li>
+ * </ul>
  * </p>
  *
- * @param <T> 实体类类型
+ * <p>
+ * 主要特性：
+ * <ul>
+ *     <li>自动处理集合名称映射</li>
+ *     <li>支持ObjectId和字符串ID</li>
+ *     <li>提供批量操作的并行处理选项</li>
+ *     <li>统一的异常处理</li>
+ *     <li>支持MongoDB的主要查询操作符</li>
+ *     <li>支持Spring Data的分页和排序功能</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * 使用示例：
+ * <pre>{@code
+ * @Repository
+ * public class UserRepository extends BaseRepository<User> {
+ *     public UserRepository(MongoOperations mongoOperations) {
+ *         super(mongoOperations);
+ *     }
+ * }
+ * }</pre>
+ * </p>
+ *
+ * @param <T> 实体类型
  * @author pangju666
  * @since 1.0.0
+ * @see QueryUtils
  */
 public abstract class BaseRepository<T> {
 	/**
@@ -189,14 +221,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public <V> boolean existByKeyValue(String key, Object value) {
-		Assert.hasText(key, "key 不可为空");
-
-		if (Objects.isNull(value)) {
-			return mongoOperations.exists(Query.query(notNullCriteria(key)), this.entityClass,
-				this.collectionName);
-		}
-		return mongoOperations.exists(Query.query(Criteria.where(key).is(value)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.exists(QueryUtils.queryByKeyValue(key, value), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -215,14 +240,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public boolean notExistByKeyValue(String key, Object value) {
-		Assert.hasText(key, "key 不可为空");
-
-		if (Objects.isNull(value)) {
-			return !mongoOperations.exists(Query.query(notNullCriteria(key)), this.entityClass,
-				this.collectionName);
-		}
-		return mongoOperations.exists(Query.query(Criteria.where(key).not().is(value)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.exists(QueryUtils.queryByKeyNotValue(key, value), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -234,23 +252,19 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public boolean existsById(String id) {
-		Assert.hasText(id, "id 不可为空");
-
-		return mongoOperations.exists(idQuery(id), this.entityClass, this.collectionName);
+		return mongoOperations.exists(QueryUtils.queryById(id), this.entityClass, this.collectionName);
 	}
 
 	/**
 	 * 根据ObjectId检查文档是否存在
 	 *
-	 * @param id MongoDB的ObjectId
+	 * @param objectId MongoDB的ObjectId
 	 * @return 如果存在返回true，否则返回false
 	 * @throws IllegalArgumentException 当id为null时抛出
 	 * @since 1.0.0
 	 */
-	public boolean existsByObjectId(ObjectId id) {
-		Assert.notNull(id, "id 不可为null");
-
-		return mongoOperations.exists(objectIdQuery(id), this.entityClass, this.collectionName);
+	public boolean existsByObjectId(ObjectId objectId) {
+		return mongoOperations.exists(QueryUtils.queryById(objectId), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -283,12 +297,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public <V> T getByKeyValue(String key, Object value) {
-		Assert.hasText(key, "key 不可为空");
-
-		if (Objects.isNull(value)) {
-			return mongoOperations.findOne(Query.query(nullCriteria(key)), this.entityClass, this.collectionName);
-		}
-		return mongoOperations.findOne(Query.query(Criteria.where(key).is(value)), this.entityClass, this.collectionName);
+		return mongoOperations.findOne(QueryUtils.queryByKeyValue(key, value), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -314,15 +323,15 @@ public abstract class BaseRepository<T> {
 	 * 将ObjectId转换为字符串后使用MongoDB的_id字段进行精确匹配查询
 	 * </p>
 	 *
-	 * @param id MongoDB的ObjectId
+	 * @param objectId MongoDB的ObjectId
 	 * @return 匹配的文档，如果没有找到则返回null
 	 * @throws IllegalArgumentException 当id为null时抛出
 	 * @since 1.0.0
 	 */
-	public T getByObjectId(ObjectId id) {
-		Assert.notNull(id, "id 不可为null");
+	public T getByObjectId(ObjectId objectId) {
+		Assert.notNull(objectId, "objectId 不可为null");
 
-		return mongoOperations.findById(id, this.entityClass, this.collectionName);
+		return mongoOperations.findById(objectId.toHexString(), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -352,7 +361,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public long count() {
-		return mongoOperations.count(new Query(), this.collectionName);
+		return mongoOperations.count(QueryUtils.emptyQuery(), this.collectionName);
 	}
 
 	/**
@@ -370,6 +379,51 @@ public abstract class BaseRepository<T> {
 		Assert.notNull(query, "query 不可为null");
 
 		return mongoOperations.count(query, this.collectionName);
+	}
+
+	/**
+	 * 获取指定字段的所有不重复值
+	 * <p>
+	 * 使用MongoDB的distinct命令查询指定字段的所有不同值。
+	 * 此方法不带任何查询条件，将返回集合中该字段的所有唯一值。
+	 * </p>
+	 *
+	 * @param key        要查询的字段名
+	 * @param valueClass 字段值的类型Class对象
+	 * @param <V>        返回值的泛型类型
+	 * @return 字段的所有不重复值列表
+	 * @throws IllegalArgumentException 当key为空或valueClass为null时抛出
+	 * @since 1.0.0
+	 */
+	public <V> List<V> listDistinctKeyValues(String key, Class<V> valueClass) {
+		Assert.hasText(key, "key 不可为空");
+		Assert.notNull(valueClass, "valueClass 不可为null");
+
+		return mongoOperations.findDistinct(QueryUtils.emptyQuery(), key, this.collectionName, this.entityClass,
+			valueClass);
+	}
+
+	/**
+	 * 根据查询条件获取指定字段的不重复值
+	 * <p>
+	 * 使用MongoDB的distinct命令在指定查询条件下查询字段的不同值。
+	 * 此方法允许通过查询条件过滤文档，只返回匹配文档中该字段的唯一值。
+	 * </p>
+	 *
+	 * @param query      MongoDB查询条件
+	 * @param key        要查询的字段名
+	 * @param valueClass 字段值的类型Class对象
+	 * @param <V>        返回值的泛型类型
+	 * @return 符合查询条件的文档中，字段的所有不重复值列表
+	 * @throws IllegalArgumentException 当query为null、key为空或valueClass为null时抛出
+	 * @since 1.0.0
+	 */
+	public <V> List<V> listDistinctKeyValues(Query query, String key, Class<V> valueClass) {
+		Assert.hasText(key, "key 不可为空");
+		Assert.notNull(valueClass, "valueClass 不可为null");
+		Assert.notNull(query, "query 不可为不可为null");
+
+		return mongoOperations.findDistinct(query, key, this.collectionName, this.entityClass, valueClass);
 	}
 
 	/**
@@ -394,8 +448,7 @@ public abstract class BaseRepository<T> {
 		if (validIds.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME)
-			.in(validIds)), this.entityClass, this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByIds(validIds), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -422,8 +475,7 @@ public abstract class BaseRepository<T> {
 		if (validIds.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME)
-			.in(validIds)), this.entityClass, this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByIds(validIds), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -480,12 +532,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByKeyValue(String key, Object value) {
-		Assert.hasText(key, "key 不可为空");
-
-		if (Objects.isNull(value)) {
-			return mongoOperations.find(Query.query(nullCriteria(key)), this.entityClass, this.collectionName);
-		}
-		return mongoOperations.find(Query.query(Criteria.where(key).is(value)), this.entityClass, this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByKeyValue(key, value), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -505,8 +552,6 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByKeyValues(String key, Collection<?> values) {
-		Assert.hasText(key, "key 不可为空");
-
 		List<?> validValues = CollectionUtils.emptyIfNull(values)
 			.stream()
 			.filter(Objects::nonNull)
@@ -514,8 +559,7 @@ public abstract class BaseRepository<T> {
 		if (validValues.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(Query.query(Criteria.where(key).in(validValues)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByKeyValues(key, validValues), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -567,33 +611,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByNullValue(String key) {
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.find(Query.query(nullCriteria(key)), this.entityClass, this.collectionName);
-	}
-
-	/**
-	 * 在现有查询条件基础上添加字段值为null的条件
-	 * <p>
-	 * 在原查询条件上使用$and操作符添加以下条件：
-	 * <ul>
-	 *     <li>字段值为null</li>
-	 *     <li>字段不存在</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param query 现有的MongoDB查询条件
-	 * @param key   要查询的字段名
-	 * @return 匹配的文档列表，如果没有匹配则返回空列表
-	 * @throws IllegalArgumentException 当query为null或key为空时抛出
-	 * @since 1.0.0
-	 */
-	public List<T> listByNullValue(Query query, String key) {
-		Assert.notNull(query, "query 不可为null");
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.find(query.addCriteria(nullCriteria(key)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByKeyNullValue(key), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -612,33 +630,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByNotNullValue(String key) {
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.find(Query.query(notNullCriteria(key)), this.entityClass, this.collectionName);
-	}
-
-	/**
-	 * 在现有查询条件基础上添加字段值不为null的条件
-	 * <p>
-	 * 在原查询条件上使用$and操作符添加以下条件：
-	 * <ul>
-	 *     <li>字段值不为null</li>
-	 *     <li>字段存在且有值</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param query 现有的MongoDB查询条件
-	 * @param key   要查询的字段名
-	 * @return 匹配的文档列表，如果没有匹配则返回空列表
-	 * @throws IllegalArgumentException 当query为null或key为空时抛出
-	 * @since 1.0.0
-	 */
-	public List<T> listByNotNullValue(Query query, String key) {
-		Assert.notNull(query, "query 不可为null");
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.find(query.addCriteria(notNullCriteria(key)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByKeyNotNullValue(key), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -654,13 +646,10 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByNotRegex(String key, String regex) {
-		Assert.hasText(key, "key 不可为空");
-
 		if (StringUtils.isEmpty(regex)) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(Query.query(Criteria.where(key).not().regex(regex)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByNotRegex(key, regex), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -676,13 +665,10 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByNotRegex(String key, Pattern pattern) {
-		Assert.hasText(key, "key 不可为空");
-
 		if (Objects.isNull(pattern)) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(Query.query(Criteria.where(key).not().regex(pattern)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByNotRegex(key, pattern), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -691,9 +677,9 @@ public abstract class BaseRepository<T> {
 	 * 使用MongoDB的$not和$regex操作符组合进行字符串模式匹配
 	 * </p>
 	 *
-	 * @param query  现有的MongoDB查询条件
-	 * @param key    要查询的字段名
-	 * @param regex  正则表达式字符串
+	 * @param query 现有的MongoDB查询条件
+	 * @param key   要查询的字段名
+	 * @param regex 正则表达式字符串
 	 * @return 匹配的文档列表，如果正则表达式为空则返回空列表
 	 * @throws IllegalArgumentException 当query为null或key为空时抛出
 	 * @since 1.0.0
@@ -705,8 +691,8 @@ public abstract class BaseRepository<T> {
 		if (StringUtils.isEmpty(regex)) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(query.addCriteria(Criteria.where(key).not().regex(regex)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(query.addCriteria(Criteria.where(key).not().regex(regex)),
+			this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -729,8 +715,8 @@ public abstract class BaseRepository<T> {
 		if (Objects.isNull(pattern)) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(query.addCriteria(Criteria.where(key).not().regex(pattern)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(query.addCriteria(Criteria.where(key).not().regex(pattern)),
+			this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -746,13 +732,10 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByRegex(String key, String regex) {
-		Assert.hasText(key, "key 不可为空");
-
 		if (StringUtils.isEmpty(regex)) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(Query.query(Criteria.where(key).regex(regex)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByRegex(key, regex), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -768,13 +751,10 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByRegex(String key, Pattern pattern) {
-		Assert.hasText(key, "key 不可为空");
-
 		if (Objects.isNull(pattern)) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(Query.query(Criteria.where(key).regex(pattern)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(QueryUtils.queryByRegex(key, pattern), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -783,9 +763,9 @@ public abstract class BaseRepository<T> {
 	 * 使用MongoDB的$regex操作符进行字符串模式匹配
 	 * </p>
 	 *
-	 * @param query  现有的MongoDB查询条件
-	 * @param key    要查询的字段名
-	 * @param regex  正则表达式字符串
+	 * @param query 现有的MongoDB查询条件
+	 * @param key   要查询的字段名
+	 * @param regex 正则表达式字符串
 	 * @return 匹配的文档列表，如果正则表达式为空则返回空列表
 	 * @throws IllegalArgumentException 当query为null或key为空时抛出
 	 * @since 1.0.0
@@ -797,8 +777,8 @@ public abstract class BaseRepository<T> {
 		if (StringUtils.isEmpty(regex)) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(query.addCriteria(Criteria.where(key).regex(regex)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(query.addCriteria(Criteria.where(key).regex(regex)),
+			this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -821,8 +801,8 @@ public abstract class BaseRepository<T> {
 		if (Objects.isNull(pattern)) {
 			return Collections.emptyList();
 		}
-		return mongoOperations.find(query.addCriteria(Criteria.where(key).regex(pattern)), this.entityClass,
-			this.collectionName);
+		return mongoOperations.find(query.addCriteria(Criteria.where(key).regex(pattern)),
+			this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -847,8 +827,7 @@ public abstract class BaseRepository<T> {
 		if (validIds.isEmpty()) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME)
-			.in(validIds)), this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByIds(validIds), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -875,8 +854,7 @@ public abstract class BaseRepository<T> {
 		if (validIds.isEmpty()) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME)
-			.in(validIds)), this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByIds(validIds), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -895,14 +873,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByKeyValue(String key, Object value) {
-		Assert.hasText(key, "key 不可为空");
-
-		if (Objects.isNull(value)) {
-			return mongoOperations.stream(Query.query(nullCriteria(key)), this.entityClass,
-				this.collectionName);
-		}
-		return mongoOperations.stream(Query.query(Criteria.where(key).is(value)),
-			this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByKeyValue(key,value), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -922,8 +893,6 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByKeyValues(String key, Collection<?> values) {
-		Assert.hasText(key, "key 不可为空");
-
 		List<?> validValues = CollectionUtils.emptyIfNull(values)
 			.stream()
 			.filter(Objects::nonNull)
@@ -931,8 +900,7 @@ public abstract class BaseRepository<T> {
 		if (validValues.isEmpty()) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(Query.query(Criteria.where(key).in(validValues)),
-			this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByKeyValue(key,values), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -981,13 +949,10 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByNotRegex(String key, String regex) {
-		Assert.hasText(key, "key 不可为空");
-
 		if (StringUtils.isEmpty(regex)) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(Query.query(Criteria.where(key).not().regex(regex)),
-			this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByNotRegex(key,regex), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -1003,13 +968,10 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByNotRegex(String key, Pattern pattern) {
-		Assert.hasText(key, "key 不可为空");
-
 		if (Objects.isNull(pattern)) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(Query.query(Criteria.where(key).not().regex(pattern)),
-			this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByNotRegex(key,pattern), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -1018,9 +980,9 @@ public abstract class BaseRepository<T> {
 	 * 使用MongoDB的$not和$regex操作符组合进行字符串模式匹配
 	 * </p>
 	 *
-	 * @param query  现有的MongoDB查询条件
-	 * @param key    要查询的字段名
-	 * @param regex  正则表达式字符串
+	 * @param query 现有的MongoDB查询条件
+	 * @param key   要查询的字段名
+	 * @param regex 正则表达式字符串
 	 * @return 匹配的文档流，如果正则表达式为空则返回空流
 	 * @throws IllegalArgumentException 当query为null或key为空时抛出
 	 * @since 1.0.0
@@ -1073,12 +1035,10 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByRegex(String key, String regex) {
-		Assert.hasText(key, "key 不可为空");
-
 		if (StringUtils.isEmpty(regex)) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(Query.query(Criteria.where(key).regex(regex)), this.entityClass,
+		return mongoOperations.stream(QueryUtils.queryByNotRegex(key,regex), this.entityClass,
 			this.collectionName);
 	}
 
@@ -1095,12 +1055,10 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByRegex(String key, Pattern pattern) {
-		Assert.hasText(key, "key 不可为空");
-
 		if (Objects.isNull(pattern)) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(Query.query(Criteria.where(key).regex(pattern)),
+		return mongoOperations.stream(QueryUtils.queryByNotRegex(key,pattern),
 			this.entityClass, this.collectionName);
 	}
 
@@ -1110,9 +1068,9 @@ public abstract class BaseRepository<T> {
 	 * 使用MongoDB的$regex操作符进行字符串模式匹配
 	 * </p>
 	 *
-	 * @param query  现有的MongoDB查询条件
-	 * @param key    要查询的字段名
-	 * @param regex  正则表达式字符串
+	 * @param query 现有的MongoDB查询条件
+	 * @param key   要查询的字段名
+	 * @param regex 正则表达式字符串
 	 * @return 匹配的文档流，如果正则表达式为空则返回空流
 	 * @throws IllegalArgumentException 当query为null或key为空时抛出
 	 * @since 1.0.0
@@ -1168,34 +1126,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByNullValue(String key) {
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.stream(Query.query(nullCriteria(key)), this.entityClass,
-			this.collectionName);
-	}
-
-	/**
-	 * 在现有查询条件基础上添加字段值为null的条件并返回流
-	 * <p>
-	 * 在原查询条件上使用$and操作符添加以下条件：
-	 * <ul>
-	 *     <li>字段值为null</li>
-	 *     <li>字段不存在</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param query 现有的MongoDB查询条件
-	 * @param key   要查询的字段名
-	 * @return 匹配的文档流
-	 * @throws IllegalArgumentException 当query为null或key为空时抛出
-	 * @since 1.0.0
-	 */
-	public Stream<T> streamByNullValue(Query query, String key) {
-		Assert.notNull(query, "query 不可为null");
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.stream(query.addCriteria(nullCriteria(key)),
-			this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByKeyNullValue(key), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -1214,34 +1145,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByNotNullValue(String key) {
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.stream(Query.query(notNullCriteria(key)), this.entityClass,
-			this.collectionName);
-	}
-
-	/**
-	 * 在现有查询条件基础上添加字段值不为null的条件并返回流
-	 * <p>
-	 * 在原查询条件上使用$and操作符添加以下条件：
-	 * <ul>
-	 *     <li>字段值不为null</li>
-	 *     <li>字段存在且有值</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param query 现有的MongoDB查询条件
-	 * @param key   要查询的字段名
-	 * @return 匹配的文档流
-	 * @throws IllegalArgumentException 当query为null或key为空时抛出
-	 * @since 1.0.0
-	 */
-	public Stream<T> streamByNotNullValue(Query query, String key) {
-		Assert.notNull(query, "query 不可为null");
-		Assert.hasText(key, "key 不可为空");
-
-		return mongoOperations.stream(query.addCriteria(notNullCriteria(key)),
-			this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByKeyNotNullValue(key), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -1254,7 +1158,7 @@ public abstract class BaseRepository<T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> stream() {
-		return mongoOperations.stream(new Query(), this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.emptyQuery(), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -1501,9 +1405,8 @@ public abstract class BaseRepository<T> {
 	 */
 	public boolean updateKeyValueById(String key, Object value, String id) {
 		Assert.hasText(key, "key 不可为空");
-		Assert.hasText(id, "id 不可为空");
 
-		UpdateResult result = mongoOperations.updateFirst(idQuery(id), new Update().set(key, value),
+		UpdateResult result = mongoOperations.updateFirst(QueryUtils.queryById(id), new Update().set(key, value),
 			this.collectionName);
 		return result.wasAcknowledged() && result.getModifiedCount() == 1;
 	}
@@ -1525,8 +1428,8 @@ public abstract class BaseRepository<T> {
 		Assert.hasText(key, "key 不可为空");
 		Assert.notNull(objectId, "objectId 不可为null");
 
-		UpdateResult result = mongoOperations.updateFirst(objectIdQuery(objectId), new Update().set(key, value),
-			this.collectionName);
+		UpdateResult result = mongoOperations.updateFirst(QueryUtils.queryById(objectId),
+			new Update().set(key, value), this.collectionName);
 		return result.wasAcknowledged() && result.getModifiedCount() == 1;
 	}
 
@@ -1551,14 +1454,8 @@ public abstract class BaseRepository<T> {
 	public <V> long replaceKeyValue(String key, V newValue, V oldValue) {
 		Assert.hasText(key, "key 不可为空");
 
-		UpdateResult result;
-		if (Objects.isNull(oldValue)) {
-			result = mongoOperations.updateMulti(Query.query(nullCriteria(key)),
-				new Update().set(key, newValue), this.collectionName);
-		} else {
-			result = mongoOperations.updateMulti(Query.query(Criteria.where(key).is(oldValue)),
-				new Update().set(key, newValue), this.collectionName);
-		}
+		UpdateResult result = mongoOperations.updateMulti(QueryUtils.queryByKeyValue(key, oldValue),
+			new Update().set(key, newValue), this.collectionName);
 		return result.wasAcknowledged() ? result.getModifiedCount() : 0;
 	}
 
@@ -1576,7 +1473,7 @@ public abstract class BaseRepository<T> {
 	public boolean removeById(String id) {
 		Assert.hasText(id, "id 不可为空");
 
-		DeleteResult result = mongoOperations.remove(idQuery(id), this.collectionName);
+		DeleteResult result = mongoOperations.remove(QueryUtils.queryById(id), this.collectionName);
 		return result.wasAcknowledged() && result.getDeletedCount() == 1;
 	}
 
@@ -1602,8 +1499,8 @@ public abstract class BaseRepository<T> {
 		if (validIds.isEmpty()) {
 			return 0;
 		}
-		Query query = Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).in(validIds));
-		return remove(query);
+		DeleteResult result = mongoOperations.remove(QueryUtils.queryByIds(validIds), this.entityClass, this.collectionName);
+		return result.wasAcknowledged() ? result.getDeletedCount() : 0;
 	}
 
 	/**
@@ -1620,36 +1517,8 @@ public abstract class BaseRepository<T> {
 	public boolean removeByObjectId(ObjectId objectId) {
 		Assert.notNull(objectId, "objectId 不可为null");
 
-		DeleteResult result = mongoOperations.remove(objectIdQuery(objectId), this.entityClass, this.collectionName);
+		DeleteResult result = mongoOperations.remove(QueryUtils.queryById(objectId), this.entityClass, this.collectionName);
 		return result.wasAcknowledged() && result.getDeletedCount() == 1;
-	}
-
-	/**
-	 * 根据ObjectId集合批量删除文档
-	 * <p>
-	 * <ul>
-	 *     <li>过滤集合中的null值</li>
-	 *     <li>将ObjectId转换为十六进制字符串</li>
-	 *     <li>如果过滤后的ID集合为空，返回0</li>
-	 *     <li>使用MongoDB的$in操作符进行批量删除</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param objectIds 要删除的文档ObjectId集合
-	 * @return 成功删除的文档数量
-	 * @since 1.0.0
-	 */
-	public long removeByObjectIds(Collection<ObjectId> objectIds) {
-		List<String> validIds = CollectionUtils.emptyIfNull(objectIds)
-			.stream()
-			.filter(Objects::nonNull)
-			.map(ObjectId::toHexString)
-			.toList();
-		if (validIds.isEmpty()) {
-			return 0;
-		}
-		Query query = Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).in(validIds));
-		return remove(query);
 	}
 
 	/**
@@ -1668,103 +1537,5 @@ public abstract class BaseRepository<T> {
 
 		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
 		return result.wasAcknowledged() ? result.getDeletedCount() : 0;
-	}
-
-	/**
-	 * 根据ObjectId构建查询条件
-	 * <p>
-	 * 将ObjectId转换为查询条件对象
-	 * </p>
-	 *
-	 * @param id 文档的ObjectId
-	 * @return MongoDB查询条件对象
-	 * @since 1.0.0
-	 */
-	protected Query objectIdQuery(ObjectId id) {
-		return Query.query(objectIdCriteria(id));
-	}
-
-	/**
-	 * 根据ID构建查询条件
-	 * <p>
-	 * 将字符串ID转换为查询条件对象
-	 * </p>
-	 *
-	 * @param id 文档ID
-	 * @return MongoDB查询条件对象
-	 * @since 1.0.0
-	 */
-	protected Query idQuery(String id) {
-		return Query.query(idCriteria(id));
-	}
-
-	/**
-	 * 构建ID匹配条件
-	 * <p>
-	 * 创建用于匹配指定ID的MongoDB条件对象
-	 * </p>
-	 *
-	 * @param id 文档ID
-	 * @return MongoDB条件对象
-	 * @since 1.0.0
-	 */
-	public Criteria idCriteria(String id) {
-		return Criteria.where(MongoConstants.ID_FIELD_NAME).is(id);
-	}
-
-	/**
-	 * 构建ObjectId匹配条件
-	 * <p>
-	 * 创建用于匹配指定ObjectId的MongoDB条件对象
-	 * </p>
-	 *
-	 * @param id 文档的ObjectId
-	 * @return MongoDB条件对象
-	 * @since 1.0.0
-	 */
-	public Criteria objectIdCriteria(ObjectId id) {
-		return Criteria.where(MongoConstants.ID_FIELD_NAME).is(id.toHexString());
-	}
-
-	/**
-	 * 构建null值匹配条件
-	 * <p>
-	 * 创建用于匹配字段值为null或字段不存在的MongoDB条件对象
-	 * 使用$or操作符组合两个条件：
-	 * <ul>
-	 *     <li>字段值为null</li>
-	 *     <li>字段不存在</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param key 字段名
-	 * @return MongoDB条件对象
-	 * @since 1.0.0
-	 */
-	protected Criteria nullCriteria(String key) {
-		Criteria nullValueCriteria = Criteria.where(key).isNullValue();
-		Criteria nullCriteria = Criteria.where(key).isNull();
-		return nullValueCriteria.orOperator(nullCriteria);
-	}
-
-	/**
-	 * 构建非null值匹配条件
-	 * <p>
-	 * 创建用于匹配字段值不为null且字段存在的MongoDB条件对象
-	 * 使用$or操作符组合两个条件：
-	 * <ul>
-	 *     <li>字段值不为null</li>
-	 *     <li>字段存在且有值</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param key 字段名
-	 * @return MongoDB条件对象
-	 * @since 1.0.0
-	 */
-	protected Criteria notNullCriteria(String key) {
-		Criteria nullValueCriteria = Criteria.where(key).not().isNullValue();
-		Criteria nullCriteria = Criteria.where(key).not().isNull();
-		return nullValueCriteria.orOperator(nullCriteria);
 	}
 }

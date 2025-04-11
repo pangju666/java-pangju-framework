@@ -20,21 +20,19 @@ class BaseRepositorySpec extends Specification {
 	@Autowired
 	TestRepository repository
 
-	TestDocument testDoc1
-	TestDocument testDoc2
-
-	def setup() {
+	def "写入初始数据"() {
+		setup:
 		// 初始化测试数据
-		testDoc1 = new TestDocument(
-			id: new ObjectId().toHexString(),
+		TestDocument testDoc1 = new TestDocument(
 			name: "测试文档1",
 			value: 100
 		)
-		testDoc2 = new TestDocument(
-			id: new ObjectId().toHexString(),
+		mongoOperations.insert(testDoc1)
+		TestDocument testDoc2 = new TestDocument(
 			name: "测试文档2",
 			value: 200
 		)
+		mongoOperations.insert(testDoc2)
 	}
 
 	def "测试基础查询操作 - 按ID查询"() {
@@ -128,7 +126,7 @@ class BaseRepositorySpec extends Specification {
 
 	def "测试存在性检查"() {
 		when: "检查文档是否存在"
-		repository.existById(testDoc1.id)
+		repository.existsById(testDoc1.id)
 
 		then: "验证检查调用"
 		1 * mongoOperations.exists(_, TestDocument, _) >> true

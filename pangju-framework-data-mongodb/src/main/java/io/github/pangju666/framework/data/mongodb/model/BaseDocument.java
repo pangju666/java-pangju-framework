@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @author pangju666
  * @since 1.0.0
  */
-public abstract class BasicDocument implements Serializable {
+public abstract class BaseDocument implements Serializable {
 	/**
 	 * 文档ID
 	 * <p>使用MongoDB的_id字段，类型为字符串</p>
@@ -63,19 +63,6 @@ public abstract class BasicDocument implements Serializable {
 	}
 
 	/**
-	 * 生成新的文档ID
-	 * <p>
-	 * 使用MongoDB的{@link ObjectId}生成唯一标识符，并转换为十六进制字符串。
-	 * </p>
-	 *
-	 * @return 新生成的文档ID
-	 * @since 1.0.0
-	 */
-	public static String generateId() {
-		return ObjectId.get().toHexString();
-	}
-
-	/**
 	 * 获取文档集合中的ID列表
 	 * <p>
 	 * 提取集合中所有非空的文档ID，保持原有顺序。
@@ -86,12 +73,12 @@ public abstract class BasicDocument implements Serializable {
 	 * @return ID列表，如果集合为空则返回空列表
 	 * @since 1.0.0
 	 */
-	public static List<String> getIdList(final Collection<? extends BasicDocument> collection) {
+	public static List<String> getIdList(final Collection<? extends BaseDocument> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyList();
 		}
 		return collection.stream()
-			.map(BasicDocument::getId)
+			.map(BaseDocument::getId)
 			.filter(StringUtils::isNotBlank)
 			.toList();
 	}
@@ -107,12 +94,12 @@ public abstract class BasicDocument implements Serializable {
 	 * @return ID集合，如果集合为空则返回空集合
 	 * @since 1.0.0
 	 */
-	public static Set<String> getIdSet(final Collection<? extends BasicDocument> collection) {
+	public static Set<String> getIdSet(final Collection<? extends BaseDocument> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptySet();
 		}
 		return collection.stream()
-			.map(BasicDocument::getId)
+			.map(BaseDocument::getId)
 			.filter(StringUtils::isNotBlank)
 			.collect(Collectors.toSet());
 	}
@@ -128,12 +115,12 @@ public abstract class BasicDocument implements Serializable {
 	 * @return 去重后的ID列表，如果集合为空则返回空列表
 	 * @since 1.0.0
 	 */
-	public static List<String> getUniqueIdList(final Collection<? extends BasicDocument> collection) {
+	public static List<String> getUniqueIdList(final Collection<? extends BaseDocument> collection) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyList();
 		}
 		return collection.stream()
-			.map(BasicDocument::getId)
+			.map(BaseDocument::getId)
 			.filter(StringUtils::isNotBlank)
 			.distinct()
 			.toList();
