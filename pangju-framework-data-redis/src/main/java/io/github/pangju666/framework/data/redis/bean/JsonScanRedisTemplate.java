@@ -17,6 +17,7 @@
 package io.github.pangju666.framework.data.redis.bean;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
@@ -56,7 +57,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * 使用示例：
  * <pre>{@code
  * @Autowired
- * private JsonRedisTemplate redisTemplate;
+ * private JsonScanRedisTemplate redisTemplate;
  *
  * // 存储对象为JSON
  * User user = new User("张三", 25);
@@ -81,14 +82,14 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @see RedisSerializer#json()
  * @since 1.0.0
  */
-public class JsonRedisTemplate extends ScanRedisTemplate<String, Object> {
+public class JsonScanRedisTemplate extends ScanRedisTemplate<String, Object> {
 	/**
-	 * 构造一个新的 <code>JsonRedisTemplate</code> 实例。
+	 * 构造一个新的 <code>JsonScanRedisTemplate</code> 实例。
 	 * <p>{@link #setConnectionFactory(RedisConnectionFactory)} 和 {@link #afterPropertiesSet()} 仍需调用。</p>
 	 *
 	 * @since 1.0.0
 	 */
-	public JsonRedisTemplate() {
+	public JsonScanRedisTemplate() {
 		setKeySerializer(RedisSerializer.string());
 		setValueSerializer(RedisSerializer.json());
 		setHashKeySerializer(RedisSerializer.string());
@@ -96,14 +97,35 @@ public class JsonRedisTemplate extends ScanRedisTemplate<String, Object> {
 	}
 
 	/**
-	 * 构造一个新的 <code>JsonRedisTemplate</code> 实例以备使用。
+	 * 构造一个新的 <code>JsonScanRedisTemplate</code> 实例以备使用。
 	 *
 	 * @param connectionFactory 用于创建新连接的连接工厂
 	 * @since 1.0.0
 	 */
-	public JsonRedisTemplate(RedisConnectionFactory connectionFactory) {
+	public JsonScanRedisTemplate(RedisConnectionFactory connectionFactory) {
 		this();
 		setConnectionFactory(connectionFactory);
 		afterPropertiesSet();
+	}
+
+	/**
+	 * 使用现有的RedisTemplate构造一个新的<code>JsonScanRedisTemplate</code>实例
+	 * <p>
+	 * 此构造方法会复制源RedisTemplate的以下配置：
+	 * <ul>
+	 *     <li>键序列化器</li>
+	 *     <li>值序列化器</li>
+	 *     <li>哈希键序列化器</li>
+	 *     <li>哈希值序列化器</li>
+	 *     <li>Redis连接工厂</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param redisTemplate 源RedisTemplate实例
+	 * @throws IllegalArgumentException 当redisTemplate为null时抛出
+	 * @since 1.0.0
+	 */
+	public JsonScanRedisTemplate(RedisTemplate<?, ?> redisTemplate) {
+		super(redisTemplate);
 	}
 }

@@ -2,14 +2,13 @@ package io.github.pangju666.framework.data.redis.bean;
 
 import io.github.pangju666.framework.data.redis.model.ZSetValue;
 import io.github.pangju666.framework.data.redis.utils.RedisUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.*;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Redis扫描操作模板类
@@ -83,6 +82,32 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	}
 
 	/**
+	 * 使用现有的RedisTemplate构造一个新的ScanRedisTemplate实例
+	 * <p>
+	 * 此构造方法会复制源RedisTemplate的以下配置：
+	 * <ul>
+	 *     <li>键序列化器</li>
+	 *     <li>值序列化器</li>
+	 *     <li>哈希键序列化器</li>
+	 *     <li>哈希值序列化器</li>
+	 *     <li>Redis连接工厂</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param redisTemplate 源RedisTemplate实例
+	 * @throws IllegalArgumentException 当redisTemplate为null时抛出
+	 * @since 1.0.0
+	 */
+	public ScanRedisTemplate(RedisTemplate<?, ?> redisTemplate) {
+		setKeySerializer(redisTemplate.getKeySerializer());
+		setValueSerializer(redisTemplate.getValueSerializer());
+		setHashKeySerializer(redisTemplate.getHashKeySerializer());
+		setHashValueSerializer(redisTemplate.getHashValueSerializer());
+		setConnectionFactory(redisTemplate.getConnectionFactory());
+		afterPropertiesSet();
+	}
+
+	/**
 	 * 按后缀扫描键
 	 * <p>
 	 * 此方法使用SCAN命令进行渐进式扫描，避免使用KEYS命令可能带来的性能问题。
@@ -97,9 +122,16 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @param suffix 后缀字符串
 	 * @return 匹配的键集合，如果suffix为空则返回空集合
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsBySuffix(String)
 	 */
 	public Set<K> scanKeysBySuffix(final String suffix) {
-		return RedisUtils.scanKeysBySuffix(suffix, this);
+		if (StringUtils.isBlank(suffix)) {
+			return Collections.emptySet();
+		}
+
+		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsBySuffix(suffix))) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -117,9 +149,16 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @param prefix 前缀字符串
 	 * @return 匹配的键集合，如果prefix为空则返回空集合
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsByPrefix(String)
 	 */
 	public Set<K> scanKeysByPrefix(final String prefix) {
-		return RedisUtils.scanKeysByPrefix(prefix, this);
+		if (StringUtils.isBlank(prefix)) {
+			return Collections.emptySet();
+		}
+
+		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsByPrefix(prefix))) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -137,9 +176,16 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @param keyword 关键字
 	 * @return 匹配的键集合，如果keyword为空则返回空集合
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsByKeyword(String)
 	 */
 	public Set<K> scanKeysByKeyword(final String keyword) {
-		return RedisUtils.scanKeysByKeyword(keyword, this);
+		if (StringUtils.isBlank(keyword)) {
+			return Collections.emptySet();
+		}
+
+		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsByKeyword(keyword))) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -152,9 +198,16 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @param dataType 数据类型，支持的类型包括：STRING、LIST、SET、ZSET、HASH、STREAM
 	 * @return 匹配数据类型的键集合，如果dataType为null则返回空集合
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsByDataType(DataType)
 	 */
 	public Set<K> scanKeysByDataType(final DataType dataType) {
-		return RedisUtils.scanKeysByDataType(dataType, this);
+		if (Objects.isNull(dataType)) {
+			return Collections.emptySet();
+		}
+
+		try (Cursor<K> cursor = super.scan(RedisUtils.scanOptionsByDataType(dataType))) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -168,7 +221,9 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @since 1.0.0
 	 */
 	public Set<K> scanKeys() {
-		return RedisUtils.scanKeys(this);
+		try (Cursor<K> cursor = super.scan(ScanOptions.NONE)) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -185,7 +240,13 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @since 1.0.0
 	 */
 	public Set<K> scanKeys(final ScanOptions scanOptions) {
-		return RedisUtils.scanKeys(scanOptions, this);
+		if (Objects.isNull(scanOptions)) {
+			return Collections.emptySet();
+		}
+
+		try (Cursor<K> cursor = super.scan(scanOptions)) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -204,10 +265,21 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @param suffix 后缀字符串
 	 * @return 匹配的成员及其分数的有序集合，如果suffix为空则返回空集合
 	 * @throws IllegalArgumentException 当key为null时抛出
+	 * @see RedisUtils#scanOptionsBySuffix(String, DataType, Long)
 	 * @since 1.0.0
 	 */
 	public SortedSet<ZSetValue<V>> scanZSetValuesBySuffix(final K key, final String suffix) {
-		return RedisUtils.scanZSetValuesBySuffix(key, suffix, this);
+		if (StringUtils.isBlank(suffix)) {
+			return Collections.emptySortedSet();
+		}
+
+		ScanOptions scanOptions = RedisUtils.scanOptionsBySuffix(suffix, DataType.ZSET, null);
+		try (Cursor<ZSetOperations.TypedTuple<V>> cursor = super.opsForZSet().scan(key, scanOptions)) {
+			return cursor.stream()
+				.map(ZSetValue::of)
+				.sorted()
+				.collect(Collectors.toCollection(TreeSet::new));
+		}
 	}
 
 	/**
@@ -227,9 +299,20 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 匹配的成员及其分数的有序集合，如果prefix为空则返回空集合
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsByPrefix(String, DataType, Long)
 	 */
 	public SortedSet<ZSetValue<V>> scanZSetValuesByPrefix(final K key, final String prefix) {
-		return RedisUtils.scanZSetValuesByPrefix(key, prefix, this);
+		if (StringUtils.isBlank(prefix)) {
+			return Collections.emptySortedSet();
+		}
+
+		ScanOptions scanOptions = RedisUtils.scanOptionsByPrefix(prefix, DataType.ZSET, null);
+		try (Cursor<ZSetOperations.TypedTuple<V>> cursor = super.opsForZSet().scan(key, scanOptions)) {
+			return cursor.stream()
+				.map(ZSetValue::of)
+				.sorted()
+				.collect(Collectors.toCollection(TreeSet::new));
+		}
 	}
 
 	/**
@@ -249,9 +332,20 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 匹配的成员及其分数的有序集合，如果keyword为空则返回空集合
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsByKeyword(String, DataType, Long)
 	 */
 	public SortedSet<ZSetValue<V>> scanZSetValuesByKeyword(final K key, final String keyword) {
-		return RedisUtils.scanZSetValuesByKeyword(key, keyword, this);
+		if (StringUtils.isBlank(keyword)) {
+			return Collections.emptySortedSet();
+		}
+
+		ScanOptions scanOptions = RedisUtils.scanOptionsByKeyword(keyword, DataType.ZSET, null);
+		try (Cursor<ZSetOperations.TypedTuple<V>> cursor = super.opsForZSet().scan(key, scanOptions)) {
+			return cursor.stream()
+				.map(ZSetValue::of)
+				.sorted()
+				.collect(Collectors.toCollection(TreeSet::new));
+		}
 	}
 
 	/**
@@ -272,7 +366,12 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @since 1.0.0
 	 */
 	public SortedSet<ZSetValue<V>> scanZSetValues(final K key) {
-		return RedisUtils.scanZSetValues(key, this);
+		try (Cursor<ZSetOperations.TypedTuple<V>> cursor = super.opsForZSet().scan(key, ScanOptions.NONE)) {
+			return cursor.stream()
+				.map(ZSetValue::of)
+				.sorted()
+				.collect(Collectors.toCollection(TreeSet::new));
+		}
 	}
 
 	/**
@@ -296,7 +395,16 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @since 1.0.0
 	 */
 	public SortedSet<ZSetValue<V>> scanZSetValues(final K key, final ScanOptions scanOptions) {
-		return RedisUtils.scanZSetValues(key, scanOptions, this);
+		if (Objects.isNull(scanOptions)) {
+			return Collections.emptySortedSet();
+		}
+
+		try (Cursor<ZSetOperations.TypedTuple<V>> cursor = super.opsForZSet().scan(key, scanOptions)) {
+			return cursor.stream()
+				.map(ZSetValue::of)
+				.sorted()
+				.collect(Collectors.toCollection(TreeSet::new));
+		}
 	}
 
 	/**
@@ -316,9 +424,17 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 匹配的成员集合，如果suffix为空则返回空集合
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsBySuffix(String, DataType, Long)
 	 */
 	public Set<V> scanSetValuesBySuffix(final K key, final String suffix) {
-		return RedisUtils.scanSetValuesBySuffix(key, suffix, this);
+		if (StringUtils.isBlank(suffix)) {
+			return Collections.emptySet();
+		}
+
+		ScanOptions scanOptions = RedisUtils.scanOptionsBySuffix(suffix, DataType.SET, null);
+		try (Cursor<V> cursor = super.opsForSet().scan(key, scanOptions)) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -338,9 +454,17 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 匹配的成员集合，如果prefix为空则返回空集合
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsByPrefix(String, DataType, Long)
 	 */
 	public Set<V> scanSetValuesByPrefix(final K key, final String prefix) {
-		return RedisUtils.scanSetValuesByPrefix(key, prefix, this);
+		if (StringUtils.isBlank(prefix)) {
+			return Collections.emptySet();
+		}
+
+		ScanOptions scanOptions = RedisUtils.scanOptionsByPrefix(prefix, DataType.SET, null);
+		try (Cursor<V> cursor = super.opsForSet().scan(key, scanOptions)) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -360,9 +484,17 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 匹配的成员集合，如果keyword为空则返回空集合
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsByKeyword(String, DataType, Long)
 	 */
 	public Set<V> scanSetValuesByKeyword(final K key, final String keyword) {
-		return RedisUtils.scanSetValuesByKeyword(key, keyword, this);
+		if (StringUtils.isBlank(keyword)) {
+			return Collections.emptySet();
+		}
+
+		ScanOptions scanOptions = RedisUtils.scanOptionsByKeyword(keyword, DataType.SET, null);
+		try (Cursor<V> cursor = super.opsForSet().scan(key, scanOptions)) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -383,7 +515,9 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @since 1.0.0
 	 */
 	public Set<V> scanSetValues(final K key) {
-		return RedisUtils.scanSetValues(key, this);
+		try (Cursor<V> cursor = super.opsForSet().scan(key, ScanOptions.NONE)) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -408,7 +542,13 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @since 1.0.0
 	 */
 	public Set<V> scanSetValues(final K key, final ScanOptions scanOptions) {
-		return RedisUtils.scanSetValues(key, scanOptions, this);
+		if (Objects.isNull(scanOptions)) {
+			return Collections.emptySet();
+		}
+
+		try (Cursor<V> cursor = super.opsForSet().scan(key, scanOptions)) {
+			return cursor.stream().collect(Collectors.toSet());
+		}
 	}
 
 	/**
@@ -430,9 +570,18 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 匹配的字段和值的映射，如果suffix为空则返回空映射
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsBySuffix(String, DataType, Long)
 	 */
 	public <HK, HV> Map<HK, HV> scanHashValuesBySuffix(final K key, final String suffix) {
-		return RedisUtils.scanHashValuesBySuffix(key, suffix, this);
+		if (StringUtils.isBlank(suffix)) {
+			return Collections.emptyMap();
+		}
+
+		HashOperations<K, HK, HV> hashOperations = super.opsForHash();
+		ScanOptions scanOptions = RedisUtils.scanOptionsBySuffix(suffix, DataType.HASH, null);
+		try (Cursor<Map.Entry<HK, HV>> cursor = hashOperations.scan(key, scanOptions)) {
+			return cursor.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		}
 	}
 
 	/**
@@ -454,9 +603,18 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 匹配的字段和值的映射，如果prefix为空则返回空映射
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsByPrefix(String, DataType, Long)
 	 */
 	public <HK, HV> Map<HK, HV> scanHashValuesByPrefix(final K key, final String prefix) {
-		return RedisUtils.scanHashValuesByPrefix(key, prefix, this);
+		if (StringUtils.isBlank(prefix)) {
+			return Collections.emptyMap();
+		}
+
+		HashOperations<K, HK, HV> hashOperations = super.opsForHash();
+		ScanOptions scanOptions = RedisUtils.scanOptionsByPrefix(prefix, DataType.HASH, null);
+		try (Cursor<Map.Entry<HK, HV>> cursor = hashOperations.scan(key, scanOptions)) {
+			return cursor.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		}
 	}
 
 	/**
@@ -478,9 +636,18 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 匹配的字段和值的映射，如果keyword为空则返回空映射
 	 * @throws IllegalArgumentException 当key为null时抛出
 	 * @since 1.0.0
+	 * @see RedisUtils#scanOptionsByKeyword(String, DataType, Long)
 	 */
 	public <HK, HV> Map<HK, HV> scanHashValuesByKeyword(final K key, final String keyword) {
-		return RedisUtils.scanHashValuesByKeyword(key, keyword, this);
+		if (StringUtils.isBlank(keyword)) {
+			return Collections.emptyMap();
+		}
+
+		HashOperations<K, HK, HV> hashOperations = super.opsForHash();
+		ScanOptions scanOptions = RedisUtils.scanOptionsByKeyword(keyword, DataType.HASH, null);
+		try (Cursor<Map.Entry<HK, HV>> cursor = hashOperations.scan(key, scanOptions)) {
+			return cursor.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		}
 	}
 
 	/**
@@ -503,7 +670,10 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @since 1.0.0
 	 */
 	public <HK, HV> Map<HK, HV> scanHashValues(final K key) {
-		return RedisUtils.scanHashValues(key, this);
+		HashOperations<K, HK, HV> hashOperations = super.opsForHash();
+		try (Cursor<Map.Entry<HK, HV>> cursor = hashOperations.scan(key, ScanOptions.NONE)) {
+			return cursor.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		}
 	}
 
 	/**
@@ -530,6 +700,13 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @since 1.0.0
 	 */
 	public <HK, HV> Map<HK, HV> scanHashValues(final K key, final ScanOptions scanOptions) {
-		return RedisUtils.scanHashValues(key, scanOptions, this);
+		if (Objects.isNull(scanOptions)) {
+			return Collections.emptyMap();
+		}
+
+		HashOperations<K, HK, HV> hashOperations = super.opsForHash();
+		try (Cursor<Map.Entry<HK, HV>> cursor = hashOperations.scan(key, scanOptions)) {
+			return cursor.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		}
 	}
 }

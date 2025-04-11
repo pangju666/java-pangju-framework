@@ -1,7 +1,6 @@
 package io.github.pangju666.framework.data.redis
 
-
-import io.github.pangju666.framework.data.redis.bean.JsonRedisTemplate
+import io.github.pangju666.framework.data.redis.bean.JavaScanRedisTemplate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader
 import org.springframework.data.redis.connection.DataType
@@ -11,9 +10,9 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 @ContextConfiguration(classes = TestApplication.class, loader = SpringBootContextLoader.class)
-class JsonRedisTemplateSpec extends Specification {
+class JavaScanRedisTemplateSpec extends Specification {
 	@Autowired
-	JsonRedisTemplate redisTemplate
+	JavaScanRedisTemplate redisTemplate
 
 	def setup() {
 		// 字符串类型
