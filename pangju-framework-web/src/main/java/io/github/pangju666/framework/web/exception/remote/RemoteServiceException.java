@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.http.exception;
+package io.github.pangju666.framework.web.exception.remote;
 
-import io.github.pangju666.framework.http.model.RemoteServiceError;
 import io.github.pangju666.framework.web.exception.base.ServiceException;
 import io.github.pangju666.framework.web.lang.pool.WebConstants;
 import org.apache.commons.lang3.ObjectUtils;

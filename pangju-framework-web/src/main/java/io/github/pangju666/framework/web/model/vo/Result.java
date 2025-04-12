@@ -2,10 +2,10 @@ package io.github.pangju666.framework.web.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
-import io.github.pangju666.framework.http.exception.RemoteServiceException;
-import io.github.pangju666.framework.http.model.RemoteServiceError;
-import io.github.pangju666.framework.http.model.RemoteServiceErrorBuilder;
 import io.github.pangju666.framework.web.exception.base.BaseRuntimeException;
+import io.github.pangju666.framework.web.exception.remote.RemoteServiceError;
+import io.github.pangju666.framework.web.exception.remote.RemoteServiceErrorBuilder;
+import io.github.pangju666.framework.web.exception.remote.RemoteServiceException;
 import io.github.pangju666.framework.web.lang.pool.WebConstants;
 import org.slf4j.Logger;
 
@@ -26,7 +26,7 @@ public record Result<T>(
 	}
 
 	public static <T> Result<T> ok(T data) {
-		return new Result<>(WebConstants.RESULT_FAILURE_MESSAGE, WebConstants.SUCCESS_CODE, data);
+		return new Result<>(WebConstants.RESULT_SUCCESS_MESSAGE, WebConstants.SUCCESS_CODE, data);
 	}
 
 	public static <E extends BaseRuntimeException> Result<Void> failByException(E e) {
@@ -34,23 +34,15 @@ public record Result<T>(
 	}
 
 	public static Result<Void> fail() {
-		return new Result<>(WebConstants.RESULT_SUCCESS_MESSAGE, WebConstants.BASE_ERROR_CODE, null);
+		return new Result<>(WebConstants.RESULT_FAILURE_MESSAGE, WebConstants.BASE_ERROR_CODE, null);
 	}
 
 	public static Result<Void> failByMessage(String message) {
 		return new Result<>(message, WebConstants.BASE_ERROR_CODE, null);
 	}
 
-	public static Result<Void> fail(int code, String message) {
-		return new Result<>(message, code, null);
-	}
-
 	public static <T> Result<T> fail(T data) {
 		return new Result<>(WebConstants.RESULT_FAILURE_MESSAGE, WebConstants.BASE_ERROR_CODE, data);
-	}
-
-	public static <T> Result<T> fail(int code, String message, T data) {
-		return new Result<>(message, code, data);
 	}
 
 	public Optional<T> getOptionalData(final String service, final String api, final URI uri) {
@@ -65,8 +57,7 @@ public record Result<T>(
 		throw new RemoteServiceException(remoteServiceError);
 	}
 
-	public Optional<T> geOptionalData(final String service, final String api, final URI uri,
-									  final Logger logger) {
+	public Optional<T> geOptionalData(final String service, final String api, final URI uri, final Logger logger) {
 		if (this.code == WebConstants.SUCCESS_CODE) {
 			return Optional.ofNullable(this.data);
 		}

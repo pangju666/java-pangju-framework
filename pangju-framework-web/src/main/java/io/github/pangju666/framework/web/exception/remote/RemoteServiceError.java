@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.http.model;
+package io.github.pangju666.framework.web.exception.remote;
 
 import java.net.URI;
 

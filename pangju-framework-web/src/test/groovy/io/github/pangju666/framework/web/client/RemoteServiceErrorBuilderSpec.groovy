@@ -1,10 +1,10 @@
 package io.github.pangju666.framework.web.client
 
 import com.google.gson.JsonObject
-import io.github.pangju666.framework.http.exception.RemoteServiceException
-import io.github.pangju666.framework.http.exception.RemoteServiceTimeoutException
-import io.github.pangju666.framework.http.model.RemoteServiceErrorBuilder
 import io.github.pangju666.framework.web.exception.base.ServerException
+import io.github.pangju666.framework.web.exception.remote.RemoteServiceErrorBuilder
+import io.github.pangju666.framework.web.exception.remote.RemoteServiceException
+import io.github.pangju666.framework.web.exception.remote.RemoteServiceTimeoutException
 import org.apache.commons.lang3.ArrayUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
