@@ -69,54 +69,54 @@ public class RemoteServiceException extends ServiceException {
 	 * @see RemoteServiceError
 	 * @since 1.0.0
 	 */
-	protected final RemoteServiceError remoteServiceError;
+	protected final RemoteServiceError error;
 
 	/**
 	 * 使用默认错误消息创建异常实例
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @since 1.0.0
 	 */
-	public RemoteServiceException(RemoteServiceError remoteServiceError) {
+	public RemoteServiceException(RemoteServiceError error) {
 		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, DEFAULT_MESSAGE);
-		this.remoteServiceError = remoteServiceError;
+		this.error = error;
 	}
 
 	/**
 	 * 使用自定义错误消息创建异常实例
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param message 自定义错误消息
 	 * @since 1.0.0
 	 */
-	public RemoteServiceException(RemoteServiceError remoteServiceError, String message) {
+	public RemoteServiceException(RemoteServiceError error, String message) {
 		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, message);
-		this.remoteServiceError = remoteServiceError;
+		this.error = error;
 	}
 
 	/**
 	 * 使用默认错误消息和原始异常创建异常实例
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param cause 原始异常
 	 * @since 1.0.0
 	 */
-	public RemoteServiceException(RemoteServiceError remoteServiceError, Throwable cause) {
+	public RemoteServiceException(RemoteServiceError error, Throwable cause) {
 		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, DEFAULT_MESSAGE, cause);
-		this.remoteServiceError = remoteServiceError;
+		this.error = error;
 	}
 
 	/**
 	 * 使用自定义错误消息和原始异常创建异常实例
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param message 自定义错误消息
 	 * @param cause 原始异常
 	 * @since 1.0.0
 	 */
-	public RemoteServiceException(RemoteServiceError remoteServiceError, String message, Throwable cause) {
+	public RemoteServiceException(RemoteServiceError error, String message, Throwable cause) {
 		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, message, cause);
-		this.remoteServiceError = remoteServiceError;
+		this.error = error;
 	}
 
 	/**
@@ -125,14 +125,14 @@ public class RemoteServiceException extends ServiceException {
 	 * 受保护的构造方法，用于子类扩展。
 	 * </p>
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param code 自定义错误代码
 	 * @param message 自定义错误消息
 	 * @since 1.0.0
 	 */
-	protected RemoteServiceException(RemoteServiceError remoteServiceError, int code, String message) {
+	protected RemoteServiceException(RemoteServiceError error, int code, String message) {
 		super(code, message);
-		this.remoteServiceError = remoteServiceError;
+		this.error = error;
 	}
 
 	/**
@@ -141,15 +141,15 @@ public class RemoteServiceException extends ServiceException {
 	 * 受保护的构造方法，用于子类扩展。
 	 * </p>
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param code 自定义错误代码
 	 * @param message 自定义错误消息
 	 * @param cause 原始异常
 	 * @since 1.0.0
 	 */
-	protected RemoteServiceException(RemoteServiceError remoteServiceError, int code, String message, Throwable cause) {
+	protected RemoteServiceException(RemoteServiceError error, int code, String message, Throwable cause) {
 		super(code, message, cause);
-		this.remoteServiceError = remoteServiceError;
+		this.error = error;
 	}
 
 	/**
@@ -158,8 +158,8 @@ public class RemoteServiceException extends ServiceException {
 	 * @return 远程服务错误信息对象
 	 * @since 1.0.0
 	 */
-	public RemoteServiceError getRemoteServiceError() {
-		return remoteServiceError;
+	public RemoteServiceError getError() {
+		return error;
 	}
 
 	/**
@@ -204,19 +204,19 @@ public class RemoteServiceException extends ServiceException {
 		}
 
 		StringBuilder builder = new StringBuilder();
-		if (StringUtils.isNotBlank(this.remoteServiceError.service())) {
+		if (StringUtils.isNotBlank(this.error.service())) {
 			builder.append("服务：")
-				.append(this.remoteServiceError.service())
+				.append(this.error.service())
 				.append(StringUtils.SPACE);
 		}
-		if (StringUtils.isNotBlank(this.remoteServiceError.api())) {
+		if (StringUtils.isNotBlank(this.error.api())) {
 			builder.append("接口：")
-				.append(this.remoteServiceError.api())
+				.append(this.error.api())
 				.append(StringUtils.SPACE);
 		}
-		if (Objects.nonNull(this.remoteServiceError.uri())) {
+		if (Objects.nonNull(this.error.uri())) {
 			builder.append("链接：")
-				.append(this.remoteServiceError.uri())
+				.append(this.error.uri())
 				.append(StringUtils.SPACE);
 		}
 		generateRequestLog(builder);
@@ -242,16 +242,16 @@ public class RemoteServiceException extends ServiceException {
 	 */
 	protected void generateRequestLog(StringBuilder builder) {
 		builder.append("http状态码：")
-			.append(this.remoteServiceError.httpStatus())
+			.append(this.error.httpStatus())
 			.append(StringUtils.SPACE);
-		if (StringUtils.isNotBlank(this.remoteServiceError.code())) {
+		if (StringUtils.isNotBlank(this.error.code())) {
 			builder.append("错误码：")
-				.append(this.remoteServiceError.code())
+				.append(this.error.code())
 				.append(StringUtils.SPACE);
 		}
-		if (StringUtils.isNotBlank(this.remoteServiceError.message())) {
+		if (StringUtils.isNotBlank(this.error.message())) {
 			builder.append("错误信息：")
-				.append(this.remoteServiceError.message());
+				.append(this.error.message());
 		}
 	}
 }

@@ -17,11 +17,11 @@
 package io.github.pangju666.framework.web.exception.base;
 
 import io.github.pangju666.framework.web.lang.pool.WebConstants;
-import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
+import org.springframework.core.NestedRuntimeException;
 
-public abstract class BaseRuntimeException extends RuntimeException {
+public abstract class BaseRuntimeException extends NestedRuntimeException {
 	private int code = WebConstants.BASE_ERROR_CODE;
 
 	protected BaseRuntimeException(String message) {
@@ -54,46 +54,5 @@ public abstract class BaseRuntimeException extends RuntimeException {
 		logger.atLevel(level)
 			.setCause(this)
 			.log(this.getMessage());
-	}
-
-	public Throwable getRootCause() {
-		Throwable rootCause = null;
-		Throwable cause = this.getCause();
-		while (cause != null && cause != rootCause) {
-			rootCause = cause;
-			cause = cause.getCause();
-		}
-		return (rootCause != null ? rootCause : this);
-	}
-
-	public Throwable getMostSpecificCause() {
-		return ObjectUtils.defaultIfNull(getRootCause(), this);
-	}
-
-	public boolean contains(Class<?> exType) {
-		if (exType == null) {
-			return false;
-		}
-		if (exType.isInstance(this)) {
-			return true;
-		}
-		Throwable cause = getCause();
-		if (cause == this) {
-			return false;
-		}
-		if (cause instanceof BaseRuntimeException e) {
-			return e.contains(exType);
-		} else {
-			while (cause != null) {
-				if (exType.isInstance(cause)) {
-					return true;
-				}
-				if (cause.getCause() == cause) {
-					break;
-				}
-				cause = cause.getCause();
-			}
-			return false;
-		}
 	}
 }

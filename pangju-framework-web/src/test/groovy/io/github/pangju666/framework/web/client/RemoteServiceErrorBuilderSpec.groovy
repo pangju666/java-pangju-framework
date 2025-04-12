@@ -1,0 +1,179 @@
+package io.github.pangju666.framework.web.client
+
+import com.google.gson.JsonObject
+import io.github.pangju666.framework.http.exception.RemoteServiceException
+import io.github.pangju666.framework.http.exception.RemoteServiceTimeoutException
+import io.github.pangju666.framework.http.model.RemoteServiceErrorBuilder
+import io.github.pangju666.framework.web.exception.base.ServerException
+import org.apache.commons.lang3.ArrayUtils
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.RestClientResponseException
+import spock.lang.Specification
+import spock.lang.Unroll
+
+class RemoteServiceErrorBuilderSpec extends Specification {
+	def "构造函数应正确初始化基本属性"() {
+		when: "创建构建器实例"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+
+		then: "基本属性应被正确初始化"
+		builder.build().with {
+			service() == "测试服务"
+			api() == "测试接口"
+			httpStatus() == HttpStatus.OK.value()
+			message() == null
+			code() == null
+			uri() == null
+		}
+	}
+
+	def "带URI的构造函数应正确初始化所有属性"() {
+		given: "准备测试URI"
+		def uri = new URI("http://test.com/api")
+
+		when: "创建带URI的构建器实例"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口", uri)
+
+		then: "所有属性应被正确初始化"
+		builder.build().with {
+			service() == "测试服务"
+			api() == "测试接口"
+			it.uri() == uri
+			httpStatus() == HttpStatus.OK.value()
+			message() == null
+			code() == null
+		}
+	}
+
+	def "message方法应正确设置错误消息"() {
+		given: "创建构建器实例"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+
+		when: "设置错误消息"
+		builder.message("测试错误")
+
+		then: "错误消息应被正确设置"
+		builder.build().message() == "测试错误"
+	}
+
+	@Unroll
+	def "message方法应正确处理带参数的消息模板：#pattern"() {
+		given: "创建构建器实例"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+
+		when: "使用模板设置错误消息"
+		builder.message(pattern, args as Object[])
+
+		then: "错误消息应被正确格式化"
+		builder.build().message() == expected
+
+		where:
+		pattern         | args      | expected
+		"用户{0}不存在" | ["admin"] | "用户admin不存在"
+		"错误代码：{0}"  | [404]     | "错误代码：404"
+		""              | []        | null
+		null            | []        | null
+	}
+
+	@Unroll
+	def "code方法应正确设置错误代码：#inputCode"() {
+		given: "创建构建器实例"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+
+		when: "设置错误代码"
+		builder.code(inputCode)
+
+		then: "错误代码应被正确设置"
+		builder.build().code() == expected
+
+		where:
+		inputCode | expected
+		404       | "404"
+		"E001"    | "E001"
+		null      | null
+	}
+
+	def "httpStatus方法应正确设置HTTP状态码"() {
+		given: "创建构建器实例"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+
+		when: "设置HTTP状态码"
+		builder.httpStatus(HttpStatus.NOT_FOUND)
+
+		then: "HTTP状态码应被正确设置"
+		builder.build().httpStatus() == HttpStatus.NOT_FOUND.value()
+	}
+
+	def "buildException应正确处理网关超时异常"() {
+		given: "创建构建器实例和网关超时异常"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def exception = HttpServerErrorException.create(HttpStatus.GATEWAY_TIMEOUT,
+			"Gateway Timeout", HttpHeaders.EMPTY, ArrayUtils.EMPTY_BYTE_ARRAY, null)
+
+		when: "构建异常"
+		def result = builder.buildException(exception, "code", "message")
+
+		then: "应返回超时异常"
+		result instanceof RemoteServiceTimeoutException
+		result.getError().httpStatus() == HttpStatus.GATEWAY_TIMEOUT.value()
+	}
+
+	def "buildException应正确处理响应异常"() {
+		given: "创建构建器实例和模拟响应数据"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def responseBody = new JsonObject()
+		responseBody.addProperty("code", "E001")
+		responseBody.addProperty("message", "业务错误")
+		def exception = new RestClientResponseException(
+			"测试异常",
+			HttpStatus.valueOf(400),
+			"Bad Request",
+			null,
+			responseBody.toString().bytes,
+			null
+		)
+
+		when: "构建异常"
+		def result = builder.buildException(exception, "code", "message")
+
+		then: "应正确解析响应体信息"
+		result instanceof RemoteServiceException
+		with(result.getError()) {
+			code() == "E001"
+			message() == "业务错误"
+			httpStatus() == 400
+		}
+	}
+
+	def "buildException应正确处理JSON解析失败"() {
+		given: "创建构建器实例和无效的JSON响应"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def exception = new RestClientResponseException(
+			"测试异常",
+			HttpStatus.valueOf(400),
+			"Bad Request",
+			null,
+			"invalid json".bytes,
+			null
+		)
+
+		when: "构建异常"
+		builder.buildException(exception, "code", "message")
+
+		then: "应抛出服务器异常"
+		thrown(ServerException)
+	}
+
+	def "buildException不应接受null参数"() {
+		given: "创建构建器实例"
+		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+
+		when: "传入null异常"
+		builder.buildException(null, "code", "message")
+
+		then: "应抛出参数异常"
+		thrown(IllegalArgumentException)
+	}
+}

@@ -50,45 +50,45 @@ public class RemoteServiceTimeoutException extends RemoteServiceException {
 	/**
 	 * 使用默认错误消息创建超时异常实例
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @since 1.0.0
 	 */
-	public RemoteServiceTimeoutException(RemoteServiceError remoteServiceError) {
-		super(remoteServiceError, WebConstants.REMOTE_SERVICE_TIMEOUT_RESPONSE_CODE, DEFAULT_MESSAGE);
+	public RemoteServiceTimeoutException(RemoteServiceError error) {
+		super(error, WebConstants.REMOTE_SERVICE_TIMEOUT_RESPONSE_CODE, DEFAULT_MESSAGE);
 	}
 
 	/**
 	 * 使用自定义错误消息创建超时异常实例
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param message 自定义错误消息
 	 * @since 1.0.0
 	 */
-	public RemoteServiceTimeoutException(RemoteServiceError remoteServiceError, String message) {
-		super(remoteServiceError, WebConstants.REMOTE_SERVICE_TIMEOUT_RESPONSE_CODE, message);
+	public RemoteServiceTimeoutException(RemoteServiceError error, String message) {
+		super(error, WebConstants.REMOTE_SERVICE_TIMEOUT_RESPONSE_CODE, message);
 	}
 
 	/**
 	 * 使用默认错误消息和原始异常创建超时异常实例
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param cause 原始异常
 	 * @since 1.0.0
 	 */
-	public RemoteServiceTimeoutException(RemoteServiceError remoteServiceError, Throwable cause) {
-		super(remoteServiceError, WebConstants.REMOTE_SERVICE_TIMEOUT_RESPONSE_CODE, DEFAULT_MESSAGE, cause);
+	public RemoteServiceTimeoutException(RemoteServiceError error, Throwable cause) {
+		super(error, WebConstants.REMOTE_SERVICE_TIMEOUT_RESPONSE_CODE, DEFAULT_MESSAGE, cause);
 	}
 
 	/**
 	 * 使用自定义错误消息和原始异常创建超时异常实例
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param message 自定义错误消息
 	 * @param cause 原始异常
 	 * @since 1.0.0
 	 */
-	public RemoteServiceTimeoutException(RemoteServiceError remoteServiceError, String message, Throwable cause) {
-		super(remoteServiceError, WebConstants.REMOTE_SERVICE_TIMEOUT_RESPONSE_CODE, message, cause);
+	public RemoteServiceTimeoutException(RemoteServiceError error, String message, Throwable cause) {
+		super(error, WebConstants.REMOTE_SERVICE_TIMEOUT_RESPONSE_CODE, message, cause);
 	}
 
 	/**
@@ -97,13 +97,13 @@ public class RemoteServiceTimeoutException extends RemoteServiceException {
 	 * 受保护的构造方法，用于子类扩展。
 	 * </p>
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param code 自定义错误代码
 	 * @param message 自定义错误消息
 	 * @since 1.0.0
 	 */
-	protected RemoteServiceTimeoutException(RemoteServiceError remoteServiceError, int code, String message) {
-		super(remoteServiceError, code, message);
+	protected RemoteServiceTimeoutException(RemoteServiceError error, int code, String message) {
+		super(error, code, message);
 	}
 
 	/**
@@ -112,14 +112,14 @@ public class RemoteServiceTimeoutException extends RemoteServiceException {
 	 * 受保护的构造方法，用于子类扩展。
 	 * </p>
 	 *
-	 * @param remoteServiceError 远程服务错误信息
+	 * @param error 远程服务错误信息
 	 * @param code 自定义错误代码
 	 * @param message 自定义错误消息
 	 * @param cause 原始异常
 	 * @since 1.0.0
 	 */
-	protected RemoteServiceTimeoutException(RemoteServiceError remoteServiceError, int code, String message, Throwable cause) {
-		super(remoteServiceError, code, message, cause);
+	protected RemoteServiceTimeoutException(RemoteServiceError error, int code, String message, Throwable cause) {
+		super(error, code, message, cause);
 	}
 
 	/**

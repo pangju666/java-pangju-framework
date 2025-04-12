@@ -26,6 +26,7 @@ import io.github.pangju666.framework.web.exception.base.ServerException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
@@ -151,20 +152,8 @@ public class RemoteServiceErrorBuilder {
 	 * @return 当前构建器实例
 	 * @since 1.0.0
 	 */
-	public RemoteServiceErrorBuilder code(Integer code) {
-		this.code = Objects.toString(code, StringUtils.EMPTY);
-		return this;
-	}
-
-	/**
-	 * 设置业务错误代码
-	 *
-	 * @param code 业务错误代码
-	 * @return 当前构建器实例
-	 * @since 1.0.0
-	 */
-	public RemoteServiceErrorBuilder code(String code) {
-		this.code = code;
+	public RemoteServiceErrorBuilder code(Object code) {
+		this.code = Objects.toString(code, null);
 		return this;
 	}
 
@@ -175,19 +164,7 @@ public class RemoteServiceErrorBuilder {
 	 * @return 当前构建器实例
 	 * @since 1.0.0
 	 */
-	public RemoteServiceErrorBuilder httpStatus(int httpStatus) {
-		this.httpStatus = httpStatus;
-		return this;
-	}
-
-	/**
-	 * 设置HTTP状态码
-	 *
-	 * @param httpStatus HTTP状态码
-	 * @return 当前构建器实例
-	 * @since 1.0.0
-	 */
-	public RemoteServiceErrorBuilder httpStatus(HttpStatus httpStatus) {
+	public RemoteServiceErrorBuilder httpStatus(HttpStatusCode httpStatus) {
 		if (Objects.nonNull(httpStatus)) {
 			this.httpStatus = httpStatus.value();
 		}
@@ -236,12 +213,13 @@ public class RemoteServiceErrorBuilder {
 												 String errorMessageMemberName) {
 		Assert.notNull(exception, "exception 不可为null");
 
-		if (exception instanceof HttpServerErrorException.GatewayTimeout) {
+		if (exception instanceof HttpServerErrorException.GatewayTimeout gatewayTimeoutException) {
+			httpStatus(gatewayTimeoutException.getStatusCode());
 			return new RemoteServiceTimeoutException(this.build());
 		}
 		if (exception instanceof RestClientResponseException responseException) {
 			try {
-				this.httpStatus(responseException.getStatusCode().value());
+				this.httpStatus(responseException.getStatusCode());
 				JsonObject response = JsonUtils.parseString(responseException.getResponseBodyAsString()).getAsJsonObject();
 
 				if (StringUtils.isNotBlank(errorMessageMemberName)) {
