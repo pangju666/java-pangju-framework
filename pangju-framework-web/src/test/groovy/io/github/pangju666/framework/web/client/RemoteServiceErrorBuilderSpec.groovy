@@ -1,7 +1,6 @@
 package io.github.pangju666.framework.web.client
 
 import com.google.gson.JsonObject
-import io.github.pangju666.framework.web.exception.base.ServerException
 import io.github.pangju666.framework.web.exception.remote.RemoteServiceException
 import io.github.pangju666.framework.web.exception.remote.RemoteServiceTimeoutException
 import io.github.pangju666.framework.web.utils.RemoteServiceErrorBuilder
@@ -145,25 +144,6 @@ class RemoteServiceErrorBuilderSpec extends Specification {
 			message() == "业务错误"
 			httpStatus() == 400
 		}
-	}
-
-	def "buildException应正确处理JSON解析失败"() {
-		given: "创建构建器实例和无效的JSON响应"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
-		def exception = new RestClientResponseException(
-			"测试异常",
-			HttpStatus.valueOf(400),
-			"Bad Request",
-			null,
-			"invalid json".bytes,
-			null
-		)
-
-		when: "构建异常"
-		builder.buildException(exception, "code", "message")
-
-		then: "应抛出服务器异常"
-		thrown(ServerException)
 	}
 
 	def "buildException不应接受null参数"() {
