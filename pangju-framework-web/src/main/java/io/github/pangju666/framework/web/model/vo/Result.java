@@ -5,7 +5,7 @@ import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.web.exception.base.BaseRuntimeException;
 import io.github.pangju666.framework.web.exception.remote.RemoteServiceError;
 import io.github.pangju666.framework.web.exception.remote.RemoteServiceException;
-import io.github.pangju666.framework.web.lang.pool.WebConstants;
+import io.github.pangju666.framework.web.pool.WebConstants;
 import io.github.pangju666.framework.web.utils.RemoteServiceErrorBuilder;
 import org.slf4j.Logger;
 

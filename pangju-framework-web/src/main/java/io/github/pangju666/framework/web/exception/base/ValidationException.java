@@ -17,7 +17,7 @@
 package io.github.pangju666.framework.web.exception.base;
 
 import io.github.pangju666.framework.web.annotation.IgnoreLog;
-import io.github.pangju666.framework.web.lang.pool.WebConstants;
+import io.github.pangju666.framework.web.pool.WebConstants;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 import org.springframework.http.HttpStatus;

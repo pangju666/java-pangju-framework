@@ -17,7 +17,7 @@
 package io.github.pangju666.framework.web.exception.remote;
 
 import io.github.pangju666.framework.web.exception.base.ServiceException;
-import io.github.pangju666.framework.web.lang.pool.WebConstants;
+import io.github.pangju666.framework.web.pool.WebConstants;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

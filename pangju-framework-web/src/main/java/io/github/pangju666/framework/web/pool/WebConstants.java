@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.web.lang.pool;
+package io.github.pangju666.framework.web.pool;
 
 public class WebConstants {
 	// 鉴权相关常量

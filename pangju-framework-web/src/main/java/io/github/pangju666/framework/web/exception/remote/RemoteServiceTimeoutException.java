@@ -16,7 +16,7 @@
 
 package io.github.pangju666.framework.web.exception.remote;
 
-import io.github.pangju666.framework.web.lang.pool.WebConstants;
+import io.github.pangju666.framework.web.pool.WebConstants;
 
 /**
  * 远程服务调用超时异常
