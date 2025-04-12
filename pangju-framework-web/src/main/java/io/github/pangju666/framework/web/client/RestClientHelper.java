@@ -42,6 +42,27 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * RestClient辅助类
+ * <p>
+ * 提供流式API风格的HTTP请求构建器，支持以下功能：
+ * <ul>
+ *     <li>URI构建：支持路径、查询参数、URI变量的设置</li>
+ *     <li>请求头管理：支持单个或批量添加请求头</li>
+ *     <li>请求体处理：
+ *         <ul>
+ *             <li>自动处理文件上传（File、Path、byte[]类型）</li>
+ *             <li>支持JSON格式的请求体</li>
+ *             <li>支持表单数据提交</li>
+ *         </ul>
+ *     </li>
+ *     <li>响应处理：支持多种响应类型的转换</li>
+ * </ul>
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
 public class RestClientHelper {
 	public static final Set<HttpMethod> SUPPORT_REQUEST_BODY_METHODS = Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH);
 
@@ -53,6 +74,14 @@ public class RestClientHelper {
 	private MediaType contentType = MediaType.APPLICATION_FORM_URLENCODED;
 	private Object body = null;
 
+	/**
+	 * 使用RestClient实例和URI字符串构造辅助类
+	 *
+	 * @param restClient RestClient实例
+	 * @param uriString  URI字符串（可选）
+	 * @throws IllegalArgumentException 当restClient为null时抛出
+	 * @since 1.0.0
+	 */
 	public RestClientHelper(RestClient restClient, String uriString) {
 		Assert.notNull(restClient, "restClient 不可为null");
 
@@ -64,6 +93,14 @@ public class RestClientHelper {
 		}
 	}
 
+	/**
+	 * 使用RestClient实例和URI对象构造辅助类
+	 *
+	 * @param restClient RestClient实例
+	 * @param uri URI对象（可选）
+	 * @throws IllegalArgumentException 当restClient为null时抛出
+	 * @since 1.0.0
+	 */
 	public RestClientHelper(RestClient restClient, URI uri) {
 		Assert.notNull(restClient, "restClient 不可为null");
 
@@ -75,6 +112,13 @@ public class RestClientHelper {
 		}
 	}
 
+	/**
+	 * 设置HTTP请求方法
+	 *
+	 * @param method HTTP方法
+	 * @return 当前实例
+	 * @since 1.0.0
+	 */
 	public RestClientHelper method(HttpMethod method) {
 		if (Objects.nonNull(method)) {
 			this.method = method;
@@ -82,6 +126,13 @@ public class RestClientHelper {
 		return this;
 	}
 
+	/**
+	 * 添加请求路径
+	 *
+	 * @param path 请求路径
+	 * @return 当前实例
+	 * @since 1.0.0
+	 */
 	public RestClientHelper path(String path) {
 		if (StringUtils.isNotBlank(path)) {
 			this.uriComponentsBuilder.path(path);
@@ -89,6 +140,15 @@ public class RestClientHelper {
 		return this;
 	}
 
+	/**
+	 * 添加单个查询参数
+	 *
+	 * @param name 参数名
+	 * @param values 参数值
+	 * @return 当前实例
+	 * @throws IllegalArgumentException 当name为空时抛出
+	 * @since 1.0.0
+	 */
 	public RestClientHelper queryParam(String name, @Nullable Object values) {
 		Assert.hasText(name, "name 不可为空");
 
@@ -96,6 +156,13 @@ public class RestClientHelper {
 		return this;
 	}
 
+	/**
+	 * 批量添加查询参数
+	 *
+	 * @param params 参数映射
+	 * @return 当前实例
+	 * @since 1.0.0
+	 */
 	public RestClientHelper queryParams(@Nullable Map<String, Object> params) {
 		if (Objects.nonNull(params) && !params.isEmpty()) {
 			for (Map.Entry<String, Object> entry : params.entrySet()) {
@@ -105,6 +172,13 @@ public class RestClientHelper {
 		return this;
 	}
 
+	/**
+	 * 设置URI变量
+	 *
+	 * @param uriVariables URI变量映射
+	 * @return 当前实例
+	 * @since 1.0.0
+	 */
 	public RestClientHelper uriVariables(@Nullable Map<String, Object> uriVariables) {
 		if (Objects.nonNull(uriVariables) && !uriVariables.isEmpty()) {
 			this.uriComponentsBuilder.uriVariables(uriVariables);
@@ -112,6 +186,15 @@ public class RestClientHelper {
 		return this;
 	}
 
+	/**
+	 * 添加单个请求头
+	 *
+	 * @param headerName 请求头名称
+	 * @param headerValue 请求头值
+	 * @return 当前实例
+	 * @throws IllegalArgumentException 当headerName为空时抛出
+	 * @since 1.0.0
+	 */
 	public RestClientHelper header(String headerName, @Nullable String headerValue) {
 		Assert.hasText(headerName, "name 不可为空");
 
@@ -119,6 +202,13 @@ public class RestClientHelper {
 		return this;
 	}
 
+	/**
+	 * 批量添加请求头
+	 *
+	 * @param headers 请求头映射
+	 * @return 当前实例
+	 * @since 1.0.0
+	 */
 	public RestClientHelper headers(@Nullable MultiValueMap<String, String> headers) {
 		if (Objects.nonNull(headers) && !headers.isEmpty()) {
 			this.headers.addAll(headers);
@@ -126,6 +216,21 @@ public class RestClientHelper {
 		return this;
 	}
 
+	/**
+	 * 设置请求体
+	 * <p>
+	 * 根据请求体类型自动处理：
+	 * <ul>
+	 *     <li>{@link Map}类型：检测是否包含文件，自动转换为multipart格式</li>
+	 *     <li>{@link JsonElement}类型：转换为JSON字符串</li>
+	 *     <li>其他类型：直接使用</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param body 请求体对象
+	 * @return 当前实例
+	 * @since 1.0.0
+	 */
 	public RestClientHelper body(@Nullable Object body) {
 		this.contentType = MediaType.APPLICATION_JSON;
 
@@ -166,6 +271,13 @@ public class RestClientHelper {
 		return this;
 	}
 
+	/**
+	 * 将响应转换为输入流实体
+	 *
+	 * @return 输入流响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @since 1.0.0
+	 */
 	public ResponseEntity<InputStream> toInputStreamEntity() throws RestClientResponseException {
 		return buildRequestBodySpec()
 			.accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -173,6 +285,14 @@ public class RestClientHelper {
 			.toEntity(InputStream.class);
 	}
 
+	/**
+	 * 将响应转换为输入流实体，使用指定的媒体类型
+	 *
+	 * @param acceptableMediaTypes 可接受的媒体类型
+	 * @return 输入流响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @since 1.0.0
+	 */
 	public ResponseEntity<InputStream> toInputStreamEntity(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
 		return buildRequestBodySpec()
 			.accept(acceptableMediaTypes)
@@ -180,6 +300,13 @@ public class RestClientHelper {
 			.toEntity(InputStream.class);
 	}
 
+	/**
+	 * 将响应转换为字节数组实体
+	 *
+	 * @return 字节数组响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @since 1.0.0
+	 */
 	public ResponseEntity<byte[]> toBytesEntity() throws RestClientResponseException {
 		return buildRequestBodySpec()
 			.accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -187,6 +314,14 @@ public class RestClientHelper {
 			.toEntity(byte[].class);
 	}
 
+	/**
+	 * 将响应转换为字节数组实体，使用指定的媒体类型
+	 *
+	 * @param acceptableMediaTypes 可接受的媒体类型
+	 * @return 字节数组响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @since 1.0.0
+	 */
 	public ResponseEntity<byte[]> toBytesEntity(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
 		return buildRequestBodySpec()
 			.accept(acceptableMediaTypes)
@@ -194,6 +329,13 @@ public class RestClientHelper {
 			.toEntity(byte[].class);
 	}
 
+	/**
+	 * 将响应转换为Result包装的实体
+	 *
+	 * @return Result包装的响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @since 1.0.0
+	 */
 	public <T> ResponseEntity<Result<T>> toResultEntity() throws RestClientResponseException {
 		return buildRequestBodySpec()
 			.accept(MediaType.APPLICATION_JSON)
@@ -203,40 +345,107 @@ public class RestClientHelper {
 			});
 	}
 
+	/**
+	 * 将响应转换为指定类型的实体
+	 *
+	 * @param bodyType 响应体类型
+	 * @return 指定类型的响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @throws IllegalArgumentException 当bodyType为null时抛出
+	 * @since 1.0.0
+	 */
 	public <T> ResponseEntity<T> toEntity(Class<T> bodyType) throws RestClientResponseException {
+		Assert.notNull(bodyType, "bodyType 不可为null");
+
 		return buildRequestBodySpec()
 			.accept(MediaType.APPLICATION_JSON)
 			.retrieve()
 			.toEntity(bodyType);
 	}
 
+	/**
+	 * 将响应转换为参数化类型的实体
+	 *
+	 * @param bodyType 响应体参数化类型
+	 * @return 参数化类型的响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @throws IllegalArgumentException 当bodyType为null时抛出
+	 * @since 1.0.0
+	 */
 	public <T> ResponseEntity<T> toEntity(ParameterizedTypeReference<T> bodyType) throws RestClientResponseException {
+		Assert.notNull(bodyType, "bodyType 不可为null");
+
 		return buildRequestBodySpec()
 			.accept(MediaType.APPLICATION_JSON)
 			.retrieve()
 			.toEntity(bodyType);
 	}
 
+	/**
+	 * 将响应转换为指定类型的实体，使用指定的媒体类型
+	 *
+	 * @param bodyType 响应体类型
+	 * @param acceptableMediaTypes 可接受的媒体类型
+	 * @return 指定类型的响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @throws IllegalArgumentException 当bodyType为null时抛出
+	 * @since 1.0.0
+	 */
 	public <T> ResponseEntity<T> toEntity(Class<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
+		Assert.notNull(bodyType, "bodyType 不可为null");
+
 		return buildRequestBodySpec()
 			.accept(acceptableMediaTypes)
 			.retrieve()
 			.toEntity(bodyType);
 	}
 
+	/**
+	 * 将响应转换为参数化类型的实体，使用指定的媒体类型
+	 *
+	 * @param bodyType 响应体参数化类型
+	 * @param acceptableMediaTypes 可接受的媒体类型
+	 * @return 参数化类型的响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @throws IllegalArgumentException 当bodyType为null时抛出
+	 * @since 1.0.0
+	 */
 	public <T> ResponseEntity<T> toEntity(ParameterizedTypeReference<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
+		Assert.notNull(bodyType, "bodyType 不可为null");
+
 		return buildRequestBodySpec()
 			.accept(acceptableMediaTypes)
 			.retrieve()
 			.toEntity(bodyType);
 	}
 
+	/**
+	 * 执行无响应体的请求
+	 *
+	 * @return 无响应体的响应实体
+	 * @throws RestClientResponseException 当请求发生错误时抛出
+	 * @since 1.0.0
+	 */
 	public ResponseEntity<Void> toBodilessEntity() throws RestClientResponseException {
 		return buildRequestBodySpec()
 			.retrieve()
 			.toBodilessEntity();
 	}
 
+	/**
+	 * 构建请求规范
+	 * <p>
+	 * 根据当前配置构建完整的请求规范，包括：
+	 * <ul>
+	 *     <li>设置请求方法和URI</li>
+	 *     <li>配置请求头</li>
+	 *     <li>处理请求体（如果支持）</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @return 构建的请求规范
+	 * @since 1.0.0
+	 */
 	protected RestClient.RequestBodySpec buildRequestBodySpec() {
 		RestClient.RequestBodySpec requestBodySpec = restClient
 			.method(method)

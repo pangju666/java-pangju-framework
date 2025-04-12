@@ -14,13 +14,16 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.exception.remote;
+package io.github.pangju666.framework.web.utils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.web.exception.base.ServerException;
+import io.github.pangju666.framework.web.exception.remote.RemoteServiceError;
+import io.github.pangju666.framework.web.exception.remote.RemoteServiceException;
+import io.github.pangju666.framework.web.exception.remote.RemoteServiceTimeoutException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
