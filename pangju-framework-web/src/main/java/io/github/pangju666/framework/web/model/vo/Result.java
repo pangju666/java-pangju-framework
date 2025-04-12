@@ -2,8 +2,15 @@ package io.github.pangju666.framework.web.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
+import io.github.pangju666.framework.http.exception.RemoteServiceException;
+import io.github.pangju666.framework.http.model.RemoteServiceError;
+import io.github.pangju666.framework.http.model.RemoteServiceErrorBuilder;
 import io.github.pangju666.framework.web.exception.base.BaseRuntimeException;
 import io.github.pangju666.framework.web.lang.pool.WebConstants;
+import org.slf4j.Logger;
+
+import java.net.URI;
+import java.util.Optional;
 
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 public record Result<T>(
@@ -44,6 +51,33 @@ public record Result<T>(
 
 	public static <T> Result<T> fail(int code, String message, T data) {
 		return new Result<>(message, code, data);
+	}
+
+	public Optional<T> getOptionalData(final String service, final String api, final URI uri) {
+		if (this.code == WebConstants.SUCCESS_CODE) {
+			return Optional.ofNullable(this.data);
+		}
+
+		RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api, uri)
+			.code(this.code)
+			.message(this.message)
+			.build();
+		throw new RemoteServiceException(remoteServiceError);
+	}
+
+	public Optional<T> geOptionalData(final String service, final String api, final URI uri,
+									  final Logger logger) {
+		if (this.code == WebConstants.SUCCESS_CODE) {
+			return Optional.ofNullable(this.data);
+		}
+
+		RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api, uri)
+			.code(this.code)
+			.message(this.message)
+			.build();
+		RemoteServiceException remoteServiceException = new RemoteServiceException(remoteServiceError);
+		remoteServiceException.log(logger);
+		return Optional.empty();
 	}
 
 	@Override

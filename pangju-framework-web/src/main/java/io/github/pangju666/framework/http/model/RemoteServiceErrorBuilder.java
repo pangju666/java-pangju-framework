@@ -16,8 +16,20 @@
 
 package io.github.pangju666.framework.http.model;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import io.github.pangju666.commons.lang.utils.JsonUtils;
+import io.github.pangju666.framework.http.exception.RemoteServiceException;
+import io.github.pangju666.framework.http.exception.RemoteServiceTimeoutException;
+import io.github.pangju666.framework.web.exception.base.ServerException;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.Assert;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.net.URI;
 import java.text.MessageFormat;
@@ -70,8 +82,8 @@ public class RemoteServiceErrorBuilder {
 	 * 创建构建器实例，并指定URI
 	 *
 	 * @param service 远程服务名称
-	 * @param api    API接口名称或路径
-	 * @param uri    请求URI
+	 * @param api     API接口名称或路径
+	 * @param uri     请求URI
 	 * @since 1.0.0
 	 */
 	public RemoteServiceErrorBuilder(String service, String api, URI uri) {
@@ -190,5 +202,66 @@ public class RemoteServiceErrorBuilder {
 	 */
 	public RemoteServiceError build() {
 		return new RemoteServiceError(service, api, uri, message, code, httpStatus);
+	}
+
+	/**
+	 * 根据{@link RestClientException}构建远程服务异常
+	 * <p>
+	 * 处理不同类型的RestClient异常，并转换为对应的业务异常：
+	 * <ul>
+	 *     <li>网关超时异常转换为{@link RemoteServiceTimeoutException}</li>
+	 *     <li>响应异常会解析响应体中的错误信息</li>
+	 *     <li>其他异常转换为标准的{@link RemoteServiceException}</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * <p>
+	 * 错误码解析规则：
+	 * <ul>
+	 *     <li>字符串类型：直接使用</li>
+	 *     <li>布尔类型：转换为"true"/"false"</li>
+	 *     <li>数字类型：转换为字符串</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param exception              原始RestClient异常
+	 * @param errorCodeMemberName    错误码字段名
+	 * @param errorMessageMemberName 错误消息字段名
+	 * @return 构建的远程服务异常
+	 * @throws IllegalArgumentException 当exception参数为null时抛出
+	 * @throws ServerException          当响应体JSON解析失败时抛出
+	 * @since 1.0.0
+	 */
+	public RemoteServiceException buildException(RestClientException exception, String errorCodeMemberName,
+												 String errorMessageMemberName) {
+		Assert.notNull(exception, "exception 不可为null");
+
+		if (exception instanceof HttpServerErrorException.GatewayTimeout) {
+			return new RemoteServiceTimeoutException(this.build());
+		}
+		if (exception instanceof RestClientResponseException responseException) {
+			try {
+				this.httpStatus(responseException.getStatusCode().value());
+				JsonObject response = JsonUtils.parseString(responseException.getResponseBodyAsString()).getAsJsonObject();
+
+				if (StringUtils.isNotBlank(errorMessageMemberName)) {
+					this.message(response.getAsJsonPrimitive(errorMessageMemberName).getAsString());
+				}
+
+				if (StringUtils.isNotBlank(errorCodeMemberName)) {
+					JsonPrimitive code = response.getAsJsonPrimitive(errorCodeMemberName);
+					if (code.isString()) {
+						this.code(code.getAsString());
+					} else if (code.isBoolean()) {
+						this.code(BooleanUtils.toStringTrueFalse(code.getAsBoolean()));
+					} else if (code.isNumber()) {
+						this.code(String.valueOf(code.getAsInt()));
+					}
+				}
+			} catch (JsonParseException e) {
+				throw new ServerException("接口响应体解析失败", e);
+			}
+		}
+		return new RemoteServiceException(this.build());
 	}
 }
