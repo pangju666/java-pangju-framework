@@ -218,6 +218,7 @@ public class RemoteServiceErrorBuilder {
 			httpStatus(gatewayTimeoutException.getStatusCode());
 			return new RemoteServiceTimeoutException(this.build());
 		}
+
 		if (exception instanceof RestClientResponseException responseException) {
 			try {
 				this.httpStatus(responseException.getStatusCode());
@@ -237,10 +238,10 @@ public class RemoteServiceErrorBuilder {
 						this.code(String.valueOf(code.getAsInt()));
 					}
 				}
-			} catch (JsonParseException e) {
-				throw new ServerException("接口响应体解析失败", e);
+			} catch (JsonParseException | IllegalStateException ignored) {
 			}
 		}
+
 		return new RemoteServiceException(this.build());
 	}
 }
