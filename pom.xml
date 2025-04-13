@@ -18,6 +18,7 @@
 
 	<modules>
 		<module>pangju-framework-web</module>
+		<module>pangju-framework-web-client</module>
 		<module>pangju-framework-data-mybatis-plus</module>
 		<module>pangju-framework-data-redis</module>
 		<module>pangju-framework-data-mongodb</module>
