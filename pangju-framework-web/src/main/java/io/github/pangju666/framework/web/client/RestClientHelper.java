@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -69,46 +70,34 @@ public class RestClientHelper {
 	private final RestClient restClient;
 	private final UriComponentsBuilder uriComponentsBuilder;
 	private final HttpHeaders headers = new HttpHeaders();
+	private final Map<String, Object> uriVariables = new HashMap<>(10);
 
 	private HttpMethod method = HttpMethod.GET;
 	private MediaType contentType = MediaType.APPLICATION_FORM_URLENCODED;
 	private Object body = null;
 
-	/**
-	 * 使用RestClient实例和URI字符串构造辅助类
-	 *
-	 * @param restClient RestClient实例
-	 * @param uriString  URI字符串（可选）
-	 * @throws IllegalArgumentException 当restClient为null时抛出
-	 * @since 1.0.0
-	 */
-	public RestClientHelper(RestClient restClient, String uriString) {
+	protected RestClientHelper(RestClient restClient, UriComponentsBuilder uriComponentsBuilder) {
+		this.restClient = restClient;
+		this.uriComponentsBuilder = uriComponentsBuilder;
+	}
+
+	public static RestClientHelper fromUriString(RestClient restClient, String uriString) {
 		Assert.notNull(restClient, "restClient 不可为null");
 
-		this.restClient = restClient;
 		if (StringUtils.isNotBlank(uriString)) {
-			this.uriComponentsBuilder = UriComponentsBuilder.fromUriString(uriString);
+			return new RestClientHelper(restClient, UriComponentsBuilder.fromUriString(uriString));
 		} else {
-			this.uriComponentsBuilder = UriComponentsBuilder.newInstance();
+			return new RestClientHelper(restClient, UriComponentsBuilder.newInstance());
 		}
 	}
 
-	/**
-	 * 使用RestClient实例和URI对象构造辅助类
-	 *
-	 * @param restClient RestClient实例
-	 * @param uri URI对象（可选）
-	 * @throws IllegalArgumentException 当restClient为null时抛出
-	 * @since 1.0.0
-	 */
-	public RestClientHelper(RestClient restClient, URI uri) {
+	public static RestClientHelper fromUri(RestClient restClient, URI uri) {
 		Assert.notNull(restClient, "restClient 不可为null");
 
-		this.restClient = restClient;
 		if (Objects.nonNull(uri)) {
-			this.uriComponentsBuilder = UriComponentsBuilder.fromUri(uri);
+			return new RestClientHelper(restClient, UriComponentsBuilder.fromUri(uri));
 		} else {
-			this.uriComponentsBuilder = UriComponentsBuilder.newInstance();
+			return new RestClientHelper(restClient, UriComponentsBuilder.newInstance());
 		}
 	}
 
@@ -143,16 +132,16 @@ public class RestClientHelper {
 	/**
 	 * 添加单个查询参数
 	 *
-	 * @param name 参数名
-	 * @param values 参数值
+	 * @param name   参数名
+	 * @param value 参数值
 	 * @return 当前实例
 	 * @throws IllegalArgumentException 当name为空时抛出
 	 * @since 1.0.0
 	 */
-	public RestClientHelper queryParam(String name, @Nullable Object values) {
+	public RestClientHelper queryParam(String name, @Nullable Object value) {
 		Assert.hasText(name, "name 不可为空");
 
-		this.uriComponentsBuilder.queryParam(name, values);
+		this.uriComponentsBuilder.queryParam(name, value);
 		return this;
 	}
 
@@ -172,6 +161,15 @@ public class RestClientHelper {
 		return this;
 	}
 
+	public RestClientHelper uriVariable(String name, @Nullable Object value) {
+		Assert.hasText(name, "name 不可为空");
+
+		if (Objects.nonNull(value)) {
+			this.uriVariables.put(name, value);
+		}
+		return this;
+	}
+
 	/**
 	 * 设置URI变量
 	 *
@@ -181,7 +179,7 @@ public class RestClientHelper {
 	 */
 	public RestClientHelper uriVariables(@Nullable Map<String, Object> uriVariables) {
 		if (Objects.nonNull(uriVariables) && !uriVariables.isEmpty()) {
-			this.uriComponentsBuilder.uriVariables(uriVariables);
+			this.uriVariables.putAll(uriVariables);
 		}
 		return this;
 	}
@@ -189,7 +187,7 @@ public class RestClientHelper {
 	/**
 	 * 添加单个请求头
 	 *
-	 * @param headerName 请求头名称
+	 * @param headerName  请求头名称
 	 * @param headerValue 请求头值
 	 * @return 当前实例
 	 * @throws IllegalArgumentException 当headerName为空时抛出
@@ -351,7 +349,7 @@ public class RestClientHelper {
 	 * @param bodyType 响应体类型
 	 * @return 指定类型的响应实体
 	 * @throws RestClientResponseException 当请求发生错误时抛出
-	 * @throws IllegalArgumentException 当bodyType为null时抛出
+	 * @throws IllegalArgumentException    当bodyType为null时抛出
 	 * @since 1.0.0
 	 */
 	public <T> ResponseEntity<T> toEntity(Class<T> bodyType) throws RestClientResponseException {
@@ -369,7 +367,7 @@ public class RestClientHelper {
 	 * @param bodyType 响应体参数化类型
 	 * @return 参数化类型的响应实体
 	 * @throws RestClientResponseException 当请求发生错误时抛出
-	 * @throws IllegalArgumentException 当bodyType为null时抛出
+	 * @throws IllegalArgumentException    当bodyType为null时抛出
 	 * @since 1.0.0
 	 */
 	public <T> ResponseEntity<T> toEntity(ParameterizedTypeReference<T> bodyType) throws RestClientResponseException {
@@ -384,11 +382,11 @@ public class RestClientHelper {
 	/**
 	 * 将响应转换为指定类型的实体，使用指定的媒体类型
 	 *
-	 * @param bodyType 响应体类型
+	 * @param bodyType             响应体类型
 	 * @param acceptableMediaTypes 可接受的媒体类型
 	 * @return 指定类型的响应实体
 	 * @throws RestClientResponseException 当请求发生错误时抛出
-	 * @throws IllegalArgumentException 当bodyType为null时抛出
+	 * @throws IllegalArgumentException    当bodyType为null时抛出
 	 * @since 1.0.0
 	 */
 	public <T> ResponseEntity<T> toEntity(Class<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
@@ -403,11 +401,11 @@ public class RestClientHelper {
 	/**
 	 * 将响应转换为参数化类型的实体，使用指定的媒体类型
 	 *
-	 * @param bodyType 响应体参数化类型
+	 * @param bodyType             响应体参数化类型
 	 * @param acceptableMediaTypes 可接受的媒体类型
 	 * @return 参数化类型的响应实体
 	 * @throws RestClientResponseException 当请求发生错误时抛出
-	 * @throws IllegalArgumentException 当bodyType为null时抛出
+	 * @throws IllegalArgumentException    当bodyType为null时抛出
 	 * @since 1.0.0
 	 */
 	public <T> ResponseEntity<T> toEntity(ParameterizedTypeReference<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
@@ -432,24 +430,10 @@ public class RestClientHelper {
 			.toBodilessEntity();
 	}
 
-	/**
-	 * 构建请求规范
-	 * <p>
-	 * 根据当前配置构建完整的请求规范，包括：
-	 * <ul>
-	 *     <li>设置请求方法和URI</li>
-	 *     <li>配置请求头</li>
-	 *     <li>处理请求体（如果支持）</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @return 构建的请求规范
-	 * @since 1.0.0
-	 */
 	protected RestClient.RequestBodySpec buildRequestBodySpec() {
 		RestClient.RequestBodySpec requestBodySpec = restClient
 			.method(method)
-			.uri(uriComponentsBuilder.build().toUri())
+			.uri(uriComponentsBuilder.build(uriVariables))
 			.contentType(contentType)
 			.headers(httpHeaders -> httpHeaders.addAll(headers));
 
