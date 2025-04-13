@@ -18,7 +18,7 @@ package io.github.pangju666.framework.web.client;
 
 import com.google.gson.JsonElement;
 import io.github.pangju666.commons.lang.pool.Constants;
-import io.github.pangju666.framework.web.model.vo.Result;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -36,7 +36,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -214,55 +213,63 @@ public class RestClientHelper {
 		return this;
 	}
 
-	/**
-	 * 设置请求体
-	 * <p>
-	 * 根据请求体类型自动处理：
-	 * <ul>
-	 *     <li>{@link Map}类型：检测是否包含文件，自动转换为multipart格式</li>
-	 *     <li>{@link JsonElement}类型：转换为JSON字符串</li>
-	 *     <li>其他类型：直接使用</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param body 请求体对象
-	 * @return 当前实例
-	 * @since 1.0.0
-	 */
-	public RestClientHelper body(@Nullable Object body) {
+	public RestClientHelper jsonBody(@Nullable Object body) {
 		this.contentType = MediaType.APPLICATION_JSON;
+		if (Objects.isNull(body)) {
+			this.body = Constants.EMPTY_JSON_OBJECT_STR;
+		} else {
+			if (body instanceof JsonElement jsonElement) {
+				this.body = jsonElement.toString();
+			} else {
+				this.body = body;
+			}
+		}
+		return this;
+	}
 
+	public RestClientHelper xmlBody(@Nullable Object body) {
+		this.contentType = MediaType.APPLICATION_XML;
+		if (Objects.nonNull(body) && Objects.nonNull(body.getClass().getAnnotation(XmlRootElement.class))) {
+			this.body = body;
+		}
+		return this;
+	}
+
+	public RestClientHelper textBody(@Nullable String body) {
+		this.contentType = MediaType.TEXT_PLAIN;
+		if (Objects.nonNull(body)) {
+			this.body = body;
+		}
+		return this;
+	}
+
+	public RestClientHelper bytesBody(@Nullable byte[] body) {
+		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
+		if (Objects.nonNull(body)) {
+			this.body = body;
+		}
+		return this;
+	}
+
+	public RestClientHelper fromDataBody(Object body) {
 		if (body instanceof Map<?, ?> map) {
-			boolean flag = false;
 			MultipartBodyBuilder builder = new MultipartBodyBuilder();
 			for (Map.Entry<?, ?> entry : map.entrySet()) {
 				if (Objects.nonNull(entry.getValue())) {
 					if (entry.getValue() instanceof File file) {
 						builder.part(entry.getKey().toString(), file);
-						flag = true;
 					}
 					if (entry.getValue() instanceof Path path) {
 						builder.part(entry.getKey().toString(), path.toFile());
-						flag = true;
 					} else if (entry.getValue() instanceof byte[] bytes) {
 						builder.part(entry.getKey().toString(), bytes);
-						flag = true;
 					} else {
 						builder.part(entry.getKey().toString(), entry.getValue().toString());
 					}
 				}
 			}
-			if (flag) {
-				this.contentType = MediaType.MULTIPART_FORM_DATA;
-				this.body = builder.build();
-			} else {
-				this.body = body;
-			}
-			return this;
-		}
-
-		if (body instanceof JsonElement jsonElement) {
-			this.body = jsonElement.toString();
+			this.contentType = MediaType.MULTIPART_FORM_DATA;
+			this.body = builder.build();
 		} else {
 			this.body = body;
 		}
@@ -325,22 +332,6 @@ public class RestClientHelper {
 			.accept(acceptableMediaTypes)
 			.retrieve()
 			.toEntity(byte[].class);
-	}
-
-	/**
-	 * 将响应转换为Result包装的实体
-	 *
-	 * @return Result包装的响应实体
-	 * @throws RestClientResponseException 当请求发生错误时抛出
-	 * @since 1.0.0
-	 */
-	public <T> ResponseEntity<Result<T>> toResultEntity() throws RestClientResponseException {
-		return buildRequestBodySpec()
-			.accept(MediaType.APPLICATION_JSON)
-			.acceptCharset(StandardCharsets.UTF_8)
-			.retrieve()
-			.toEntity(new ParameterizedTypeReference<Result<T>>() {
-			});
 	}
 
 	/**
