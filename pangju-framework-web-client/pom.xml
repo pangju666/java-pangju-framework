@@ -24,6 +24,10 @@
 			<artifactId>pangju-commons-lang</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>io.github.pangju666</groupId>
+			<artifactId>pangju-commons-io</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 		</dependency>

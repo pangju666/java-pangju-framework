@@ -17,10 +17,15 @@
 package io.github.pangju666.framework.web.client;
 
 import com.google.gson.JsonElement;
+import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.lang.pool.Constants;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -28,48 +33,29 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
-/**
- * RestClient辅助类
- * <p>
- * 提供流式API风格的HTTP请求构建器，支持以下功能：
- * <ul>
- *     <li>URI构建：支持路径、查询参数、URI变量的设置</li>
- *     <li>请求头管理：支持单个或批量添加请求头</li>
- *     <li>请求体处理：
- *         <ul>
- *             <li>自动处理文件上传（File、Path、byte[]类型）</li>
- *             <li>支持JSON格式的请求体</li>
- *             <li>支持表单数据提交</li>
- *         </ul>
- *     </li>
- *     <li>响应处理：支持多种响应类型的转换</li>
- * </ul>
- * </p>
- *
- * @author pangju666
- * @since 1.0.0
- */
 public class RestClientHelper {
 	public static final Set<HttpMethod> SUPPORT_REQUEST_BODY_METHODS = Set.of(HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH);
 
 	private final RestClient restClient;
 	private final UriComponentsBuilder uriComponentsBuilder;
+	private final MultipartBodyBuilder formDataBuilder = new MultipartBodyBuilder();
 	private final HttpHeaders headers = new HttpHeaders();
-	private final Map<String, Object> uriVariables = new HashMap<>(10);
+	private final Map<String, Object> uriVariables = new HashMap<>(4);
 
 	private HttpMethod method = HttpMethod.GET;
 	private MediaType contentType = MediaType.APPLICATION_FORM_URLENCODED;
@@ -128,35 +114,37 @@ public class RestClientHelper {
 		return this;
 	}
 
-	/**
-	 * 添加单个查询参数
-	 *
-	 * @param name   参数名
-	 * @param value 参数值
-	 * @return 当前实例
-	 * @throws IllegalArgumentException 当name为空时抛出
-	 * @since 1.0.0
-	 */
-	public RestClientHelper queryParam(String name, @Nullable Object value) {
+	public RestClientHelper queryParam(String name, @Nullable Object... values) {
 		Assert.hasText(name, "name 不可为空");
 
-		this.uriComponentsBuilder.queryParam(name, value);
+		this.uriComponentsBuilder.queryParam(name, values);
 		return this;
 	}
 
-	/**
-	 * 批量添加查询参数
-	 *
-	 * @param params 参数映射
-	 * @return 当前实例
-	 * @since 1.0.0
-	 */
+	public RestClientHelper query(@Nullable String query) {
+		this.uriComponentsBuilder.query(query);
+		return this;
+	}
+
+	public RestClientHelper queryParams(@Nullable MultiValueMap<String, String> params) {
+		this.uriComponentsBuilder.queryParams(params);
+		return this;
+	}
+
 	public RestClientHelper queryParams(@Nullable Map<String, Object> params) {
-		if (Objects.nonNull(params) && !params.isEmpty()) {
+		if (!CollectionUtils.isEmpty(params)) {
 			for (Map.Entry<String, Object> entry : params.entrySet()) {
 				this.uriComponentsBuilder.queryParam(entry.getKey(), entry.getValue());
 			}
 		}
+		return this;
+	}
+
+	public RestClientHelper queryParamIfPresent(String name, Optional<?> value) {
+		Assert.hasText(name, "name 不可为空");
+		Assert.notNull(value, "value 不可为空");
+
+		this.uriComponentsBuilder.queryParamIfPresent(name, value);
 		return this;
 	}
 
@@ -169,54 +157,45 @@ public class RestClientHelper {
 		return this;
 	}
 
-	/**
-	 * 设置URI变量
-	 *
-	 * @param uriVariables URI变量映射
-	 * @return 当前实例
-	 * @since 1.0.0
-	 */
 	public RestClientHelper uriVariables(@Nullable Map<String, Object> uriVariables) {
-		if (Objects.nonNull(uriVariables) && !uriVariables.isEmpty()) {
+		if (!CollectionUtils.isEmpty(uriVariables)) {
 			this.uriVariables.putAll(uriVariables);
 		}
 		return this;
 	}
 
-	/**
-	 * 添加单个请求头
-	 *
-	 * @param headerName  请求头名称
-	 * @param headerValue 请求头值
-	 * @return 当前实例
-	 * @throws IllegalArgumentException 当headerName为空时抛出
-	 * @since 1.0.0
-	 */
-	public RestClientHelper header(String headerName, @Nullable String headerValue) {
-		Assert.hasText(headerName, "name 不可为空");
+	public RestClientHelper header(String headerName, @Nullable Object headerValue) {
+		Assert.hasText(headerName, "headerName 不可为空");
 
-		this.headers.add(headerName, headerValue);
+		this.headers.add(headerName, Objects.toString(headerValue, null));
 		return this;
 	}
 
-	/**
-	 * 批量添加请求头
-	 *
-	 * @param headers 请求头映射
-	 * @return 当前实例
-	 * @since 1.0.0
-	 */
+	public RestClientHelper headers(String key, @Nullable List<?> values) {
+		if (!CollectionUtils.isEmpty(values)) {
+			this.headers.addAll(key, values.stream()
+				.map(value -> Objects.toString(value, null))
+				.toList()
+			);
+		}
+		return this;
+	}
+
 	public RestClientHelper headers(@Nullable MultiValueMap<String, String> headers) {
-		if (Objects.nonNull(headers) && !headers.isEmpty()) {
+		if (!CollectionUtils.isEmpty(headers)) {
 			this.headers.addAll(headers);
 		}
 		return this;
 	}
 
 	public RestClientHelper jsonBody(@Nullable Object body) {
+		return jsonBody(body, true);
+	}
+
+	public RestClientHelper jsonBody(@Nullable Object body, boolean emptyIfNull) {
 		this.contentType = MediaType.APPLICATION_JSON;
 		if (Objects.isNull(body)) {
-			this.body = Constants.EMPTY_JSON_OBJECT_STR;
+			this.body = emptyIfNull ? Constants.EMPTY_JSON_OBJECT_STR : null;
 		} else {
 			if (body instanceof JsonElement jsonElement) {
 				this.body = jsonElement.toString();
@@ -229,49 +208,68 @@ public class RestClientHelper {
 
 	public RestClientHelper xmlBody(@Nullable Object body) {
 		this.contentType = MediaType.APPLICATION_XML;
-		if (Objects.nonNull(body) && Objects.nonNull(body.getClass().getAnnotation(XmlRootElement.class))) {
-			this.body = body;
+		if (Objects.nonNull(body) && Objects.isNull(body.getClass().getAnnotation(XmlRootElement.class))) {
+			throw new IllegalArgumentException("类型" + body.getClass() + "上未找到XmlRootElement注解");
 		}
+		this.body = body;
 		return this;
 	}
 
-	public RestClientHelper textBody(@Nullable String body) {
+	public RestClientHelper textBody(@Nullable Object body) {
 		this.contentType = MediaType.TEXT_PLAIN;
-		if (Objects.nonNull(body)) {
-			this.body = body;
-		}
+		this.body = Objects.toString(body, null);
 		return this;
 	}
 
 	public RestClientHelper bytesBody(@Nullable byte[] body) {
 		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
-		if (Objects.nonNull(body)) {
-			this.body = body;
+		this.body = body;
+		return this;
+	}
+
+	public RestClientHelper bytesBody(@Nullable InputStream inputStream) throws IOException {
+		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
+		if (Objects.nonNull(inputStream)) {
+			this.body = inputStream.readAllBytes();
+		} else {
+			this.body = null;
 		}
 		return this;
 	}
 
-	public RestClientHelper fromDataBody(Object body) {
-		if (body instanceof Map<?, ?> map) {
-			MultipartBodyBuilder builder = new MultipartBodyBuilder();
-			for (Map.Entry<?, ?> entry : map.entrySet()) {
-				if (Objects.nonNull(entry.getValue())) {
-					if (entry.getValue() instanceof File file) {
-						builder.part(entry.getKey().toString(), file);
-					}
-					if (entry.getValue() instanceof Path path) {
-						builder.part(entry.getKey().toString(), path.toFile());
-					} else if (entry.getValue() instanceof byte[] bytes) {
-						builder.part(entry.getKey().toString(), bytes);
-					} else {
-						builder.part(entry.getKey().toString(), entry.getValue().toString());
-					}
-				}
+	public RestClientHelper bytesBody(@Nullable File file) throws IOException {
+		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
+		if (Objects.nonNull(file)) {
+			FileUtils.checkFile(file, null);
+			try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
+				this.body = inputStream.readAllBytes();
 			}
-			this.contentType = MediaType.MULTIPART_FORM_DATA;
-			this.body = builder.build();
 		} else {
-			this.body = body;
+			this.body = null;
+		}
+		return this;
+	}
+
+	public RestClientHelper fromDataPart(String name, @Nullable Object part) throws MalformedURLException {
+		Assert.hasText(name, "name 不可为空");
+
+		this.contentType = MediaType.MULTIPART_FORM_DATA;
+		if (Objects.nonNull(part)) {
+			if (part instanceof File file) {
+				formDataBuilder.part(name, new FileSystemResource(file)).filename(file.getName());
+			} else if (part instanceof Path path) {
+				formDataBuilder.part(name, new FileSystemResource(path)).filename(path.toFile().getName());
+			} else if (part instanceof byte[] bytes) {
+				formDataBuilder.part(name, new ByteArrayResource(bytes));
+			} else if (part instanceof InputStream inputStream) {
+				formDataBuilder.part(name, new InputStreamResource(inputStream));
+			} else if (part instanceof URI uri) {
+				formDataBuilder.part(name, new UrlResource(uri));
+			} else if (part instanceof URL url) {
+				formDataBuilder.part(name, new UrlResource(url));
+			} else {
+				formDataBuilder.part(name, part);
+			}
 		}
 		return this;
 	}
@@ -431,16 +429,17 @@ public class RestClientHelper {
 		if (!SUPPORT_REQUEST_BODY_METHODS.contains(method)) {
 			requestBodySpec.contentType(MediaType.APPLICATION_FORM_URLENCODED);
 		} else {
-			if (Objects.nonNull(body)) {
+			if (contentType == MediaType.MULTIPART_FORM_DATA) {
+				requestBodySpec
+					.contentType(contentType)
+					.body(formDataBuilder.build());
+			} else {
 				requestBodySpec
 					.contentType(contentType)
 					.body(body);
-			} else {
-				requestBodySpec
-					.contentType(MediaType.APPLICATION_JSON)
-					.body(Constants.EMPTY_JSON_OBJECT_STR);
 			}
 		}
+
 		return requestBodySpec;
 	}
 }
