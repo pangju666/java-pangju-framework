@@ -7,6 +7,7 @@ import io.github.pangju666.framework.web.model.dto.TestDTO
 import io.github.pangju666.framework.web.model.vo.Result
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
@@ -38,8 +39,8 @@ class RestClientHelperSpec extends Specification {
 			.path("/test-params/{path}")
 			.queryParam("param1", "test")
 			.uriVariable("path", "test")
-			.toResultEntity()
-			.getBody() as Result<Map<String, String>>
+			.toEntity(new ParameterizedTypeReference<Result<Map<String, String>>>() {})
+			.getBody()
 
 		then:
 		result.data().get("param1") == "test"
@@ -53,10 +54,10 @@ class RestClientHelperSpec extends Specification {
 			.method(HttpMethod.POST)
 			.path("/test-body/{path}")
 			.queryParam("param1", "test")
-			.body(new TestDTO("body-key", "body-value"))
+			.jsonBody(new TestDTO("body-key", "body-value"))
 			.uriVariable("path", "test")
-			.toResultEntity()
-			.getBody() as Result<Map<String, String>>
+			.toEntity(new ParameterizedTypeReference<Result<Map<String, String>>>() {})
+			.getBody()
 
 		then:
 		result.data().get("param1") == "test"
@@ -70,10 +71,10 @@ class RestClientHelperSpec extends Specification {
 			.method(HttpMethod.POST)
 			.path("/test-body/{path}")
 			.queryParams(Collections.singletonMap("param1", "test"))
-			.body(JsonUtils.toJson(new TestDTO("body-key", "body-value")))
+			.jsonBody(JsonUtils.toJson(new TestDTO("body-key", "body-value")))
 			.uriVariables(Collections.singletonMap("path", "test"))
-			.toResultEntity()
-			.getBody() as Result<Map<String, String>>
+			.toEntity(new ParameterizedTypeReference<Result<Map<String, String>>>() {})
+			.getBody()
 
 		then:
 		result.data().get("param1") == "test"
@@ -87,10 +88,10 @@ class RestClientHelperSpec extends Specification {
 			.method(HttpMethod.POST)
 			.path("/test-body/{path}")
 			.queryParams(Collections.singletonMap("param1", "test"))
-			.body("{ \"key\": \"body-key\", \"value\": \"body-value\" }")
+			.jsonBody("{ \"key\": \"body-key\", \"value\": \"body-value\" }")
 			.uriVariables(Collections.singletonMap("path", "test"))
-			.toResultEntity()
-			.getBody() as Result<Map<String, String>>
+			.toEntity(new ParameterizedTypeReference<Result<Map<String, String>>>() {})
+			.getBody()
 
 		then:
 		result.data().get("param1") == "test"
