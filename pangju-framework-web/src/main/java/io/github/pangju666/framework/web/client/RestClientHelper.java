@@ -48,8 +48,8 @@ import java.util.*;
  * <ul>
  *     <li>URI构建：支持路径、查询参数、URI变量的设置</li>
  *     <li>请求头管理：支持单个或批量添加请求头</li>
- *     <li>请求体处理：支持JSON、表单数据、文本、二进制等多种格式</li>
- *     <li>响应处理：支持多种响应类型的转换（图片、资源、字节数组、字符串等）</li>
+ *     <li>请求体处理：支持JSON、表单数据、文本、二进制等、图片、资源多种格式</li>
+ *     <li>响应处理：支持多种响应类型的转换（JSON、图片、资源、字节数组、字符串等）</li>
  * </ul>
  * </p>
  *
@@ -811,6 +811,54 @@ public class RestClientHelper {
                 .accept(acceptableMediaTypes)
                 .retrieve()
                 .toEntity(String.class);
+    }
+
+    /**
+     * 将请求结果转换为指定类型的JSON响应实体
+     * <p>
+     * 自动设置Accept头为{@code application/json}
+     * </p>
+     *
+     * @param bodyType 响应体类型，例如：{@code User.class}
+     * @param <T>      响应体类型
+     * @return 指定类型的JSON响应实体
+     * @throws RestClientResponseException 当请求失败时抛出
+     * @throws IllegalArgumentException    当bodyType为null时抛出
+     * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+     * @see org.springframework.http.converter.json.GsonHttpMessageConverter
+     * @since 1.0.0
+     */
+    public <T> ResponseEntity<T> toJsonEntity(Class<T> bodyType) throws RestClientResponseException {
+        Assert.notNull(bodyType, "bodyType 不可为null");
+
+        return buildRequest()
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .toEntity(bodyType);
+    }
+
+    /**
+     * 将请求结果转换为指定泛型类型的JSON响应实体
+     * <p>
+     * 自动设置Accept头为{@code application/json}，适用于需要处理泛型的场景，如列表或嵌套对象
+     * </p>
+     *
+     * @param bodyType 响应体泛型类型，例如：{@code new ParameterizedTypeReference<List<User>>(){}}
+     * @param <T>      响应体类型
+     * @return 指定泛型类型的JSON响应实体
+     * @throws RestClientResponseException 当请求失败时抛出
+     * @throws IllegalArgumentException    当bodyType为null时抛出
+     * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+     * @see org.springframework.http.converter.json.GsonHttpMessageConverter
+     * @since 1.0.0
+     */
+    public <T> ResponseEntity<T> toJsonEntity(ParameterizedTypeReference<T> bodyType) throws RestClientResponseException {
+        Assert.notNull(bodyType, "bodyType 不可为null");
+
+        return buildRequest()
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .toEntity(bodyType);
     }
 
     /**
