@@ -250,6 +250,12 @@ public class RestClientHelper {
 		return this;
 	}
 
+	public RestClientHelper bytesBody(@Nullable Object body) {
+		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
+		this.body = body;
+		return this;
+	}
+
 	public RestClientHelper fromDataPart(String name, @Nullable Object part) throws MalformedURLException {
 		Assert.hasText(name, "name 不可为空");
 
