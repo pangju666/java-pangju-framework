@@ -109,8 +109,8 @@ public class RestClientHelper {
      * @since 1.0.0
      * @see FormHttpMessageConverter#getSupportedMediaTypes()
      */
-    public static final Set<MediaType> FORM_MEDIA_TYPES = Set.of(MediaType.APPLICATION_FORM_URLENCODED,
-            MediaType.MULTIPART_FORM_DATA, MediaType.MULTIPART_MIXED, MediaType.MULTIPART_RELATED);
+	public static final Set<MediaType> FORM_MEDIA_TYPES = Set.of(MediaType.MULTIPART_FORM_DATA,
+		MediaType.MULTIPART_MIXED, MediaType.MULTIPART_RELATED);
 
     /**
      * RestClient实例，用于执行HTTP请求
@@ -429,7 +429,7 @@ public class RestClientHelper {
      * @see org.springframework.http.converter.FormHttpMessageConverter
      * @since 1.0.0
      */
-    public RestClientHelper part(String name, @Nullable Resource value) {
+	public RestClientHelper form(String name, @Nullable Resource value) {
         Assert.hasText(name, "name 不可为空");
 
         this.contentType = MediaType.MULTIPART_FORM_DATA;
@@ -466,7 +466,7 @@ public class RestClientHelper {
      * @since 1.0.0
      * @see org.springframework.http.converter.FormHttpMessageConverter
      */
-    public RestClientHelper part(String name, @Nullable Resource value, MediaType mediaType) {
+	public RestClientHelper form(String name, @Nullable Resource value, MediaType mediaType) {
         Assert.hasText(name, "name 不可为空");
         Assert.notNull(mediaType, "mediaType 不可为null");
 
@@ -977,15 +977,17 @@ public class RestClientHelper {
                 .contentType(contentType)
                 .headers(httpHeaders -> httpHeaders.addAll(headers));
 
-        if (FORM_MEDIA_TYPES.contains(contentType)) {
-            requestBodySpec
-                    .contentType(contentType)
-                    .body(formData);
-        } else {
-            requestBodySpec
-                    .contentType(contentType)
-                    .body(body);
-        }
+		if (contentType != MediaType.APPLICATION_FORM_URLENCODED) {
+			if (FORM_MEDIA_TYPES.contains(contentType)) {
+				requestBodySpec
+					.contentType(contentType)
+					.body(formData);
+			} else {
+				requestBodySpec
+					.contentType(contentType)
+					.body(body);
+			}
+		}
 
         return requestBodySpec;
     }
