@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
-@RequestMapping
-@RestController("/json")
+@RequestMapping("/json")
+@RestController
 public class JsonController {
 	@PostMapping("/test-body")
 	public ResponseEntity<Map<String, String>> testBody(@RequestBody TestDTO testDTO) {

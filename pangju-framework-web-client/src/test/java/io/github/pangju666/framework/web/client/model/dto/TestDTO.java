@@ -1,8 +1,5 @@
 package io.github.pangju666.framework.web.client.model.dto;
 
-import jakarta.xml.bind.annotation.XmlRootElement;
-
-//@XmlRootElement(name = "test")
 public class TestDTO {
 	private String key;
 	private String value;
@@ -29,5 +26,13 @@ public class TestDTO {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	@Override
+	public String toString() {
+		return "TestDTO{" +
+			"key='" + key + '\'' +
+			", value='" + value + '\'' +
+			'}';
 	}
 }

@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@RequestMapping
-@RestController("/test")
+@RequestMapping("/test")
+@RestController
 public class TestController {
 	@GetMapping("/test-no-params")
 	public ResponseEntity<Void> testNoParams() {
