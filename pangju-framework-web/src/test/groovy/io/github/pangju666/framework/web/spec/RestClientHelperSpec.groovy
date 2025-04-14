@@ -1,7 +1,8 @@
-package io.github.pangju666.framework.web.client
+package io.github.pangju666.framework.web.spec
 
 import io.github.pangju666.commons.lang.utils.JsonUtils
 import io.github.pangju666.framework.web.TestApplication
+import io.github.pangju666.framework.web.client.RestClientHelper
 import io.github.pangju666.framework.web.model.dto.TestDTO
 import io.github.pangju666.framework.web.model.vo.Result
 import org.springframework.beans.factory.annotation.Autowired

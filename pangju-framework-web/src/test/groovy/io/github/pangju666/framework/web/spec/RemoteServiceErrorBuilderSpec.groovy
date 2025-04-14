@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.web.client
+package io.github.pangju666.framework.web.spec
 
 import com.google.gson.JsonObject
 import io.github.pangju666.framework.web.exception.remote.RemoteServiceException
