@@ -37,7 +37,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.*;
 
@@ -48,8 +47,8 @@ import java.util.*;
  * <ul>
  *     <li>URI构建：支持路径、查询参数、URI变量的设置</li>
  *     <li>请求头管理：支持单个或批量添加请求头</li>
- *     <li>请求体处理：支持JSON、表单数据、文本、二进制、{@link Resource 资源}等多种格式</li>
- *     <li>响应处理：支持多种响应类型的转换（JSON、{@link BufferedImage 图像}、{@link Resource 资源}、二进制、文本等）</li>
+ *     <li>请求体处理：支持JSON、表单数据、文本、二进制、{@link Resource 资源}格式</li>
+ *     <li>响应处理：支持多种响应类型的转换（JSON、{@link Resource 资源}、二进制、文本）</li>
  * </ul>
  * </p>
  *
@@ -652,36 +651,6 @@ public class RestClientHelper {
         this.contentType = mediaType;
         this.body = body;
         return this;
-    }
-
-    /**
-     * 将请求结果转换为BufferedImage响应实体
-     *
-     * @return BufferedImage响应实体
-     * @throws RestClientResponseException 当请求失败时抛出
-     * @see java.awt.image.BufferedImage
-     * @since 1.0.0
-     */
-    public ResponseEntity<BufferedImage> toBufferedImageEntity() throws RestClientResponseException {
-        return buildRequestBodySpec()
-                .retrieve()
-                .toEntity(BufferedImage.class);
-    }
-
-    /**
-     * 将请求结果转换为BufferedImage响应实体，指定可接受的媒体类型
-     *
-     * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG}
-     * @return BufferedImage响应实体
-     * @throws RestClientResponseException 当请求失败时抛出
-     * @see java.awt.image.BufferedImage
-     * @since 1.0.0
-     */
-    public ResponseEntity<BufferedImage> toBufferedImageEntity(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
-        return buildRequestBodySpec()
-                .accept(acceptableMediaTypes)
-                .retrieve()
-                .toEntity(BufferedImage.class);
     }
 
     /**

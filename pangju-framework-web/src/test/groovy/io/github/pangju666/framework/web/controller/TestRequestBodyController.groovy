@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile
 
 @RequestMapping
 @RestController
-class TestController {
+class TestRequestBodyController {
 	@GetMapping("/test-no-response")
 	def testGet() {
 		return new ResponseEntity<>(HttpStatus.OK)

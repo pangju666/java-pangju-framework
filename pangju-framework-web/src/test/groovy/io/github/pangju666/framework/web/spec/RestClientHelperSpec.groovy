@@ -12,6 +12,7 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.core.io.FileSystemResource
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.web.client.RestClient
@@ -136,5 +137,77 @@ class RestClientHelperSpec extends Specification {
 
 		then:
 		result.data() == ["test-path-variable", "test-param", "test-header", image.size().toString()]
+	}
+
+	def "测试json响应体"() {
+		when:
+		def result = RestClientHelper.fromUriString(restClient, "http://127.0.0.1")
+			.method(HttpMethod.GET)
+			.path("/response/json")
+			.toJsonEntity(new ParameterizedTypeReference<Result<String>>() {})
+			.getBody()
+
+		then:
+		result.data() == "json"
+	}
+
+	def "测试string响应体"() {
+		when:
+		def result = RestClientHelper.fromUriString(restClient, "http://127.0.0.1")
+			.method(HttpMethod.GET)
+			.path("/response/str")
+			.toStringEntity(MediaType.APPLICATION_OCTET_STREAM)
+			.getBody()
+
+		then:
+		result == "string"
+	}
+
+	def "测试bytes响应体"() {
+		when:
+		def result = RestClientHelper.fromUriString(restClient, "http://127.0.0.1")
+			.method(HttpMethod.GET)
+			.path("/response/bytes")
+			.toBytesEntity()
+			.getBody()
+
+		then:
+		result == "bytes".getBytes()
+	}
+
+	def "测试bytes响应体2"() {
+		when:
+		def result = RestClientHelper.fromUriString(restClient, "http://127.0.0.1")
+			.method(HttpMethod.GET)
+			.path("/response/str")
+			.toBytesEntity()
+			.getBody()
+
+		then:
+		result == "string".getBytes()
+	}
+
+	def "测试resource响应体"() {
+		when:
+		def result = RestClientHelper.fromUriString(restClient, "http://127.0.0.1")
+			.method(HttpMethod.GET)
+			.path("/response/resource")
+			.toResourceEntity()
+			.getBody()
+
+		then:
+		result.getContentAsByteArray().size() == new File("src/test/resources/images/test.jpg").readBytes().size()
+	}
+
+	def "测试resource响应体2"() {
+		when:
+		def result = RestClientHelper.fromUriString(restClient, "http://127.0.0.1")
+			.method(HttpMethod.GET)
+			.path("/response/bytes")
+			.toResourceEntity()
+			.getBody()
+
+		then:
+		result.getContentAsByteArray() == "bytes".getBytes()
 	}
 }
