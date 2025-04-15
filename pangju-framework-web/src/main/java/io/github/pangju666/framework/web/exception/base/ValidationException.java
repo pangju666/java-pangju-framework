@@ -17,12 +17,12 @@
 package io.github.pangju666.framework.web.exception.base;
 
 import io.github.pangju666.framework.web.annotation.HttpException;
-import io.github.pangju666.framework.web.enums.ExceptionType;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 import org.springframework.http.HttpStatus;
 
-@HttpException(code = 4000, status = HttpStatus.BAD_REQUEST, type = ExceptionType.VALIDATION, log = false)
+@HttpException(code = -40000, status = HttpStatus.BAD_REQUEST, type = HttpExceptionType.VALIDATION, log = false)
 public class ValidationException extends BaseHttpException {
 	protected ValidationException(String message) {
 		super(message, message);

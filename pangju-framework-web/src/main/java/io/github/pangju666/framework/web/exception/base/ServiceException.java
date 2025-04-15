@@ -17,9 +17,9 @@
 package io.github.pangju666.framework.web.exception.base;
 
 import io.github.pangju666.framework.web.annotation.HttpException;
-import io.github.pangju666.framework.web.enums.ExceptionType;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 
-@HttpException(code = 1000, type = ExceptionType.SERVICE)
+@HttpException(code = -10000, type = HttpExceptionType.SERVICE)
 public class ServiceException extends BaseHttpException {
 	public ServiceException(String message) {
 		super(message, message);

@@ -17,9 +17,9 @@
 package io.github.pangju666.framework.web.exception.base;
 
 import io.github.pangju666.framework.web.annotation.HttpException;
-import io.github.pangju666.framework.web.enums.ExceptionType;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 
-@HttpException(code = 2000, type = ExceptionType.DATA)
+@HttpException(code = -20000, type = HttpExceptionType.DATA)
 public class DataException extends BaseHttpException {
 	public DataException(String message) {
 		super(message, message);

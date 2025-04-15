@@ -17,10 +17,10 @@
 package io.github.pangju666.framework.web.exception.base;
 
 import io.github.pangju666.framework.web.annotation.HttpException;
-import io.github.pangju666.framework.web.enums.ExceptionType;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import org.springframework.http.HttpStatus;
 
-@HttpException(code = 5000, status = HttpStatus.INTERNAL_SERVER_ERROR, type = ExceptionType.SERVER)
+@HttpException(code = -50000, status = HttpStatus.INTERNAL_SERVER_ERROR, type = HttpExceptionType.SERVER)
 public class ServerException extends BaseHttpException {
 	public static final String SERVER_ERROR_MESSAGE = "服务器内部错误";
 

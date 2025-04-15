@@ -17,10 +17,10 @@
 package io.github.pangju666.framework.web.exception.base;
 
 import io.github.pangju666.framework.web.annotation.HttpException;
-import io.github.pangju666.framework.web.enums.ExceptionType;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import org.springframework.http.HttpStatus;
 
-@HttpException(code = 3000, status = HttpStatus.UNAUTHORIZED, type = ExceptionType.AUTHENTICATION)
+@HttpException(code = -30000, status = HttpStatus.UNAUTHORIZED, type = HttpExceptionType.AUTHENTICATION)
 public class AuthenticationException extends BaseHttpException {
 	public AuthenticationException(String message) {
 		super(message, message);

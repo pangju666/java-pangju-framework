@@ -16,9 +16,19 @@
 
 package io.github.pangju666.framework.web.exception.base;
 
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.model.vo.HttpExceptionVO;
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
+import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 import org.springframework.core.NestedRuntimeException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 public abstract class BaseHttpException extends NestedRuntimeException {
 	protected final String reason;
@@ -60,5 +70,23 @@ public abstract class BaseHttpException extends NestedRuntimeException {
 		logger.atLevel(level)
 			.setCause(this)
 			.log(this.reason);
+	}
+
+	public static List<HttpExceptionVO> getHttpExceptionInfos(String... packages) {
+		ConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
+			.setScanners(Scanners.TypesAnnotated, Scanners.SubTypes)
+			.forPackage("io.github.pangju666.framework")
+			.forPackages(packages);
+		Reflections reflections = new Reflections(configurationBuilder);
+
+		Set<Class<? extends BaseHttpException>> classes = reflections.getSubTypesOf(BaseHttpException.class);
+		List<HttpExceptionVO> httpExceptionList = new ArrayList<>(classes.size());
+		for (Class<?> clazz : classes) {
+			HttpException annotation = clazz.getAnnotation(HttpException.class);
+			if (Objects.nonNull(annotation)) {
+				httpExceptionList.add(new HttpExceptionVO(annotation.type(), annotation.code(), annotation.description()));
+			}
+		}
+		return httpExceptionList;
 	}
 }
