@@ -46,9 +46,9 @@ public final class Result<T> {
 		return new Result<>(code == WebConstants.SUCCESS_CODE ? WebConstants.BASE_ERROR_CODE : code, message, null);
 	}
 
-	public Optional<T> getOptionalData(final String service, final String api, final URI uri) {
+	public T getDataIfSuccess(final String service, final String api, final URI uri) {
 		if (this.code == WebConstants.SUCCESS_CODE) {
-			return Optional.ofNullable(this.data);
+			return this.data;
 		}
 
 		RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api, uri)
