@@ -10,3 +10,6 @@ spring:
     multipart:
       max-file-size: 100MB
       max-request-size: 110MB
+
+logging:
+  config: classpath:local.yml
