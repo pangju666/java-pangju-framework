@@ -20,15 +20,21 @@ import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.enums.ExceptionType;
 import org.springframework.http.HttpStatus;
 
-@HttpException(code = 5000, status = HttpStatus.INTERNAL_SERVER_ERROR, type = ExceptionType.SERVER)
-public class ServerException extends BaseHttpException {
-	public static final String SERVER_ERROR_MESSAGE = "服务器内部错误";
-
-	public ServerException(String reason) {
-		super(SERVER_ERROR_MESSAGE, reason);
+@HttpException(code = 3000, status = HttpStatus.UNAUTHORIZED, type = ExceptionType.AUTHENTICATION)
+public class AuthenticationException extends BaseHttpException {
+	public AuthenticationException(String message) {
+		super(message, message);
 	}
 
-	public ServerException(String reason, Throwable cause) {
-		super(SERVER_ERROR_MESSAGE, reason, cause);
+	public AuthenticationException(String message, String reason) {
+		super(message, reason);
+	}
+
+	public AuthenticationException(String message, Throwable cause) {
+		super(message, message, cause);
+	}
+
+	public AuthenticationException(String message, String reason, Throwable cause) {
+		super(message, reason, cause);
 	}
 }

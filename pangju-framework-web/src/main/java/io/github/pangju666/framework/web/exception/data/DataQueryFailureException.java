@@ -16,26 +16,27 @@
 
 package io.github.pangju666.framework.web.exception.data;
 
-import io.github.pangju666.framework.web.annotation.IgnoreLog;
+import io.github.pangju666.framework.web.pool.WebConstants;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@IgnoreLog
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-public class DataQueryFailureException extends DataAccessException {
-	public DataQueryFailureException() {
-		super("数据查询失败");
-	}
+public class DataQueryFailureException extends DataOperationException {
+	public static final String DATA_QUERY_ERROR_MESSAGE = "数据创建失败";
 
 	public DataQueryFailureException(String reason) {
-		super(reason);
-	}
-
-	public DataQueryFailureException(Throwable cause) {
-		super("数据查询失败", cause);
+		super(WebConstants.DATA_ERROR_CODE, DATA_QUERY_ERROR_MESSAGE, reason);
 	}
 
 	public DataQueryFailureException(String reason, Throwable cause) {
-		super(reason, cause);
+		super(WebConstants.DATA_ERROR_CODE, DATA_QUERY_ERROR_MESSAGE, reason, cause);
+	}
+
+	protected DataQueryFailureException(int code, String message, String reason) {
+		super(code, message, reason);
+	}
+
+	protected DataQueryFailureException(int code, String message, String reason, Throwable cause) {
+		super(code, message, reason, cause);
 	}
 }

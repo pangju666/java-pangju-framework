@@ -16,12 +16,10 @@
 
 package io.github.pangju666.framework.web.exception.validation.Identifier;
 
-import io.github.pangju666.framework.web.annotation.IgnoreLog;
 import io.github.pangju666.framework.web.exception.base.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@IgnoreLog
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class IdentifierExistException extends ValidationException {
 	public IdentifierExistException() {

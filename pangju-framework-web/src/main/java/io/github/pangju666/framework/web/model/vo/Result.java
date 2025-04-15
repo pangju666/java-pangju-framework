@@ -2,7 +2,7 @@ package io.github.pangju666.framework.web.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
-import io.github.pangju666.framework.web.exception.base.BaseRuntimeException;
+import io.github.pangju666.framework.web.exception.base.BaseHttpException;
 import io.github.pangju666.framework.web.exception.remote.RemoteServiceError;
 import io.github.pangju666.framework.web.exception.remote.RemoteServiceException;
 import io.github.pangju666.framework.web.pool.WebConstants;
@@ -29,7 +29,7 @@ public record Result<T>(
 		return new Result<>(WebConstants.RESULT_SUCCESS_MESSAGE, WebConstants.SUCCESS_CODE, data);
 	}
 
-	public static <E extends BaseRuntimeException> Result<Void> failByException(E e) {
+	public static <E extends BaseHttpException> Result<Void> failByException(E e) {
 		return new Result<>(e.getMessage(), e.getCode(), null);
 	}
 

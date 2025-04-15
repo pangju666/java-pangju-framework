@@ -16,13 +16,11 @@
 
 package io.github.pangju666.framework.web.exception.data;
 
-import io.github.pangju666.framework.web.annotation.IgnoreLog;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@IgnoreLog
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-public class DataUpdateFailureException extends DataAccessException {
+public class DataUpdateFailureException extends DataOperationException {
 	public DataUpdateFailureException() {
 		super("数据更新失败");
 	}

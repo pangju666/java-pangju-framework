@@ -16,36 +16,45 @@
 
 package io.github.pangju666.framework.web.exception.base;
 
-import io.github.pangju666.framework.web.annotation.IgnoreLog;
-import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.ExceptionType;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-@IgnoreLog
-@ResponseStatus(HttpStatus.BAD_REQUEST)
-public class ValidationException extends BaseRuntimeException {
-	public ValidationException(String message) {
-		super(WebConstants.VALIDATION_ERROR_CODE, message);
+@HttpException(code = 4000, status = HttpStatus.BAD_REQUEST, type = ExceptionType.VALIDATION, log = false)
+public class ValidationException extends BaseHttpException {
+	protected ValidationException(String message) {
+		super(message, message);
 	}
 
-	public ValidationException(String message, Throwable cause) {
-		super(WebConstants.VALIDATION_ERROR_CODE, message, cause);
+	protected ValidationException(String message, Throwable cause) {
+		super(message, message, cause);
 	}
 
-	protected ValidationException(int code, String message) {
-		super(code, message);
-	}
-
-	protected ValidationException(int code, String message, Throwable cause) {
-		super(code, message, cause);
-	}
-
+	/**
+	 * 重写父类的日志记录方法
+	 * <p>
+	 * 由于验证异常通常不需要记录日志，此方法实现为空。
+	 * </p>
+	 *
+	 * @param logger 日志记录器（此处不使用）
+	 * @since 1.0.0
+	 */
 	@Override
 	public void log(Logger logger) {
 	}
 
+	/**
+	 * 重写父类的日志记录方法
+	 * <p>
+	 * 由于验证异常通常不需要记录日志，此方法实现为空。
+	 * </p>
+	 *
+	 * @param logger 日志记录器（此处不使用）
+	 * @param level 日志级别（此处不使用）
+	 * @since 1.0.0
+	 */
 	@Override
 	public void log(Logger logger, Level level) {
 	}

@@ -26,20 +26,56 @@ import org.slf4j.event.Level;
 import java.util.Objects;
 
 /**
- * 远程服务调用异常
+ * 远程服务调用异常类（错误码为{@link WebConstants#REMOTE_SERVICE_ERROR_CODE}）
  * <p>
- * 用于封装远程服务调用过程中发生的异常情况。此异常包含详细的远程服务错误信息，
- * 便于进行错误追踪和日志记录。
+ * 该异常类用于处理远程服务调用过程中发生的异常情况，继承自{@link ServiceException}。
+ * 提供了完整的远程服务错误信息封装，支持错误追踪和结构化日志记录。
  * </p>
  *
  * <p>
- * 特性：
+ * 主要特点：
  * <ul>
- *     <li>包含完整的远程服务错误信息</li>
- *     <li>支持自定义错误消息</li>
- *     <li>支持异常链传递</li>
- *     <li>提供结构化的日志输出</li>
+ *     <li>支持自定义错误消息和错误码</li>
+ *     <li>包含完整的远程服务调用信息（服务名、接口名、URI等）</li>
+ *     <li>提供结构化的日志记录功能</li>
+ *     <li>支持异常链传递，便于问题追踪</li>
  * </ul>
+ * </p>
+ *
+ * <p>
+ * 使用场景：
+ * <ul>
+ *     <li>微服务间调用异常：服务不可用、超时等</li>
+ *     <li>远程API调用失败：HTTP请求失败、响应异常等</li>
+ *     <li>第三方服务集成异常：外部服务异常、协议错误等</li>
+ *     <li>RPC调用异常：序列化失败、网络中断等</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * 使用示例：
+ * <pre>{@code
+ * // 基本使用
+ * RemoteServiceError error = RemoteServiceError.builder()
+ *     .service("用户服务")
+ *     .api("获取用户信息")
+ *     .uri("http://user-service/users/1")
+ *     .httpStatus(404)
+ *     .message("用户不存在")
+ *     .build();
+ * throw new RemoteServiceException(error);
+ *
+ * // 包含原始异常
+ * try {
+ *     // 远程服务调用
+ * } catch (Exception e) {
+ *     RemoteServiceError error = RemoteServiceError.builder()
+ *         .service("订单服务")
+ *         .api("创建订单")
+ *         .build();
+ *     throw new RemoteServiceException(error, "创建订单失败", e);
+ * }
+ * }</pre>
  * </p>
  *
  * @author pangju666
@@ -51,18 +87,31 @@ public class RemoteServiceException extends ServiceException {
 	/**
 	 * 默认错误消息
 	 * <p>
-	 * 当未指定自定义错误消息时使用的默认消息。
+	 * 当未指定自定义错误消息时使用的默认消息文本。
+	 * 此常量为protected以允许子类访问和复用。
 	 * </p>
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final String DEFAULT_MESSAGE = "远程服务请求失败";
+	protected static final String REMOTE_ERROR_MESSAGE = "远程服务请求失败";
 
 	/**
 	 * 远程服务错误信息
 	 * <p>
-	 * 包含远程服务调用的详细错误信息，如服务名称、接口名称、URI等。
-	 * 此字段为final，确保错误信息在异常实例创建后不可更改。
+	 * 存储远程服务调用的完整错误上下文信息，包括：
+	 * <ul>
+	 *     <li>服务名称：标识被调用的服务</li>
+	 *     <li>接口名称：标识被调用的具体接口</li>
+	 *     <li>请求URI：完整的请求地址</li>
+	 *     <li>HTTP状态码：响应状态码</li>
+	 *     <li>错误码：业务错误码</li>
+	 *     <li>错误消息：详细错误描述</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * <p>
+	 * 字段声明为final以确保异常信息的不可变性，提高线程安全性。
+	 * 声明为protected以允许子类访问错误信息。
 	 * </p>
 	 *
 	 * @see RemoteServiceError
@@ -73,11 +122,12 @@ public class RemoteServiceException extends ServiceException {
 	/**
 	 * 使用默认错误消息创建异常实例
 	 *
-	 * @param error 远程服务错误信息
+	 * @param error 远程服务错误信息，包含服务名称、接口名称、URI等详细信息
+	 * @throws NullPointerException 如果error参数为null
 	 * @since 1.0.0
 	 */
 	public RemoteServiceException(RemoteServiceError error) {
-		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, DEFAULT_MESSAGE);
+		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, REMOTE_ERROR_MESSAGE);
 		this.error = error;
 	}
 
@@ -94,31 +144,6 @@ public class RemoteServiceException extends ServiceException {
 	}
 
 	/**
-	 * 使用默认错误消息和原始异常创建异常实例
-	 *
-	 * @param error 远程服务错误信息
-	 * @param cause 原始异常
-	 * @since 1.0.0
-	 */
-	public RemoteServiceException(RemoteServiceError error, Throwable cause) {
-		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, DEFAULT_MESSAGE, cause);
-		this.error = error;
-	}
-
-	/**
-	 * 使用自定义错误消息和原始异常创建异常实例
-	 *
-	 * @param error 远程服务错误信息
-	 * @param message 自定义错误消息
-	 * @param cause 原始异常
-	 * @since 1.0.0
-	 */
-	public RemoteServiceException(RemoteServiceError error, String message, Throwable cause) {
-		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, message, cause);
-		this.error = error;
-	}
-
-	/**
 	 * 使用自定义错误代码和消息创建异常实例
 	 * <p>
 	 * 受保护的构造方法，用于子类扩展。
@@ -129,25 +154,8 @@ public class RemoteServiceException extends ServiceException {
 	 * @param message 自定义错误消息
 	 * @since 1.0.0
 	 */
-	protected RemoteServiceException(RemoteServiceError error, int code, String message) {
+	protected RemoteServiceException(int code, RemoteServiceError error, String message) {
 		super(code, message);
-		this.error = error;
-	}
-
-	/**
-	 * 使用自定义错误代码、消息和原始异常创建异常实例
-	 * <p>
-	 * 受保护的构造方法，用于子类扩展。
-	 * </p>
-	 *
-	 * @param error 远程服务错误信息
-	 * @param code 自定义错误代码
-	 * @param message 自定义错误消息
-	 * @param cause 原始异常
-	 * @since 1.0.0
-	 */
-	protected RemoteServiceException(RemoteServiceError error, int code, String message, Throwable cause) {
-		super(code, message, cause);
 		this.error = error;
 	}
 

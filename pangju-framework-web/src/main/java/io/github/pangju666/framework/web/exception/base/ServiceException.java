@@ -16,66 +16,24 @@
 
 package io.github.pangju666.framework.web.exception.base;
 
-import io.github.pangju666.framework.web.pool.WebConstants;
-import org.slf4j.Logger;
-import org.slf4j.event.Level;
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.ExceptionType;
 
-public class ServiceException extends BaseRuntimeException {
-	private final String reason;
-
+@HttpException(code = 1000, type = ExceptionType.SERVICE)
+public class ServiceException extends BaseHttpException {
 	public ServiceException(String message) {
-		super(WebConstants.SERVICE_ERROR_CODE, message);
-		this.reason = message;
+		super(message, message);
 	}
 
 	public ServiceException(String message, String reason) {
-		super(WebConstants.SERVICE_ERROR_CODE, message);
-		this.reason = reason;
+		super(message, reason);
 	}
 
 	public ServiceException(String message, Throwable cause) {
-		super(WebConstants.SERVICE_ERROR_CODE, message, cause);
-		this.reason = message;
+		super(message, message, cause);
 	}
 
 	public ServiceException(String message, String reason, Throwable cause) {
-		super(WebConstants.SERVICE_ERROR_CODE, message, cause);
-		this.reason = reason;
-	}
-
-	protected ServiceException(int code, String message) {
-		super(code, message);
-		this.reason = message;
-	}
-
-	protected ServiceException(int code, String message, String reason) {
-		super(code, message);
-		this.reason = reason;
-	}
-
-	protected ServiceException(int code, String message, Throwable cause) {
-		super(code, message, cause);
-		this.reason = message;
-	}
-
-	protected ServiceException(int code, String message, String reason, Throwable cause) {
-		super(code, message, cause);
-		this.reason = reason;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	@Override
-	public void log(Logger logger) {
-		logger.error(this.reason, this);
-	}
-
-	@Override
-	public void log(Logger logger, Level level) {
-		logger.atLevel(level)
-			.setCause(this)
-			.log(this.reason);
+		super(message, reason, cause);
 	}
 }

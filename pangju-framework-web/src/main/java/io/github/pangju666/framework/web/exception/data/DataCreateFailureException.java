@@ -16,26 +16,27 @@
 
 package io.github.pangju666.framework.web.exception.data;
 
-import io.github.pangju666.framework.web.annotation.IgnoreLog;
+import io.github.pangju666.framework.web.pool.WebConstants;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@IgnoreLog
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-public class DataCreateFailureException extends DataAccessException {
-	public DataCreateFailureException() {
-		super("数据创建失败");
-	}
+public class DataCreateFailureException extends DataOperationException {
+	public static final String DATA_CREATE_ERROR_MESSAGE = "数据创建失败";
 
 	public DataCreateFailureException(String reason) {
-		super(reason);
-	}
-
-	public DataCreateFailureException(Throwable cause) {
-		super("数据创建失败", cause);
+		super(WebConstants.DATA_ERROR_CODE, DATA_CREATE_ERROR_MESSAGE, reason);
 	}
 
 	public DataCreateFailureException(String reason, Throwable cause) {
-		super(reason, cause);
+		super(WebConstants.DATA_ERROR_CODE, DATA_CREATE_ERROR_MESSAGE, reason, cause);
+	}
+
+	protected DataCreateFailureException(int code, String message, String reason) {
+		super(code, message, reason);
+	}
+
+	protected DataCreateFailureException(int code, String message, String reason, Throwable cause) {
+		super(code, message, reason, cause);
 	}
 }

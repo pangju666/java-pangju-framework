@@ -1,7 +1,6 @@
 package io.github.pangju666.framework.web.utils;
 
-import io.github.pangju666.framework.web.annotation.IgnoreLog;
-import io.github.pangju666.framework.web.exception.base.BaseRuntimeException;
+import io.github.pangju666.framework.web.exception.base.BaseHttpException;
 import io.github.pangju666.framework.web.exception.base.ServerException;
 import io.github.pangju666.framework.web.model.vo.Result;
 import jakarta.servlet.http.HttpServletResponse;
@@ -76,7 +75,7 @@ public class ResponseUtils {
 		writeResultToResponse(Result.ok(bean), response, status.value());
 	}
 
-	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response) {
+	public static <E extends BaseHttpException> void writeExceptionToResponse(final E exception, final HttpServletResponse response) {
 		if (Objects.isNull(exception.getClass().getAnnotation(IgnoreLog.class))) {
 			exception.log(logger);
 		}
@@ -88,14 +87,14 @@ public class ResponseUtils {
 		}
 	}
 
-	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, final HttpStatus httpStatus) {
+	public static <E extends BaseHttpException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, final HttpStatus httpStatus) {
 		if (Objects.isNull(exception.getClass().getAnnotation(IgnoreLog.class))) {
 			exception.log(logger);
 		}
 		writeResultToResponse(Result.failByException(exception), response, httpStatus.value());
 	}
 
-	public static <E extends BaseRuntimeException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, int httpStatus) {
+	public static <E extends BaseHttpException> void writeExceptionToResponse(final E exception, final HttpServletResponse response, int httpStatus) {
 		if (Objects.isNull(exception.getClass().getAnnotation(IgnoreLog.class))) {
 			exception.log(logger);
 		}

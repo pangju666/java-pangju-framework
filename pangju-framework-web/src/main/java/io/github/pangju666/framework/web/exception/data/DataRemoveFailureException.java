@@ -16,13 +16,11 @@
 
 package io.github.pangju666.framework.web.exception.data;
 
-import io.github.pangju666.framework.web.annotation.IgnoreLog;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@IgnoreLog
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-public class DataRemoveFailureException extends DataAccessException {
+public class DataRemoveFailureException extends DataOperationException {
 	public DataRemoveFailureException() {
 		super("数据删除失败");
 	}
