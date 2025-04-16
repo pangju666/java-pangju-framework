@@ -16,33 +16,42 @@
 
 package io.github.pangju666.framework.web.exception.data;
 
-import io.github.pangju666.framework.web.exception.base.ServiceException;
-import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
+import io.github.pangju666.framework.web.exception.base.BaseHttpException;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.event.Level;
 
-public class DataOperationException extends ServiceException {
-	public static final String DATA_OPERATION_ERROR_MESSAGE = "数据操作失败";
+@HttpException(code = 0, type = HttpExceptionType.DATA)
+public class DataOperationException extends BaseHttpException {
+	protected final String source;
+	protected final String operation;
+	protected final String data;
 
-	public DataOperationException(String reason) {
-		super(WebConstants.DATA_ERROR_CODE, DATA_OPERATION_ERROR_MESSAGE, reason);
+	public DataOperationException(String message, String source, String operation, String data, String reason) {
+		super(message, reason);
+		this.operation = operation;
+		this.source = source;
+		this.data = data;
 	}
 
-	public DataOperationException(String reason, Throwable cause) {
-		super(WebConstants.DATA_ERROR_CODE, DATA_OPERATION_ERROR_MESSAGE, reason, cause);
+	public DataOperationException(String message, String source, String operation, String data, String reason, Throwable cause) {
+		super(message, reason, cause);
+		this.operation = operation;
+		this.source = source;
+		this.data = data;
 	}
 
-	public DataOperationException(String message, String reason) {
-		super(WebConstants.DATA_ERROR_CODE, message, reason);
-	}
-
-	public DataOperationException(String message, String reason, Throwable cause) {
-		super(WebConstants.DATA_ERROR_CODE, message, reason, cause);
-	}
-
-	protected DataOperationException(int code, String message, String reason) {
-		super(code, message, reason);
-	}
-
-	protected DataOperationException(int code, String message, String reason, Throwable cause) {
-		super(code, message, reason, cause);
+	@Override
+	public void log(Logger logger, Level level) {
+		String message = String.format("数据操作错误，来源：%s，操作：%s，数据：%s，原因：%s",
+			StringUtils.defaultIfBlank(this.source, "未知"),
+			StringUtils.defaultIfBlank(this.operation, "未知"),
+			StringUtils.defaultIfBlank(this.data, "未知"),
+			StringUtils.defaultIfBlank(this.reason, "未知"));
+		logger.atLevel(level)
+			.setCause(this)
+			.log(message);
 	}
 }

@@ -16,11 +16,13 @@
 
 package io.github.pangju666.framework.web.exception.validation.id;
 
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.ValidationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@HttpException(code = 210, description = "id已存在错误", type = HttpExceptionType.VALIDATION,
+	log = false, status = HttpStatus.BAD_REQUEST)
 public class IdExistException extends ValidationException {
 	public IdExistException() {
 		super("id已存在");
@@ -28,13 +30,5 @@ public class IdExistException extends ValidationException {
 
 	public IdExistException(String message) {
 		super(message);
-	}
-
-	public IdExistException(Throwable cause) {
-		super("id已存在", cause);
-	}
-
-	public IdExistException(String message, Throwable cause) {
-		super(message, cause);
 	}
 }

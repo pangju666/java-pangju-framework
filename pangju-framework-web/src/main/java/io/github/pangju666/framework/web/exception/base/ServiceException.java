@@ -19,7 +19,30 @@ package io.github.pangju666.framework.web.exception.base;
 import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.enums.HttpExceptionType;
 
-@HttpException(code = -10000, type = HttpExceptionType.SERVICE)
+/**
+ * 业务逻辑异常
+ * <p>
+ * 用于处理业务逻辑相关的异常情况，如：
+ * <ul>
+ *     <li>业务规则验证失败</li>
+ *     <li>业务流程异常</li>
+ *     <li>业务状态错误</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * 特点：
+ * <ul>
+ *     <li>错误码：1000</li>
+ *     <li>HTTP状态码：200 (OK)</li>
+ *     <li>开启日志记录</li>
+ * </ul>
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
+@HttpException(code = 0, type = HttpExceptionType.SERVICE)
 public class ServiceException extends BaseHttpException {
 	public ServiceException(String message) {
 		super(message, message);

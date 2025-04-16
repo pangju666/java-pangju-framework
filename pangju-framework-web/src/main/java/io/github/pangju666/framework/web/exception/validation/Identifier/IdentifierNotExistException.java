@@ -16,11 +16,13 @@
 
 package io.github.pangju666.framework.web.exception.validation.Identifier;
 
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.ValidationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@HttpException(code = 320, description = "标识符不存在错误", type = HttpExceptionType.VALIDATION,
+	log = false, status = HttpStatus.BAD_REQUEST)
 public class IdentifierNotExistException extends ValidationException {
 	public IdentifierNotExistException() {
 		super("标识符不存在");
@@ -28,13 +30,5 @@ public class IdentifierNotExistException extends ValidationException {
 
 	public IdentifierNotExistException(String message) {
 		super(message);
-	}
-
-	public IdentifierNotExistException(Throwable cause) {
-		super("标识符不存在", cause);
-	}
-
-	public IdentifierNotExistException(String message, Throwable cause) {
-		super(message, cause);
 	}
 }

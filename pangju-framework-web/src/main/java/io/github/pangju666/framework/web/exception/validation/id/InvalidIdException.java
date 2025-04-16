@@ -16,25 +16,19 @@
 
 package io.github.pangju666.framework.web.exception.validation.id;
 
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.ValidationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@HttpException(code = 230, description = "id格式不正确错误", type = HttpExceptionType.VALIDATION,
+	log = false, status = HttpStatus.BAD_REQUEST)
 public class InvalidIdException extends ValidationException {
 	public InvalidIdException() {
-		super("不是合法的id");
+		super("id格式不正确");
 	}
 
 	public InvalidIdException(String message) {
 		super(message);
-	}
-
-	public InvalidIdException(Throwable cause) {
-		super("不是合法的id", cause);
-	}
-
-	public InvalidIdException(String message, Throwable cause) {
-		super(message, cause);
 	}
 }

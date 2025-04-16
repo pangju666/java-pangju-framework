@@ -16,25 +16,19 @@
 
 package io.github.pangju666.framework.web.exception.validation.Identifier;
 
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.ValidationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@HttpException(code = 330, description = "标识符格式不正确错误", type = HttpExceptionType.VALIDATION,
+	log = false, status = HttpStatus.BAD_REQUEST)
 public class InvalidIdentifierException extends ValidationException {
 	public InvalidIdentifierException() {
-		super("不是合法的标识符");
+		super("标识符格式不正确");
 	}
 
 	public InvalidIdentifierException(String message) {
 		super(message);
-	}
-
-	public InvalidIdentifierException(Throwable cause) {
-		super("不是合法的标识符", cause);
-	}
-
-	public InvalidIdentifierException(String message, Throwable cause) {
-		super(message, cause);
 	}
 }

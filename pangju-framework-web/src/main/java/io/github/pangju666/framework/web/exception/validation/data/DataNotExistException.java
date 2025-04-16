@@ -16,11 +16,13 @@
 
 package io.github.pangju666.framework.web.exception.validation.data;
 
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.ValidationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@HttpException(code = 120, description = "数据不存在错误", type = HttpExceptionType.VALIDATION,
+	log = false, status = HttpStatus.BAD_REQUEST)
 public class DataNotExistException extends ValidationException {
 	public DataNotExistException() {
 		super("数据不存在");
@@ -28,13 +30,5 @@ public class DataNotExistException extends ValidationException {
 
 	public DataNotExistException(String message) {
 		super(message);
-	}
-
-	public DataNotExistException(Throwable cause) {
-		super("数据不存在", cause);
-	}
-
-	public DataNotExistException(String message, Throwable cause) {
-		super(message, cause);
 	}
 }

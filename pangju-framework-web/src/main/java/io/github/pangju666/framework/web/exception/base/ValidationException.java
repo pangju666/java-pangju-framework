@@ -22,13 +22,36 @@ import org.slf4j.Logger;
 import org.slf4j.event.Level;
 import org.springframework.http.HttpStatus;
 
-@HttpException(code = -40000, status = HttpStatus.BAD_REQUEST, type = HttpExceptionType.VALIDATION, log = false)
+/**
+ * 参数校验异常
+ * <p>
+ * 用于处理请求参数验证相关的异常情况，如：
+ * <ul>
+ *     <li>必填参数缺失</li>
+ *     <li>参数格式错误</li>
+ *     <li>参数值范围错误</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * 特点：
+ * <ul>
+ *     <li>错误码：4000</li>
+ *     <li>HTTP状态码：400 (Bad Request)</li>
+ *     <li>关闭日志记录</li>
+ * </ul>
+ * </p>
+ *
+ * @author pangju666
+ * @since 1.0.0
+ */
+@HttpException(code = 0, type = HttpExceptionType.VALIDATION, log = false, status = HttpStatus.BAD_REQUEST)
 public class ValidationException extends BaseHttpException {
-	protected ValidationException(String message) {
+	public ValidationException(String message) {
 		super(message, message);
 	}
 
-	protected ValidationException(String message, Throwable cause) {
+	public ValidationException(String message, Throwable cause) {
 		super(message, message, cause);
 	}
 

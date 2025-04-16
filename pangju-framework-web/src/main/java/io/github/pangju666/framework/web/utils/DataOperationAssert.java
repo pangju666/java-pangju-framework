@@ -16,45 +16,48 @@
 
 package io.github.pangju666.framework.web.utils;
 
-import io.github.pangju666.framework.web.exception.data.*;
+import io.github.pangju666.framework.web.exception.data.DataCreateException;
+import io.github.pangju666.framework.web.exception.data.DataQueryException;
+import io.github.pangju666.framework.web.exception.data.DataSaveException;
+import io.github.pangju666.framework.web.exception.data.DataUpdateException;
 
-public class DataAccessAssert {
-	protected DataAccessAssert() {
+public class DataOperationAssert {
+	protected DataOperationAssert() {
 	}
 
 	public static void query(boolean expression) {
 		if (!expression) {
-			throw new DataQueryFailureException();
+			throw new DataQueryException();
 		}
 	}
 
 	public static void query(boolean expression, final String message) {
 		if (!expression) {
-			throw new DataQueryFailureException(message);
+			throw new DataQueryException(message);
 		}
 	}
 
 	public static void create(boolean expression) {
 		if (!expression) {
-			throw new DataCreateFailureException();
+			throw new DataCreateException();
 		}
 	}
 
 	public static void create(boolean expression, final String message) {
 		if (!expression) {
-			throw new DataCreateFailureException(message);
+			throw new DataCreateException(message);
 		}
 	}
 
 	public static void update(boolean expression) {
 		if (!expression) {
-			throw new DataUpdateFailureException();
+			throw new DataUpdateException();
 		}
 	}
 
 	public static void update(boolean expression, final String message) {
 		if (!expression) {
-			throw new DataUpdateFailureException(message);
+			throw new DataUpdateException(message);
 		}
 	}
 
@@ -72,13 +75,13 @@ public class DataAccessAssert {
 
 	public static void save(boolean expression) {
 		if (!expression) {
-			throw new DataSaveFailureException();
+			throw new DataSaveException();
 		}
 	}
 
 	public static void save(boolean expression, final String message) {
 		if (!expression) {
-			throw new DataSaveFailureException(message);
+			throw new DataSaveException(message);
 		}
 	}
 }

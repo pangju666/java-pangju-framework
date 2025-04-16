@@ -18,37 +18,33 @@ package io.github.pangju666.framework.web.exception.authentication;
 
 import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.enums.HttpExceptionType;
+import io.github.pangju666.framework.web.exception.base.BaseHttpException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 import org.springframework.http.HttpStatus;
 
-import java.util.Collection;
-import java.util.Objects;
+@HttpException(code = 0, type = HttpExceptionType.AUTHENTICATION, status = HttpStatus.UNAUTHORIZED)
+public class AuthenticationException extends BaseHttpException {
+	protected final String userIdentifiers;
 
-@HttpException(code = 300, description = "缺少权限错误", type = HttpExceptionType.AUTHENTICATION,
-	status = HttpStatus.FORBIDDEN, log = false)
-public class NoPermissionException extends AuthenticationException {
-	public NoPermissionException(String message) {
-		super(message, null, null);
+	public AuthenticationException(String message, String userIdentifiers, String reason) {
+		super(message, reason);
+		this.userIdentifiers = userIdentifiers;
 	}
 
-	public NoPermissionException(String... permissions) {
-		super(permissions.length == 0 ? "缺少相应权限" : (permissions.length == 1 ? "缺少" + permissions[0] + "权限" :
-			"至少需要" + StringUtils.join(permissions, "、") + "中任一权限"), null, null);
-	}
-
-	public NoPermissionException(Collection<String> permissions) {
-		super(Objects.isNull(permissions) ? "缺少相应权限" : (permissions.size() == 1 ? "缺少" +
-			permissions.iterator().next() + "权限" : "至少需要" + StringUtils.join(permissions, "、") +
-			"中任一权限"), null, null);
-	}
-
-	@Override
-	public void log(Logger logger) {
+	public AuthenticationException(String message, String userIdentifiers, String reason, Throwable cause) {
+		super(message, reason, cause);
+		this.userIdentifiers = userIdentifiers;
 	}
 
 	@Override
 	public void log(Logger logger, Level level) {
+		String message = String.format("认证错误，用户标识：%s，原因：%s",
+			StringUtils.defaultIfBlank(this.userIdentifiers, "未知"),
+			StringUtils.defaultIfBlank(this.reason, "未知"));
+		logger.atLevel(level)
+			.setCause(this)
+			.log(message);
 	}
 }

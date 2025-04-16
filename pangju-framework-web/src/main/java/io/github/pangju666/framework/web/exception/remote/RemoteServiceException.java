@@ -16,8 +16,9 @@
 
 package io.github.pangju666.framework.web.exception.remote;
 
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.ServiceException;
-import io.github.pangju666.framework.web.pool.WebConstants;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -25,64 +26,7 @@ import org.slf4j.event.Level;
 
 import java.util.Objects;
 
-/**
- * 远程服务调用异常类（错误码为{@link WebConstants#REMOTE_SERVICE_ERROR_CODE}）
- * <p>
- * 该异常类用于处理远程服务调用过程中发生的异常情况，继承自{@link ServiceException}。
- * 提供了完整的远程服务错误信息封装，支持错误追踪和结构化日志记录。
- * </p>
- *
- * <p>
- * 主要特点：
- * <ul>
- *     <li>支持自定义错误消息和错误码</li>
- *     <li>包含完整的远程服务调用信息（服务名、接口名、URI等）</li>
- *     <li>提供结构化的日志记录功能</li>
- *     <li>支持异常链传递，便于问题追踪</li>
- * </ul>
- * </p>
- *
- * <p>
- * 使用场景：
- * <ul>
- *     <li>微服务间调用异常：服务不可用、超时等</li>
- *     <li>远程API调用失败：HTTP请求失败、响应异常等</li>
- *     <li>第三方服务集成异常：外部服务异常、协议错误等</li>
- *     <li>RPC调用异常：序列化失败、网络中断等</li>
- * </ul>
- * </p>
- *
- * <p>
- * 使用示例：
- * <pre>{@code
- * // 基本使用
- * RemoteServiceError error = RemoteServiceError.builder()
- *     .service("用户服务")
- *     .api("获取用户信息")
- *     .uri("http://user-service/users/1")
- *     .httpStatus(404)
- *     .message("用户不存在")
- *     .build();
- * throw new RemoteServiceException(error);
- *
- * // 包含原始异常
- * try {
- *     // 远程服务调用
- * } catch (Exception e) {
- *     RemoteServiceError error = RemoteServiceError.builder()
- *         .service("订单服务")
- *         .api("创建订单")
- *         .build();
- *     throw new RemoteServiceException(error, "创建订单失败", e);
- * }
- * }</pre>
- * </p>
- *
- * @author pangju666
- * @see RemoteServiceError
- * @see ServiceException
- * @since 1.0.0
- */
+@HttpException(code = 100, description = "远程服务错误", type = HttpExceptionType.SERVICE)
 public class RemoteServiceException extends ServiceException {
 	/**
 	 * 默认错误消息
@@ -119,43 +63,13 @@ public class RemoteServiceException extends ServiceException {
 	 */
 	protected final RemoteServiceError error;
 
-	/**
-	 * 使用默认错误消息创建异常实例
-	 *
-	 * @param error 远程服务错误信息，包含服务名称、接口名称、URI等详细信息
-	 * @throws NullPointerException 如果error参数为null
-	 * @since 1.0.0
-	 */
 	public RemoteServiceException(RemoteServiceError error) {
-		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, REMOTE_ERROR_MESSAGE);
+		super(REMOTE_ERROR_MESSAGE);
 		this.error = error;
 	}
 
-	/**
-	 * 使用自定义错误消息创建异常实例
-	 *
-	 * @param error 远程服务错误信息
-	 * @param message 自定义错误消息
-	 * @since 1.0.0
-	 */
-	public RemoteServiceException(RemoteServiceError error, String message) {
-		super(WebConstants.REMOTE_SERVICE_ERROR_CODE, message);
-		this.error = error;
-	}
-
-	/**
-	 * 使用自定义错误代码和消息创建异常实例
-	 * <p>
-	 * 受保护的构造方法，用于子类扩展。
-	 * </p>
-	 *
-	 * @param error 远程服务错误信息
-	 * @param code 自定义错误代码
-	 * @param message 自定义错误消息
-	 * @since 1.0.0
-	 */
-	protected RemoteServiceException(int code, RemoteServiceError error, String message) {
-		super(code, message);
+	public RemoteServiceException(String message, RemoteServiceError error) {
+		super(message);
 		this.error = error;
 	}
 

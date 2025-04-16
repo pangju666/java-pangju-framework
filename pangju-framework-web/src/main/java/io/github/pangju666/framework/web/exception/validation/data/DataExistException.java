@@ -16,11 +16,13 @@
 
 package io.github.pangju666.framework.web.exception.validation.data;
 
+import io.github.pangju666.framework.web.annotation.HttpException;
+import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.ValidationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@HttpException(code = 110, description = "数据已存在错误", type = HttpExceptionType.VALIDATION, log = false,
+	status = HttpStatus.BAD_REQUEST)
 public class DataExistException extends ValidationException {
 	public DataExistException() {
 		super("数据已存在");
@@ -28,13 +30,5 @@ public class DataExistException extends ValidationException {
 
 	public DataExistException(String message) {
 		super(message);
-	}
-
-	public DataExistException(Throwable cause) {
-		super("数据已存在", cause);
-	}
-
-	public DataExistException(String message, Throwable cause) {
-		super(message, cause);
 	}
 }
