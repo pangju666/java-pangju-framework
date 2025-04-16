@@ -16,9 +16,12 @@
 
 package io.github.pangju666.framework.web.exception.base;
 
+import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.pool.WebConstants;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 import org.springframework.core.NestedRuntimeException;
@@ -130,31 +133,50 @@ public abstract class BaseHttpException extends NestedRuntimeException {
 	}
 
 	/**
-	 * 使用ERROR级别记录异常日志
-	 * <p>
-	 * 此方法会将异常信息和堆栈跟踪记录到指定的日志记录器中
-	 * </p>
-	 *
-	 * @param logger 用于记录日志的SLF4J日志记录器
-	 * @since 1.0.0
-	 */
-	public void log(Logger logger) {
-		logger.error(this.reason, this);
-	}
-
-	/**
 	 * 使用指定级别记录异常日志
 	 * <p>
-	 * 此方法允许指定日志级别，适用于不同严重程度的异常情况
+	 * 此方法允许自定义日志级别，提供更灵活的日志记录方式：
+	 * <ul>
+	 *     <li>支持所有SLF4J定义的日志级别</li>
+	 *     <li>自动包含异常堆栈信息</li>
+	 *     <li>格式化输出错误原因</li>
+	 * </ul>
 	 * </p>
 	 *
 	 * @param logger 用于记录日志的SLF4J日志记录器
-	 * @param level 日志级别，如{@link Level#ERROR}、{@link Level#WARN}等
+	 * @param level  日志记录的级别，如 INFO、WARN、ERROR 等
 	 * @since 1.0.0
 	 */
 	public void log(Logger logger, Level level) {
 		logger.atLevel(level)
 			.setCause(this)
-			.log(this.reason);
+			.log("原因：" + StringUtils.defaultIfBlank(this.reason, "无"));
+	}
+
+	/**
+	 * 将值对象转换为字符串
+	 * <p>
+	 * 转换策略：
+	 * <ul>
+	 *     <li>空值：返回默认值</li>
+	 *     <li>可JSON化对象：转换为JSON字符串</li>
+	 *     <li>其他对象：调用toString方法</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param value        需要转换的值对象
+	 * @param defaultValue 值为空时的默认返回值
+	 * @return 转换后的字符串
+	 * @since 1.0.0
+	 */
+	protected String valueToString(Object value, String defaultValue) {
+		if (ObjectUtils.isEmpty(value)) {
+			return defaultValue;
+		}
+		try {
+			return JsonUtils.toString(value);
+		} catch (Exception ignored) {
+			return value.toString();
+		}
 	}
 }

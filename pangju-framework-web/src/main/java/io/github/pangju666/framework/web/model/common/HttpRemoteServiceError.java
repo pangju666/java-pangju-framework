@@ -14,7 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.exception.remote;
+package io.github.pangju666.framework.web.model.common;
+
+import org.springframework.http.HttpStatus;
 
 import java.net.URI;
 
@@ -34,12 +36,16 @@ import java.net.URI;
  * @author pangju666
  * @since 1.0.0
  */
-public record RemoteServiceError(String service,
-								 String api,
-								 URI uri,
-								 String message,
-								 String code,
-								 int httpStatus) {
+public record HttpRemoteServiceError(String service,
+									 String api,
+									 URI uri,
+									 String message,
+									 String code,
+									 HttpStatus httpStatus) {
+	public HttpRemoteServiceError(String service, String api, URI uri) {
+		this(service, api, uri, null, null, null);
+	}
+
 	/**
 	 * 创建一个新的错误信息实例，仅更改错误消息
 	 * <p>
@@ -50,7 +56,7 @@ public record RemoteServiceError(String service,
 	 * @return 新的错误信息实例
 	 * @since 1.0.0
 	 */
-	public RemoteServiceError clone(String message) {
-		return new RemoteServiceError(service, api, uri, message, code, httpStatus);
+	public HttpRemoteServiceError clone(String message) {
+		return new HttpRemoteServiceError(service, api, uri, message, code, httpStatus);
 	}
 }

@@ -1,8 +1,8 @@
 package io.github.pangju666.framework.web.spec
 
 import com.google.gson.JsonObject
-import io.github.pangju666.framework.web.exception.remote.RemoteServiceException
-import io.github.pangju666.framework.web.exception.remote.RemoteServiceTimeoutException
+import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException
+import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException
 import io.github.pangju666.framework.web.utils.RemoteServiceErrorBuilder
 import org.apache.commons.lang3.ArrayUtils
 import org.springframework.http.HttpHeaders
@@ -12,7 +12,7 @@ import org.springframework.web.client.RestClientResponseException
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class RemoteServiceErrorBuilderSpec extends Specification {
+class HttpRemoteServiceErrorBuilderSpec extends Specification {
 	def "构造函数应正确初始化基本属性"() {
 		when: "创建构建器实例"
 		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
@@ -115,7 +115,7 @@ class RemoteServiceErrorBuilderSpec extends Specification {
 		def result = builder.buildException(exception, "code", "message")
 
 		then: "应返回超时异常"
-		result instanceof RemoteServiceTimeoutException
+		result instanceof HttpRemoteServiceTimeoutException
 		result.getError().httpStatus() == HttpStatus.GATEWAY_TIMEOUT.value()
 	}
 
@@ -138,7 +138,7 @@ class RemoteServiceErrorBuilderSpec extends Specification {
 		def result = builder.buildException(exception, "code", "message")
 
 		then: "应正确解析响应体信息"
-		result instanceof RemoteServiceException
+		result instanceof HttpRemoteServiceException
 		with(result.getError()) {
 			code() == "E001"
 			message() == "业务错误"

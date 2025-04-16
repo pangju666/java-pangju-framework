@@ -21,9 +21,9 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.web.exception.base.ServerException;
-import io.github.pangju666.framework.web.exception.remote.RemoteServiceError;
-import io.github.pangju666.framework.web.exception.remote.RemoteServiceException;
-import io.github.pangju666.framework.web.exception.remote.RemoteServiceTimeoutException;
+import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException;
+import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException;
+import io.github.pangju666.framework.web.model.common.HttpRemoteServiceError;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -40,7 +40,7 @@ import java.util.Objects;
 /**
  * 远程服务错误信息构建器
  * <p>
- * 用于构建{@link RemoteServiceError}实例的构建器类。采用流式接口设计，
+ * 用于构建{@link HttpRemoteServiceError}实例的构建器类。采用流式接口设计，
  * 支持链式调用，使错误信息的构建更加灵活和易读。
  * </p>
  *
@@ -57,7 +57,7 @@ import java.util.Objects;
  * </p>
  *
  * @author pangju666
- * @see RemoteServiceError
+ * @see HttpRemoteServiceError
  * @since 1.0.0
  */
 public class RemoteServiceErrorBuilder {
@@ -178,8 +178,8 @@ public class RemoteServiceErrorBuilder {
 	 * @return 新的{@link RemoteServiceError}实例
 	 * @since 1.0.0
 	 */
-	public RemoteServiceError build() {
-		return new RemoteServiceError(service, api, uri, message, code, httpStatus);
+	public HttpRemoteServiceError build() {
+		return new HttpRemoteServiceError(service, api, uri, message, code, httpStatus);
 	}
 
 	/**
@@ -187,9 +187,9 @@ public class RemoteServiceErrorBuilder {
 	 * <p>
 	 * 处理不同类型的RestClient异常，并转换为对应的业务异常：
 	 * <ul>
-	 *     <li>网关超时异常转换为{@link RemoteServiceTimeoutException}</li>
+	 *     <li>网关超时异常转换为{@link HttpRemoteServiceTimeoutException}</li>
 	 *     <li>响应异常会解析响应体中的错误信息</li>
-	 *     <li>其他异常转换为标准的{@link RemoteServiceException}</li>
+	 *     <li>其他异常转换为标准的{@link HttpRemoteServiceException}</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -210,13 +210,13 @@ public class RemoteServiceErrorBuilder {
 	 * @throws ServerException          当响应体JSON解析失败时抛出
 	 * @since 1.0.0
 	 */
-	public RemoteServiceException buildException(RestClientException exception, String errorCodeMemberName,
-												 String errorMessageMemberName) {
+	public HttpRemoteServiceException buildException(RestClientException exception, String errorCodeMemberName,
+													 String errorMessageMemberName) {
 		Assert.notNull(exception, "exception 不可为null");
 
 		if (exception instanceof HttpServerErrorException.GatewayTimeout gatewayTimeoutException) {
 			httpStatus(gatewayTimeoutException.getStatusCode());
-			return new RemoteServiceTimeoutException(this.build());
+			return new HttpRemoteServiceTimeoutException(this.build());
 		}
 
 		if (exception instanceof RestClientResponseException responseException) {
@@ -242,6 +242,6 @@ public class RemoteServiceErrorBuilder {
 			}
 		}
 
-		return new RemoteServiceException(this.build());
+		return new HttpRemoteServiceException(this.build());
 	}
 }

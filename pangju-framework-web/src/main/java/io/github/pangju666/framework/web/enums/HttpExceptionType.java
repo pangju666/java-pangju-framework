@@ -30,7 +30,7 @@ import io.github.pangju666.framework.web.pool.WebConstants;
  * 基础错误码说明：
  * <ul>
  *     <li>SERVICE(1000): 业务逻辑错误基础码</li>
- *     <li>DATA(2000): 数据错误基础码</li>
+ *     <li>DATA_OPERATION(2000): 数据操作错误基础码</li>
  *     <li>AUTHENTICATION(3000): 认证授权错误基础码</li>
  *     <li>VALIDATION(4000): 参数校验错误基础码</li>
  *     <li>SERVER(5000): 服务器内部错误基础码</li>
@@ -109,7 +109,7 @@ public enum HttpExceptionType {
 	 *
 	 * @since 1.0.0
 	 */
-	DATA(2000, "数据操作错误"),
+	DATA_OPERATION(2000, "数据操作错误"),
 	/**
 	 * 认证错误（基础码：3000）
 	 * <p>

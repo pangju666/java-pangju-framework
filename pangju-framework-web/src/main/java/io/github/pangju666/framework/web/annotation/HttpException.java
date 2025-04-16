@@ -18,6 +18,7 @@ package io.github.pangju666.framework.web.annotation;
 
 import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.BaseHttpException;
+import org.slf4j.event.Level;
 import org.springframework.http.HttpStatus;
 
 import java.lang.annotation.*;
@@ -69,7 +70,7 @@ public @interface HttpException {
 	 * 得到最终的错误码。例如：
 	 * <ul>
 	 *     <li>异常类型为SERVICE(基础码2000)，配置码为1，最终错误码为2001</li>
-	 *     <li>异常类型为DATA(基础码3000)，配置码为1234，最终错误码为3234（3000+234）</li>
+	 *     <li>异常类型为DATA_OPERATION(基础码3000)，配置码为1234，最终错误码为3234（3000+234）</li>
 	 * </ul>
 	 * 配置码可以为负数，但计算时将使用其绝对值。
 	 * 当配置码绝对值超过1000时，会舍去千位及以上数值，只保留百位以下数值。
@@ -121,6 +122,8 @@ public @interface HttpException {
 	 * @since 1.0.0
 	 */
 	boolean log() default true;
+
+	Level logLevel() default Level.ERROR;
 
 	/**
 	 * HTTP响应状态码

@@ -46,7 +46,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 				synchronized (this) {
 					if (Objects.isNull(httpExceptionList)) {
 						this.httpExceptionTypeList = Arrays.stream(HttpExceptionType.values())
-							.map(type -> new EnumVO(type.getDescription(), type.name()))
+							.map(type -> new EnumVO(type.getLabel(), type.name()))
 							.toList();
 					}
 				}
@@ -64,7 +64,8 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 						Reflections reflections = new Reflections(configurationBuilder);
 
 						Set<Class<? extends BaseHttpException>> classes = reflections.getSubTypesOf(BaseHttpException.class);
-						List<HttpExceptionVO> httpExceptionList = new ArrayList<>(classes.size());
+						List<HttpExceptionVO> httpExceptionList = new ArrayList<>(classes.size() + 1);
+						this.httpExceptionList.add(new HttpExceptionVO(HttpExceptionType.UNKNOWN, -1, null));
 						for (Class<?> clazz : classes) {
 							HttpException annotation = clazz.getAnnotation(HttpException.class);
 							if (Objects.nonNull(annotation)) {

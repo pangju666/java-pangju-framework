@@ -3,8 +3,8 @@ package io.github.pangju666.framework.web.spec
 import io.github.pangju666.commons.lang.utils.JsonUtils
 import io.github.pangju666.framework.web.TestApplication
 import io.github.pangju666.framework.web.client.RestClientHelper
+import io.github.pangju666.framework.web.model.common.Result
 import io.github.pangju666.framework.web.model.dto.TestDTO
-import io.github.pangju666.framework.web.model.vo.Result
 import org.apache.commons.codec.binary.Base64
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader
@@ -47,7 +47,7 @@ class RestClientHelperSpec extends Specification {
 			.getBody()
 
 		then:
-		result.data() == ["test-path-variable", "test-param", "test-header"]
+		result.getData() == ["test-path-variable", "test-param", "test-header"]
 	}
 
 	def "测试json请求体"() {
@@ -63,7 +63,7 @@ class RestClientHelperSpec extends Specification {
 			.getBody()
 
 		then:
-		result.data() == ["test-path-variable", "test-param", "test-header", "test-key", "test-value"]
+		result.getData() == ["test-path-variable", "test-param", "test-header", "test-key", "test-value"]
 
 		where:
 		body                                                                          | _
@@ -86,7 +86,7 @@ class RestClientHelperSpec extends Specification {
 			.getBody()
 
 		then:
-		result.data() == ["test-path-variable", "test-param", "test-header", "test-text"]
+		result.getData() == ["test-path-variable", "test-param", "test-header", "test-text"]
 	}
 
 	def "测试bytes请求体"() {
@@ -102,7 +102,7 @@ class RestClientHelperSpec extends Specification {
 			.getBody()
 
 		then:
-		result.data() == ["test-path-variable", "test-param", "test-header", Base64.encodeBase64String(new File("src/test/resources/images/test.jpg").readBytes())]
+		result.getData() == ["test-path-variable", "test-param", "test-header", Base64.encodeBase64String(new File("src/test/resources/images/test.jpg").readBytes())]
 	}
 
 	def "测试resource请求体"() {
@@ -119,7 +119,7 @@ class RestClientHelperSpec extends Specification {
 			.getBody()
 
 		then:
-		result.data() == ["test-path-variable", "test-param", "test-header", image.size().toString()]
+		result.getData() == ["test-path-variable", "test-param", "test-header", image.size().toString()]
 	}
 
 	def "测试form请求体"() {
@@ -136,7 +136,7 @@ class RestClientHelperSpec extends Specification {
 			.getBody()
 
 		then:
-		result.data() == ["test-path-variable", "test-param", "test-header", image.size().toString()]
+		result.getData() == ["test-path-variable", "test-param", "test-header", image.size().toString()]
 	}
 
 	def "测试json响应体"() {
@@ -148,7 +148,7 @@ class RestClientHelperSpec extends Specification {
 			.getBody()
 
 		then:
-		result.data() == "json"
+		result.getData() == "json"
 	}
 
 	def "测试string响应体"() {

@@ -1,9 +1,8 @@
-package io.github.pangju666.framework.web.model.vo;
+package io.github.pangju666.framework.web.model.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
-import io.github.pangju666.framework.web.exception.remote.RemoteServiceError;
-import io.github.pangju666.framework.web.exception.remote.RemoteServiceException;
+import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException;
 import io.github.pangju666.framework.web.pool.WebConstants;
 import io.github.pangju666.framework.web.utils.RemoteServiceErrorBuilder;
 import org.slf4j.Logger;
@@ -51,11 +50,11 @@ public final class Result<T> {
 			return this.data;
 		}
 
-		RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api, uri)
+		HttpRemoteServiceError httpRemoteServiceError = new RemoteServiceErrorBuilder(service, api, uri)
 			.code(this.code)
 			.message(this.message)
 			.build();
-		throw new RemoteServiceException(remoteServiceError);
+		throw new HttpRemoteServiceException(httpRemoteServiceError);
 	}
 
 	public Optional<T> geOptionalData(final String service, final String api, final URI uri, final Logger logger) {
@@ -63,13 +62,25 @@ public final class Result<T> {
 			return Optional.ofNullable(this.data);
 		}
 
-		RemoteServiceError remoteServiceError = new RemoteServiceErrorBuilder(service, api, uri)
+		HttpRemoteServiceError httpRemoteServiceError = new RemoteServiceErrorBuilder(service, api, uri)
 			.code(this.code)
 			.message(this.message)
 			.build();
-		RemoteServiceException remoteServiceException = new RemoteServiceException(remoteServiceError);
-		remoteServiceException.log(logger);
+		HttpRemoteServiceException httpRemoteServiceException = new HttpRemoteServiceException(httpRemoteServiceError);
+		httpRemoteServiceException.log(logger);
 		return Optional.empty();
+	}
+
+	public int getCode() {
+		return code;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public T getData() {
+		return data;
 	}
 
 	@Override

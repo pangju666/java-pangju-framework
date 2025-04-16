@@ -2,7 +2,7 @@ package io.github.pangju666.framework.web.utils;
 
 import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.exception.base.BaseHttpException;
-import io.github.pangju666.framework.web.model.vo.Result;
+import io.github.pangju666.framework.web.model.common.Result;
 import io.github.pangju666.framework.web.pool.WebConstants;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -76,17 +76,23 @@ public class ResponseUtils {
 		writeResultToResponse(Result.ok(bean), response, status.value());
 	}
 
-	public static <E extends BaseHttpException> void writeExceptionToResponse(final E exception, final HttpServletResponse response) {
-		HttpException annotation = exception.getClass().getAnnotation(HttpException.class);
-		if (Objects.nonNull(annotation)) {
-			Result<Void> result = Result.fail(annotation.code(), exception.getMessage());
-			if (annotation.log()) {
-				exception.log(LOGGER);
+	public static <E extends Exception> void writeExceptionToResponse(final E exception, final HttpServletResponse response) {
+		if (exception instanceof BaseHttpException httpException) {
+			HttpException annotation = exception.getClass().getAnnotation(HttpException.class);
+			if (Objects.nonNull(annotation)) {
+				Result<Void> result = Result.fail(annotation.type().computeCode(annotation.code()), exception.getMessage());
+				if (annotation.log()) {
+					httpException.log(LOGGER);
+				}
+				writeResultToResponse(result, response, annotation.status().value());
+			} else {
+				Result<Void> result = Result.fail(WebConstants.BASE_ERROR_CODE, exception.getMessage());
+				httpException.log(LOGGER);
+				writeResultToResponse(result, response, HttpStatus.OK.value());
 			}
-			writeResultToResponse(result, response, annotation.status().value());
 		} else {
 			Result<Void> result = Result.fail(WebConstants.BASE_ERROR_CODE, exception.getMessage());
-			exception.log(LOGGER);
+			LOGGER.error(exception.getMessage(), exception);
 			writeResultToResponse(result, response, HttpStatus.OK.value());
 		}
 	}

@@ -1,7 +1,7 @@
 package io.github.pangju666.framework.web.controller
 
+import io.github.pangju666.framework.web.model.common.Result
 import io.github.pangju666.framework.web.model.dto.TestDTO
-import io.github.pangju666.framework.web.model.vo.Result
 import org.apache.commons.codec.binary.Base64
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
