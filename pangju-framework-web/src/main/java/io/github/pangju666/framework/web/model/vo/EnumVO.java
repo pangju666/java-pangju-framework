@@ -16,5 +16,20 @@
 
 package io.github.pangju666.framework.web.model.vo;
 
+/**
+ * 枚举值对象
+ * <p>
+ * 用于前后端交互时传输枚举数据，包含：
+ * <ul>
+ *     <li>标签：用于显示的文本描述</li>
+ *     <li>值：实际的枚举值</li>
+ * </ul>
+ * </p>
+ *
+ * @param label 显示标签
+ * @param value 枚举值
+ * @author pangju666
+ * @since 1.0.0
+ */
 public record EnumVO(String label, String value) {
 }

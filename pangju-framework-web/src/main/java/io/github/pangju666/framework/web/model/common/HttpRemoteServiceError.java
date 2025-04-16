@@ -42,6 +42,18 @@ public record HttpRemoteServiceError(String service,
 									 String message,
 									 String code,
 									 HttpStatus httpStatus) {
+	/**
+	 * 创建基础错误信息实例
+	 * <p>
+	 * 仅包含服务标识信息，其他错误相关字段（消息、错误码、HTTP状态码）均为null。
+	 * 适用于需要先创建基础信息，后续再补充错误详情的场景。
+	 * </p>
+	 *
+	 * @param service 远程服务名称
+	 * @param api     API接口名称或路径
+	 * @param uri     完整的请求URI
+	 * @since 1.0.0
+	 */
 	public HttpRemoteServiceError(String service, String api, URI uri) {
 		this(service, api, uri, null, null, null);
 	}

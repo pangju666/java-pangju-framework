@@ -20,5 +20,15 @@ import io.github.pangju666.commons.validation.annotation.NotBlankElements;
 
 import java.util.List;
 
+/**
+ * 字符串列表数据传输对象
+ * <p>
+ * 用于封装字符串列表数据，要求列表元素不能为空白字符串。
+ * </p>
+ *
+ * @param values 字符串列表
+ * @author pangju666
+ * @since 1.0.0
+ */
 public record StringListDTO(@NotBlankElements List<String> values) {
 }

@@ -21,7 +21,20 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
-public record RequiredListDTO<T>(@NotEmpty(message = "集合不能为空")
-								 @Valid
-								 List<T> list) {
+/**
+ * 必填列表数据传输对象
+ * <p>
+ * 用于封装必须提供的列表数据，要求：
+ * <ul>
+ *     <li>列表不能为空</li>
+ *     <li>支持对列表元素进行验证</li>
+ * </ul>
+ * </p>
+ *
+ * @param list 必填的列表数据
+ * @param <T>  列表元素类型
+ * @author pangju666
+ * @since 1.0.0
+ */
+public record RequiredListDTO<T>(@NotEmpty(message = "集合不能为空") @Valid List<T> list) {
 }

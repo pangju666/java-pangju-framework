@@ -21,7 +21,19 @@ import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
-public record UniqueStringListDTO(@NotBlankElements
-								  @UniqueElements(message = "集合中存在重复的值")
-								  List<String> list) {
+/**
+ * 唯一字符串列表数据传输对象
+ * <p>
+ * 用于封装字符串列表数据，要求：
+ * <ul>
+ *     <li>列表元素不能为空白字符串</li>
+ *     <li>列表元素不能重复</li>
+ * </ul>
+ * </p>
+ *
+ * @param list 字符串列表
+ * @author pangju666
+ * @since 1.0.0
+ */
+public record UniqueStringListDTO(@NotBlankElements @UniqueElements(message = "集合中存在重复的值") List<String> list) {
 }

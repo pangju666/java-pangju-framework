@@ -21,7 +21,21 @@ import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
+/**
+ * 必填且唯一的字符串列表数据传输对象
+ * <p>
+ * 用于封装字符串列表数据，要求：
+ * <ul>
+ *     <li>列表不能为空</li>
+ *     <li>列表元素不能为空白字符串</li>
+ *     <li>列表元素不能重复</li>
+ * </ul>
+ * </p>
+ *
+ * @param values 字符串列表
+ * @author pangju666
+ * @since 1.0.0
+ */
 public record RequiredUniqueStringListDTO(@NotBlankElements(notEmpty = true, message = "集合可能为空或存在空白的值")
-										  @UniqueElements(message = "存在重复的字符串")
-										  List<String> values) {
+										  @UniqueElements(message = "存在重复的字符串") List<String> values) {
 }
