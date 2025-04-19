@@ -1,3 +1,19 @@
+/*
+ *   Copyright 2025 pangju666
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package io.github.pangju666.framework.web.utils;
 
 import com.google.gson.JsonElement;
@@ -84,25 +100,25 @@ public class RequestUtils {
 
 	public static String getIpAddress(final HttpServletRequest request) {
 		if (Objects.isNull(request)) {
-			return IpUtils.UNKNOWN_ADDRESS;
+			return Ipv4Utils.UNKNOWN_ADDRESS;
 		}
 		String ip = request.getHeader("x-forwarded-for");
-		if (IpUtils.isUnknown(ip)) {
+		if (Ipv4Utils.isUnknown(ip)) {
 			ip = request.getHeader("Proxy-Client-IP");
 		}
-		if (IpUtils.isUnknown(ip)) {
+		if (Ipv4Utils.isUnknown(ip)) {
 			ip = request.getHeader("X-Forwarded-For");
 		}
-		if (IpUtils.isUnknown(ip)) {
+		if (Ipv4Utils.isUnknown(ip)) {
 			ip = request.getHeader("WL-Proxy-Client-IP");
 		}
-		if (IpUtils.isUnknown(ip)) {
+		if (Ipv4Utils.isUnknown(ip)) {
 			ip = request.getHeader("X-Real-IP");
 		}
-		if (IpUtils.isUnknown(ip)) {
+		if (Ipv4Utils.isUnknown(ip)) {
 			ip = request.getRemoteAddr();
 		}
-		return Constants.LOCALHOST_IPV6_ADDRESS.equals(ip) ? Constants.LOCALHOST_IPV4_ADDRESS : IpUtils.getMultistageReverseProxyIp(ip);
+		return Constants.LOCALHOST_IPV6_ADDRESS.equals(ip) ? Constants.LOCALHOST_IPV4_ADDRESS : Ipv4Utils.getMultistageReverseProxyIp(ip);
 	}
 
 	public static Map<String, Object> getParameterMap(final HttpServletRequest request) {
