@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.utils;
+package io.github.pangju666.framework.web.model.error;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -23,11 +23,9 @@ import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.web.exception.base.ServerException;
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException;
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException;
-import io.github.pangju666.framework.web.model.common.HttpRemoteServiceError;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
@@ -47,7 +45,7 @@ import java.util.Objects;
  * <p>
  * 使用示例：
  * <pre>{@code
- * RemoteServiceError error = new RemoteServiceErrorBuilder("鉴权服务", "获取用户信息")
+ * HttpRemoteServiceError error = new HttpRemoteServiceError("鉴权服务", "获取用户信息")
  *     .uri(URI.create("http://example.com/api/users"))
  *     .message("用户不存在：{0}", userId)
  *     .code(404)
@@ -60,13 +58,13 @@ import java.util.Objects;
  * @see HttpRemoteServiceError
  * @since 1.0.0
  */
-public class RemoteServiceErrorBuilder {
+public class HttpRemoteServiceErrorBuilder {
 	private final String service;
 	private final String api;
 	private URI uri;
 	private String message;
 	private String code;
-	private int httpStatus = HttpStatus.OK.value();
+	private HttpStatus httpStatus = HttpStatus.OK;
 
 	/**
 	 * 创建构建器实例
@@ -75,7 +73,7 @@ public class RemoteServiceErrorBuilder {
 	 * @param api     API接口名称或路径
 	 * @since 1.0.0
 	 */
-	public RemoteServiceErrorBuilder(String service, String api) {
+	public HttpRemoteServiceErrorBuilder(String service, String api) {
 		this.service = service;
 		this.api = api;
 	}
@@ -88,7 +86,7 @@ public class RemoteServiceErrorBuilder {
 	 * @param uri     请求URI
 	 * @since 1.0.0
 	 */
-	public RemoteServiceErrorBuilder(String service, String api, URI uri) {
+	public HttpRemoteServiceErrorBuilder(String service, String api, URI uri) {
 		this.service = service;
 		this.api = api;
 		this.uri = uri;
@@ -101,7 +99,7 @@ public class RemoteServiceErrorBuilder {
 	 * @return 当前构建器实例
 	 * @since 1.0.0
 	 */
-	public RemoteServiceErrorBuilder uri(URI uri) {
+	public HttpRemoteServiceErrorBuilder uri(URI uri) {
 		this.uri = uri;
 		return this;
 	}
@@ -113,7 +111,7 @@ public class RemoteServiceErrorBuilder {
 	 * @return 当前构建器实例
 	 * @since 1.0.0
 	 */
-	public RemoteServiceErrorBuilder message(String message) {
+	public HttpRemoteServiceErrorBuilder message(String message) {
 		this.message = message;
 		return this;
 	}
@@ -139,7 +137,7 @@ public class RemoteServiceErrorBuilder {
 	 * @see MessageFormat#format(String, Object...)
 	 * @since 1.0.0
 	 */
-	public RemoteServiceErrorBuilder message(String pattern, Object... args) {
+	public HttpRemoteServiceErrorBuilder message(String pattern, Object... args) {
 		if (StringUtils.isNotEmpty(pattern)) {
 			this.message = MessageFormat.format(pattern, args);
 		}
@@ -153,7 +151,7 @@ public class RemoteServiceErrorBuilder {
 	 * @return 当前构建器实例
 	 * @since 1.0.0
 	 */
-	public RemoteServiceErrorBuilder code(Object code) {
+	public HttpRemoteServiceErrorBuilder code(Object code) {
 		this.code = Objects.toString(code, null);
 		return this;
 	}
@@ -165,9 +163,9 @@ public class RemoteServiceErrorBuilder {
 	 * @return 当前构建器实例
 	 * @since 1.0.0
 	 */
-	public RemoteServiceErrorBuilder httpStatus(HttpStatusCode httpStatus) {
+	public HttpRemoteServiceErrorBuilder httpStatus(HttpStatus httpStatus) {
 		if (Objects.nonNull(httpStatus)) {
-			this.httpStatus = httpStatus.value();
+			this.httpStatus = httpStatus;
 		}
 		return this;
 	}
@@ -215,13 +213,13 @@ public class RemoteServiceErrorBuilder {
 		Assert.notNull(exception, "exception 不可为null");
 
 		if (exception instanceof HttpServerErrorException.GatewayTimeout gatewayTimeoutException) {
-			httpStatus(gatewayTimeoutException.getStatusCode());
+			httpStatus(HttpStatus.valueOf(gatewayTimeoutException.getStatusCode().value()));
 			return new HttpRemoteServiceTimeoutException(this.build());
 		}
 
 		if (exception instanceof RestClientResponseException responseException) {
 			try {
-				this.httpStatus(responseException.getStatusCode());
+				this.httpStatus(HttpStatus.valueOf(responseException.getStatusCode().value()));
 				JsonObject response = JsonUtils.parseString(responseException.getResponseBodyAsString()).getAsJsonObject();
 
 				if (StringUtils.isNotBlank(errorMessageMemberName)) {

@@ -19,7 +19,7 @@ package io.github.pangju666.framework.web.exception.remote;
 import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.ServiceException;
-import io.github.pangju666.framework.web.model.common.HttpRemoteServiceError;
+import io.github.pangju666.framework.web.model.error.HttpRemoteServiceError;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;

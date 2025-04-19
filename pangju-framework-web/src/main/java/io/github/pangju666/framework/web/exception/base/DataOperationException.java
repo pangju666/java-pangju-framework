@@ -18,70 +18,84 @@ package io.github.pangju666.framework.web.exception.base;
 
 import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.enums.HttpExceptionType;
+import io.github.pangju666.framework.web.model.error.DataOperationError;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
+import java.util.Objects;
+
 /**
  * 数据操作异常
  * <p>
- * 用于处理数据操作过程中的异常情况，提供详细的操作上下文信息，包括：
+ * 封装数据操作过程中发生的异常，提供结构化的错误上下文信息：
  * <ul>
- *     <li>数据来源：如用户表、订单表等</li>
- *     <li>操作类型：如新增、修改、删除等</li>
- *     <li>数据说明：如用户ID、订单编号等（字段含义）</li>
- *     <li>数据内容：具体的数据值</li>
+ *     <li>操作类型：如新增、修改、删除、查询等</li>
+ *     <li>错误数据：包含来源、描述、数据值和失败原因</li>
  * </ul>
  * </p>
  *
  * <p>
- * 特点：
+ * 核心特性：
  * <ul>
- *     <li>基础错误码：2000（{@link HttpExceptionType#DATA_OPERATION}）</li>
- *     <li>记录日志</li>
- *     <li>提供结构化的错误信息</li>
- *     <li>支持异常链追踪</li>
+ *     <li>错误码：2000（{@link HttpExceptionType#DATA_OPERATION}）</li>
+ *     <li>结构化日志记录，便于问题追踪</li>
+ *     <li>支持无错误数据和有错误数据两种构造方式</li>
+ *     <li>可包含原始异常，保留完整异常链</li>
  * </ul>
  * </p>
  *
  * <p>
- * 使用示例：
+ * 使用场景：
  * <pre>{@code
- * try {
- *     repository.deleteById(id);
- * } catch (Exception e) {
- *     throw new DataOperationException(
- *         "删除用户失败",     // 展示消息
- *         "用户表",         // 数据来源
- *         "删除",          // 操作类型
- *         "用户ID",        // 数据说明
- *         id,             // 数据值
- *         "记录不存在",     // 错误原因
- *         e               // 原始异常
- *     );
- * }
+ * // 基本用法
+ * throw new DataOperationException(
+ *     "删除",          // 操作类型
+ *     "删除用户失败",   // 展示消息
+ *     "记录不存在"      // 错误原因
+ * );
+ *
+ * // 使用错误数据对象
+ * DataOperationError error = new DataOperationError(
+ *     "用户表",       // 数据来源
+ *     "用户ID",      // 数据描述
+ *     userId,       // 数据值
+ *     "记录不存在"    // 错误原因
+ * );
+ * throw new DataOperationException(
+ *     "删除",        // 操作类型
+ *     "删除用户失败", // 展示消息
+ *     error         // 错误信息
+ * );
  * }</pre>
+ * </p>
+ *
+ * <p>
+ * 子类体系：
+ * <ul>
+ *     <li>{@link io.github.pangju666.framework.web.exception.data.DataCreateException} - 数据创建异常</li>
+ *     <li>{@link io.github.pangju666.framework.web.exception.data.DataUpdateException} - 数据更新异常</li>
+ *     <li>{@link io.github.pangju666.framework.web.exception.data.DataRemoveException} - 数据删除异常</li>
+ *     <li>{@link io.github.pangju666.framework.web.exception.data.DataQueryException} - 数据查询异常</li>
+ * </ul>
  * </p>
  *
  * @author pangju666
  * @since 1.0.0
+ * @see DataOperationError 数据操作错误记录
  */
 @HttpException(code = 0, type = HttpExceptionType.DATA_OPERATION)
 public class DataOperationException extends BaseHttpException {
 	/**
-	 * 数据来源
-	 * <p>
-	 * 记录发生异常的数据来源，如：
-	 * <ul>
-	 *     <li>用户表</li>
-	 *     <li>订单表</li>
-	 *     <li>商品表</li>
-	 * </ul>
-	 * </p>
+	 * 表示一个空的数据操作错误对象。
+	 * 当未提供具体错误信息时，用作默认值。
+	 * 该常量实例化时所有字段均为null，表示没有特定的错误信息。
 	 *
 	 * @since 1.0.0
 	 */
-	protected final String source;
+	protected static final DataOperationError EMPTY_ERROR = new DataOperationError(null, null, null, null);
+
 	/**
 	 * 操作类型
 	 * <p>
@@ -98,73 +112,78 @@ public class DataOperationException extends BaseHttpException {
 	 */
 	protected final String operation;
 	/**
-	 * 数据内容
-	 * <p>
-	 * 记录操作涉及的具体数据值，如：
-	 * <ul>
-	 *     <li>主键值：1001</li>
-	 *     <li>字段值：张三</li>
-	 *     <li>复杂对象：整个实体对象</li>
-	 * </ul>
-	 * </p>
+	 * 表示数据操作错误的详细信息。
 	 *
 	 * @since 1.0.0
 	 */
-	protected final Object data;
-	/**
-	 * 数据说明
-	 * <p>
-	 * 描述数据字段的含义，如：
-	 * <ul>
-	 *     <li>用户ID</li>
-	 *     <li>订单编号</li>
-	 *     <li>商品名称</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
-	protected final String description;
+	protected final DataOperationError error;
 
 	/**
-	 * 创建数据操作异常实例
+	 * 创建一个数据操作异常。
 	 *
-	 * @param message     展示给用户的错误消息
-	 * @param source      数据来源（如：用户表）
-	 * @param operation   操作类型（如：删除）
-	 * @param description 数据说明（如：用户ID）
-	 * @param data        数据值（如：1001）
-	 * @param reason      错误原因
+	 * @param operation 发生异常的操作名称
+	 * @param message 异常消息
+	 * @param reason 异常原因的描述
 	 * @since 1.0.0
 	 */
-	public DataOperationException(String message, String source, String operation, String description, Object data,
-								  String reason) {
+	public DataOperationException(String operation, String message, String reason) {
 		super(message, reason);
 		this.operation = operation;
-		this.source = source;
-		this.data = data;
-		this.description = description;
+		this.error = EMPTY_ERROR;
 	}
 
 	/**
-	 * 创建带有原因异常的数据操作异常实例
+	 * 创建一个带有原因异常的数据操作异常。
 	 *
-	 * @param message     展示给用户的错误消息
-	 * @param source      数据来源（如：用户表）
-	 * @param operation   操作类型（如：删除）
-	 * @param description 数据说明（如：用户ID）
-	 * @param data        数据值（如：1001）
-	 * @param reason      错误原因
-	 * @param cause       导致此异常的原始异常
+	 * @param operation 发生异常的操作名称
+	 * @param message 异常消息
+	 * @param reason 异常原因的描述
+	 * @param cause 导致此异常的原始异常
 	 * @since 1.0.0
 	 */
-	public DataOperationException(String message, String source, String operation, String description, Object data,
-								  String reason, Throwable cause) {
+	public DataOperationException(String operation, String message, String reason, Throwable cause) {
 		super(message, reason, cause);
 		this.operation = operation;
-		this.source = source;
-		this.data = data;
-		this.description = description;
+		this.error = EMPTY_ERROR;
+	}
+
+	/**
+	 * 创建一个包含数据操作错误信息的数据操作异常。
+	 *
+	 * @param operation 发生异常的操作名称
+	 * @param message   异常消息
+	 * @param error     数据操作错误信息对象，如果为null则使用EMPTY_ERROR
+	 * @since 1.0.0
+	 */
+	public DataOperationException(String operation, String message, DataOperationError error) {
+		super(message, Objects.isNull(error) ? null : error.reason());
+		this.operation = operation;
+		this.error = ObjectUtils.defaultIfNull(error, EMPTY_ERROR);
+	}
+
+	/**
+	 * 创建一个包含数据操作错误信息和原因异常的数据操作异常。
+	 *
+	 * @param operation 发生异常的操作名称
+	 * @param message   异常消息
+	 * @param error     数据操作错误信息对象，如果为null则使用EMPTY_ERROR
+	 * @param cause     导致此异常的原始异常
+	 * @since 1.0.0
+	 */
+	public DataOperationException(String operation, String message, DataOperationError error, Throwable cause) {
+		super(message, Objects.isNull(error) ? null : error.reason(), cause);
+		this.operation = operation;
+		this.error = ObjectUtils.defaultIfNull(error, EMPTY_ERROR);
+	}
+
+	/**
+	 * 获取数据操作错误信息对象。
+	 *
+	 * @return 如果error是 {@link #EMPTY_ERROR}则返回null，否则返回error对象
+	 * @since 1.0.0
+	 */
+	public DataOperationError getError() {
+		return this.error == EMPTY_ERROR ? null : this.error;
 	}
 
 	/**
@@ -195,11 +214,13 @@ public class DataOperationException extends BaseHttpException {
 	 */
 	@Override
 	public void log(Logger logger, Level level) {
+		if (this.error == EMPTY_ERROR) {}
+
 		String message = String.format("数据操作错误，来源：%s，操作：%s，数据描述：%s，数据值：%s，原因：%s",
-			StringUtils.defaultIfBlank(this.source, "未知"),
+			StringUtils.defaultIfBlank(this.error.source(), "未知"),
 			StringUtils.defaultIfBlank(this.operation, "未知"),
-			StringUtils.defaultIfBlank(this.description, "未知"),
-			valueToString(this.data, "未知"),
+			StringUtils.defaultIfBlank(this.error.description(), "未知"),
+			valueToString(this.error.data(), "未知"),
 			StringUtils.defaultIfBlank(this.reason, "未知"));
 		logger.atLevel(level)
 			.setCause(this)

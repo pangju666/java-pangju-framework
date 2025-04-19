@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.model.common;
+package io.github.pangju666.framework.web.model.error;
 
 import org.springframework.http.HttpStatus;
 

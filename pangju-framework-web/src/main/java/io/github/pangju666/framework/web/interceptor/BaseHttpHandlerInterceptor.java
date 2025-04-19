@@ -22,6 +22,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 请求拦截器基类
@@ -66,16 +67,16 @@ public abstract class BaseHttpHandlerInterceptor implements HandlerInterceptor {
 	 * 创建拦截器实例
 	 *
 	 * @param order               拦截器执行顺序（数值越小优先级越高）
-	 * @param excludePathPatterns 排除路径模式列表
-	 * @param patterns            拦截路径模式列表
+	 * @param excludePathPatterns 排除路径模式集合
+	 * @param patterns            拦截路径模式集合
 	 * @since 1.0.0
 	 */
-	protected BaseHttpHandlerInterceptor(int order, List<String> excludePathPatterns, List<String> patterns) {
+	protected BaseHttpHandlerInterceptor(int order, Set<String> excludePathPatterns, Set<String> patterns) {
 		this.order = order;
 		this.excludePathPatterns = Objects.isNull(excludePathPatterns) ? Collections.emptyList() :
-			Collections.unmodifiableList(excludePathPatterns);
+			List.copyOf(excludePathPatterns);
 		this.patterns = Objects.isNull(patterns) ? Collections.emptyList() :
-			Collections.unmodifiableList(patterns);
+			List.copyOf(patterns);
 	}
 
 	/**

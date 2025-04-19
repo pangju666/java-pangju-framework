@@ -1,9 +1,25 @@
+/*
+ *    Copyright 2025 pangju666
+ *
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package io.github.pangju666.framework.web.spec
 
 import com.google.gson.JsonObject
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException
-import io.github.pangju666.framework.web.utils.RemoteServiceErrorBuilder
+import io.github.pangju666.framework.web.model.error.HttpRemoteServiceErrorBuilder
 import org.apache.commons.lang3.ArrayUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -12,10 +28,10 @@ import org.springframework.web.client.RestClientResponseException
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class HttpRemoteServiceErrorBuilderSpec extends Specification {
+class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
 	def "构造函数应正确初始化基本属性"() {
 		when: "创建构建器实例"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
 
 		then: "基本属性应被正确初始化"
 		builder.build().with {
@@ -33,7 +49,7 @@ class HttpRemoteServiceErrorBuilderSpec extends Specification {
 		def uri = new URI("http://test.com/api")
 
 		when: "创建带URI的构建器实例"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口", uri)
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口", uri)
 
 		then: "所有属性应被正确初始化"
 		builder.build().with {
@@ -48,7 +64,7 @@ class HttpRemoteServiceErrorBuilderSpec extends Specification {
 
 	def "message方法应正确设置错误消息"() {
 		given: "创建构建器实例"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
 
 		when: "设置错误消息"
 		builder.message("测试错误")
@@ -60,7 +76,7 @@ class HttpRemoteServiceErrorBuilderSpec extends Specification {
 	@Unroll
 	def "message方法应正确处理带参数的消息模板：#pattern"() {
 		given: "创建构建器实例"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
 
 		when: "使用模板设置错误消息"
 		builder.message(pattern, args as Object[])
@@ -79,7 +95,7 @@ class HttpRemoteServiceErrorBuilderSpec extends Specification {
 	@Unroll
 	def "code方法应正确设置错误代码：#inputCode"() {
 		given: "创建构建器实例"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
 
 		when: "设置错误代码"
 		builder.code(inputCode)
@@ -96,7 +112,7 @@ class HttpRemoteServiceErrorBuilderSpec extends Specification {
 
 	def "httpStatus方法应正确设置HTTP状态码"() {
 		given: "创建构建器实例"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
 
 		when: "设置HTTP状态码"
 		builder.httpStatus(HttpStatus.NOT_FOUND)
@@ -107,7 +123,7 @@ class HttpRemoteServiceErrorBuilderSpec extends Specification {
 
 	def "buildException应正确处理网关超时异常"() {
 		given: "创建构建器实例和网关超时异常"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
 		def exception = HttpServerErrorException.create(HttpStatus.GATEWAY_TIMEOUT,
 			"Gateway Timeout", HttpHeaders.EMPTY, ArrayUtils.EMPTY_BYTE_ARRAY, null)
 
@@ -121,7 +137,7 @@ class HttpRemoteServiceErrorBuilderSpec extends Specification {
 
 	def "buildException应正确处理响应异常"() {
 		given: "创建构建器实例和模拟响应数据"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
 		def responseBody = new JsonObject()
 		responseBody.addProperty("code", "E001")
 		responseBody.addProperty("message", "业务错误")
@@ -148,7 +164,7 @@ class HttpRemoteServiceErrorBuilderSpec extends Specification {
 
 	def "buildException不应接受null参数"() {
 		given: "创建构建器实例"
-		def builder = new RemoteServiceErrorBuilder("测试服务", "测试接口")
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
 
 		when: "传入null异常"
 		builder.buildException(null, "code", "message")

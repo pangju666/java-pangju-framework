@@ -19,8 +19,9 @@ package io.github.pangju666.framework.web.model.common;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException;
+import io.github.pangju666.framework.web.model.error.HttpRemoteServiceError;
+import io.github.pangju666.framework.web.model.error.HttpRemoteServiceErrorBuilder;
 import io.github.pangju666.framework.web.pool.WebConstants;
-import io.github.pangju666.framework.web.utils.RemoteServiceErrorBuilder;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
@@ -181,7 +182,7 @@ public final class Result<T> {
 			return this.data;
 		}
 
-		HttpRemoteServiceError httpRemoteServiceError = new RemoteServiceErrorBuilder(service, api, uri)
+		HttpRemoteServiceError httpRemoteServiceError = new HttpRemoteServiceErrorBuilder(service, api, uri)
 			.code(this.code)
 			.message(this.message)
 			.build();
@@ -207,7 +208,7 @@ public final class Result<T> {
 			return Optional.ofNullable(this.data);
 		}
 
-		HttpRemoteServiceError httpRemoteServiceError = new RemoteServiceErrorBuilder(service, api, uri)
+		HttpRemoteServiceError httpRemoteServiceError = new HttpRemoteServiceErrorBuilder(service, api, uri)
 			.code(this.code)
 			.message(this.message)
 			.build();
