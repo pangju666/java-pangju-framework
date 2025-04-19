@@ -16,9 +16,15 @@
 
 package io.github.pangju666.framework.web.utils;
 
-import io.github.pangju666.commons.lang.pool.Constants;
+import inet.ipaddr.IPAddressString;
+import io.github.pangju666.commons.lang.pool.RegExPool;
+import io.github.pangju666.commons.lang.utils.RegExUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.regex.Pattern;
 
 /**
  * IPv4地址工具类
@@ -47,6 +53,8 @@ public class Ipv4Utils {
 	 * @since 1.0.0
 	 */
 	public static final String UNKNOWN_ADDRESS = "unknown";
+	public static final Pattern IP_PATTERN = RegExUtils.compile(RegExPool.IPV4, true, true);
+
 	// 内部IP地址段的常量定义
 	protected static final byte SECTION_1 = 0x0A; // 10.x.x.x/8
 	protected static final byte SECTION_2 = (byte) 0xAC; // 172.16.x.x/12
@@ -56,6 +64,31 @@ public class Ipv4Utils {
 	protected static final byte SECTION_6 = (byte) 0xA8;
 
 	protected Ipv4Utils() {
+	}
+
+	/**
+	 * 判断IP地址是否为未知状态
+	 * <p>
+	 * 检查给定的IP地址是否为"unknown"（不区分大小写）。
+	 * 这通常用于处理代理服务器传递的IP信息，代理服务器可能在无法确定客户端IP时使用"unknown"标记。
+	 * </p>
+	 *
+	 * @param ip 待检查的IP地址字符串
+	 * @return 如果IP为"unknown"则返回true，否则返回false
+	 * @since 1.0.0
+	 */
+	public static boolean isUnknown(final String ip) {
+		return StringUtils.equalsIgnoreCase(UNKNOWN_ADDRESS, ip);
+	}
+
+	public static boolean isIp(String ip) {
+		return RegExUtils.matches(IP_PATTERN, ip);
+	}
+
+	public static boolean isSubIp(String ip, String subIp) {
+		IPAddressString address = new IPAddressString("192.168.1.5");
+		IPAddressString network = new IPAddressString("192.168.1.0/24");
+		return address.contains(network);
 	}
 
 	/**
@@ -74,124 +107,30 @@ public class Ipv4Utils {
 	 * @return 如果是内网IP则返回true，否则返回false
 	 * @since 1.0.0
 	 */
-	public static boolean isInternalIpv4(final String ip) {
-		if (Constants.LOCALHOST_IPV4_ADDRESS.equals(ip)) {
-			return true;
-		}
-
-		byte[] addressBytes = toBytes(ip);
-		if (ArrayUtils.getLength(addressBytes) < 2) {
-			return true;
-		}
-
-		final byte b0 = addressBytes[0];
-		final byte b1 = addressBytes[1];
-		// 判断是否属于内网IP地址段
-		return switch (b0) {
-			case SECTION_1 -> true; // 10.x.x.x/8
-			case SECTION_2 -> b1 >= SECTION_3 && b1 <= SECTION_4; // 172.16.x.x/12
-			case SECTION_5 -> b1 == SECTION_6; // 192.168.x.x/16
-			default -> false;
-		};
-	}
-
-	/**
-	 * 将IPv4地址字符串转换为字节数组
-	 * <p>
-	 * 支持以下多种IPv4地址表示格式：
-	 * <ul>
-	 *     <li>单段格式：例如 3232235521（对应 192.168.0.1）</li>
-	 *     <li>双段格式：例如 192.168（后面的数值作为两个字节处理）</li>
-	 *     <li>三段格式：例如 192.168.1（最后一个数值作为一个字节处理）</li>
-	 *     <li>标准格式：例如 192.168.0.1</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * <p>
-	 * 转换过程会验证每个段的数值范围，确保它们在有效范围内。
-	 * 当遇到无效的IP格式或数值范围错误时，将返回空字节数组。
-	 * </p>
-	 *
-	 * @param ip IPv4地址字符串
-	 * @return 表示IP地址的4字节数组，如果IP无效则返回空数组
-	 * @since 1.0.0
-	 */
-	public static byte[] toBytes(final String ip) {
-		if (StringUtils.isBlank(ip)) {
-			return ArrayUtils.EMPTY_BYTE_ARRAY;
-		}
-
-		byte[] bytes = new byte[4];
-		String[] elements = ip.split("\\.", -1);
-
+	public static boolean isInternalIp(final String ip) {
 		try {
-			switch (elements.length) {
-				case 1:
-					// 处理单段IP格式
-					long l = Long.parseLong(elements[0]);
-					if (l < 0L || l > 4294967295L) {
-						return ArrayUtils.EMPTY_BYTE_ARRAY;
-					}
-					bytes[0] = (byte) (int) (l >> 24 & 0xFF);
-					bytes[1] = (byte) (int) ((l & 0xFFFFFF) >> 16 & 0xFF);
-					bytes[2] = (byte) (int) ((l & 0xFFFF) >> 8 & 0xFF);
-					bytes[3] = (byte) (int) (l & 0xFF);
-					break;
-
-				case 2:
-					// 处理双段IP格式
-					long first = Long.parseLong(elements[0]);
-					if (first < 0L || first > 255L) {
-						return ArrayUtils.EMPTY_BYTE_ARRAY;
-					}
-					bytes[0] = (byte) (int) (first & 0xFF);
-
-					long second = Long.parseLong(elements[1]);
-					if (second < 0L || second > 16777215L) {
-						return ArrayUtils.EMPTY_BYTE_ARRAY;
-					}
-					bytes[1] = (byte) (int) (second >> 16 & 0xFF);
-					bytes[2] = (byte) (int) ((second & 0xFFFF) >> 8 & 0xFF);
-					bytes[3] = (byte) (int) (second & 0xFF);
-					break;
-
-				case 3:
-					// 处理三段IP格式
-					for (int i = 0; i < 2; ++i) {
-						long value = Long.parseLong(elements[i]);
-						if (value < 0L || value > 255L) {
-							return ArrayUtils.EMPTY_BYTE_ARRAY;
-						}
-						bytes[i] = (byte) (int) (value & 0xFF);
-					}
-
-					long third = Long.parseLong(elements[2]);
-					if (third < 0L || third > 65535L) {
-						return ArrayUtils.EMPTY_BYTE_ARRAY;
-					}
-					bytes[2] = (byte) (int) (third >> 8 & 0xFF);
-					bytes[3] = (byte) (int) (third & 0xFF);
-					break;
-
-				case 4:
-					// 处理标准四段IP格式
-					for (int i = 0; i < 4; ++i) {
-						long value = Long.parseLong(elements[i]);
-						if (value < 0L || value > 255L) {
-							return ArrayUtils.EMPTY_BYTE_ARRAY;
-						}
-						bytes[i] = (byte) (int) (value & 0xFF);
-					}
-					break;
-
-				default:
-					return ArrayUtils.EMPTY_BYTE_ARRAY;
+			InetAddress inetAddress = InetAddress.getByName(ip);
+			if (inetAddress.isLoopbackAddress()) {
+				return true;
 			}
-		} catch (NumberFormatException e) {
-			return ArrayUtils.EMPTY_BYTE_ARRAY;
-		}
 
-		return bytes;
+			byte[] addressBytes = inetAddress.getAddress();
+			if (ArrayUtils.getLength(addressBytes) < 2) {
+				return true;
+			}
+
+			final byte b0 = addressBytes[0];
+			final byte b1 = addressBytes[1];
+			// 判断是否属于内网IP地址段
+			return switch (b0) {
+				case SECTION_1 -> true; // 10.x.x.x/8
+				case SECTION_2 -> b1 >= SECTION_3 && b1 <= SECTION_4; // 172.16.x.x/12
+				case SECTION_5 -> b1 == SECTION_6; // 192.168.x.x/16
+				default -> false;
+			};
+		} catch (UnknownHostException e) {
+			throw new IllegalArgumentException("无效的ip地址", e);
+		}
 	}
 
 	/**
@@ -220,20 +159,5 @@ public class Ipv4Utils {
 			}
 		}
 		return ip;
-	}
-
-	/**
-	 * 判断IP地址是否为未知状态
-	 * <p>
-	 * 检查给定的IP地址是否为"unknown"（不区分大小写）。
-	 * 这通常用于处理代理服务器传递的IP信息，代理服务器可能在无法确定客户端IP时使用"unknown"标记。
-	 * </p>
-	 *
-	 * @param ip 待检查的IP地址字符串
-	 * @return 如果IP为"unknown"则返回true，否则返回false
-	 * @since 1.0.0
-	 */
-	public static boolean isUnknown(final String ip) {
-		return StringUtils.equalsIgnoreCase(UNKNOWN_ADDRESS, ip);
 	}
 }
