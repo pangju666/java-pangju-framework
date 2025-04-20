@@ -16,6 +16,6 @@ class BeanConfig {
 	@Bean
 	FilterRegistrationBean<HttpExceptionFilter> httpExceptionFilterFilterRegistrationBean() {
 		return new FilterRegistrationBean<HttpExceptionFilter>(new HttpExceptionFilter(
-			"/exception/types", "/exception/list"))
+			"/exception/types", "/exception/list", "com.test"))
 	}
 }

@@ -274,6 +274,6 @@ public enum HttpExceptionType {
 			return WebConstants.BASE_ERROR_CODE;
 		}
 		int absCode = Math.abs(code);
-		return baseCode + absCode > 1000 ? absCode % 1000 : absCode;
+		return baseCode + (absCode > 1000 ? absCode % 1000 : absCode);
 	}
 }

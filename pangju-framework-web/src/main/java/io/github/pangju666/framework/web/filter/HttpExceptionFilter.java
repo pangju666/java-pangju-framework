@@ -27,6 +27,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -220,8 +221,8 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 			.filter(Objects::nonNull)
 			.map(annotation -> new HttpExceptionVO(
 				annotation.type(),
-				annotation.code(),
-				annotation.description()
+				annotation.type().computeCode(annotation.code()),
+				StringUtils.defaultIfBlank(annotation.description(), annotation.type().getLabel())
 			))
 			.forEach(exceptionList::add);
 
