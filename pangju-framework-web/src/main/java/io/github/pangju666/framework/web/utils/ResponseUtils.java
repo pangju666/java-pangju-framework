@@ -94,7 +94,7 @@ public class ResponseUtils {
 		writeBytesToResponse(bytes, response, status.value());
 	}
 
-	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, int status) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, final int status) {
 		try (OutputStream outputStream = response.getOutputStream()) {
 			response.setStatus(status);
 			outputStream.write(bytes);
@@ -111,7 +111,7 @@ public class ResponseUtils {
 		writeInputStreamToResponse(inputStream, response, status.value());
 	}
 
-	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response, int status) {
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response, final int status) {
 		try (OutputStream outputStream = response.getOutputStream()) {
 			response.setStatus(status);
 			inputStream.transferTo(outputStream);
@@ -157,7 +157,7 @@ public class ResponseUtils {
 		writeResultToResponse(data, response, httpStatus.value());
 	}
 
-	public static <T> void writeResultToResponse(final Result<T> data, final HttpServletResponse response, int status) {
+	public static <T> void writeResultToResponse(final Result<T> data, final HttpServletResponse response, final int status) {
 		try (OutputStream outputStream = response.getOutputStream()) {
 			response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
 			response.setStatus(status);
@@ -168,7 +168,7 @@ public class ResponseUtils {
 		}
 	}
 
-	protected static String computeFileName(File file, String expectFileName) {
+	protected static String computeFileName(final File file, final String expectFileName) {
 		String extension = FilenameUtils.getExtension(file.getName());
 		String fileName = file.getName();
 		if (StringUtils.isNotBlank(expectFileName)) {
@@ -177,7 +177,7 @@ public class ResponseUtils {
 		return URLEncoder.encode(fileName, StandardCharsets.UTF_8);
 	}
 
-	protected static List<Range> getRanges(File file, String rangeValue, HttpServletResponse response) throws IOException {
+	protected static List<Range> getRanges(final File file, String rangeValue, final HttpServletResponse response) throws IOException {
 		long fileLength = file.length();
 		List<Range> ranges = new ArrayList<>();
 
@@ -220,8 +220,8 @@ public class ResponseUtils {
 		return ranges;
 	}
 
-	protected static void writeRangesToResponse(List<Range> ranges, RandomAccessFile randomAccessFile,
-												long length, HttpServletResponse response) throws IOException {
+	protected static void writeRangesToResponse(final List<Range> ranges, final RandomAccessFile randomAccessFile,
+												final long length, final HttpServletResponse response) throws IOException {
 		try (ServletOutputStream servletOutputStream = response.getOutputStream()) {
 			if (ranges.size() <= 1) {
 				Range range = ranges.get(0);
@@ -259,8 +259,8 @@ public class ResponseUtils {
 		}
 	}
 
-	protected static void writeFileToOutputStream(RandomAccessFile randomAccessFile, OutputStream output,
-												  long fileSize, long start, long length) throws IOException {
+	protected static void writeFileToOutputStream(final RandomAccessFile randomAccessFile, final OutputStream output,
+												  final long fileSize, final long start, final long length) throws IOException {
 		byte[] buffer = new byte[4096];
 		int read = 0;
 		long transmitted = 0;
@@ -297,7 +297,7 @@ public class ResponseUtils {
 		}
 	}
 
-	protected static Long rangePartToLong(String part, int beginIndex, int endIndex) {
+	protected static Long rangePartToLong(final String part, final int beginIndex, final int endIndex) {
 		String substring = part.substring(beginIndex, endIndex);
 		return (!substring.isEmpty()) ? Long.parseLong(substring) : -1;
 	}
