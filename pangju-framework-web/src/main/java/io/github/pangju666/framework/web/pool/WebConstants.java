@@ -18,13 +18,6 @@ package io.github.pangju666.framework.web.pool;
 
 /**
  * Web模块常量池
- * <p>
- * 定义Web模块中使用的各类常量，包括：
- * <ul>
- *     <li>角色权限常量</li>
- *     <li>错误码常量</li>
- * </ul>
- * </p>
  *
  * @author pangju666
  * @since 1.0.0
