@@ -290,7 +290,9 @@ public class IpUtils {
 	 * 判断IP地址是否在网络范围内
 	 * <p>
 	 * 该方法检查指定的IP地址是否包含在给定的网络地址范围内。
-	 * 网络地址可以是CIDR格式（如192.168.1.0/24）或单个IP地址。
+	 * </p>
+	 * <p>
+	 * 网络地址可以是CIDR格式、通配符格式或IP范围格式等，具体请参阅<a href="https://seancfoley.github.io/IPAddress/">IPAddressString文档</a>）。
 	 * </p>
 	 *
 	 * <p>示例：</p>
@@ -314,7 +316,7 @@ public class IpUtils {
 	 * boolean inNetwork = IpUtils.isIpInNetwork("192.168.1.1-255", "192.168.1.100");  // 返回 true
 	 * }</pre>
 	 *
-	 * @param networkAddress 网络地址（CIDR格式、通配符格式或IP范围格式等，具体请参阅<a href="https://seancfoley.github.io/IPAddress/">IPAddressString文档</a>），不能为空
+	 * @param networkAddress 网络地址，不能为空
 	 * @param ipAddress      要检查的IP地址，如果为空则返回false
 	 * @return 如果IP地址在网络范围内返回true，否则返回false
 	 * @throws IllegalArgumentException 如果网络地址为空
