@@ -21,6 +21,7 @@ import io.github.pangju666.framework.web.enums.HttpExceptionType;
 import io.github.pangju666.framework.web.exception.base.BaseHttpException;
 import io.github.pangju666.framework.web.model.vo.EnumVO;
 import io.github.pangju666.framework.web.model.vo.HttpExceptionVO;
+import io.github.pangju666.framework.web.pool.WebConstants;
 import io.github.pangju666.framework.web.utils.ResponseUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -54,7 +55,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 	/**
 	 * 框架包路径
 	 */
-	private final static String FRAMEWORK_PACKAGE = "io.github.pangju666.framework";
+	protected final static String FRAMEWORK_PACKAGE = "io.github.pangju666.framework";
 
 	/**
 	 * 异常列表请求路径
@@ -151,7 +152,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 	 * @param response HTTP响应对象
 	 * @since 1.0.0
 	 */
-	private void handleExceptionTypes(HttpServletResponse response) {
+	protected void handleExceptionTypes(HttpServletResponse response) {
 		if (Objects.isNull(this.httpExceptionTypeList)) {
 			synchronized (this) {
 				if (Objects.isNull(this.httpExceptionTypeList)) {
@@ -174,7 +175,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 	 * @param response HTTP响应对象
 	 * @since 1.0.0
 	 */
-	private void handleExceptionList(HttpServletResponse response) {
+	protected void handleExceptionList(HttpServletResponse response) {
 		if (Objects.isNull(httpExceptionList)) {
 			synchronized (this) {
 				if (Objects.isNull(httpExceptionList)) {
@@ -200,7 +201,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 	 * @return 异常信息列表
 	 * @since 1.0.0
 	 */
-	private List<HttpExceptionVO> scanHttpExceptions() {
+	protected List<HttpExceptionVO> scanHttpExceptions() {
 		ConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
 			.setScanners(Scanners.TypesAnnotated, Scanners.SubTypes)
 			.forPackage(FRAMEWORK_PACKAGE)
@@ -211,7 +212,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 
 		List<HttpExceptionVO> exceptionList = new ArrayList<>(classes.size() + 1);
 		// 添加未知异常类型
-		exceptionList.add(new HttpExceptionVO(HttpExceptionType.UNKNOWN, -1, null));
+		exceptionList.add(new HttpExceptionVO(HttpExceptionType.UNKNOWN, WebConstants.BASE_ERROR_CODE, null));
 
 		// 扫描并添加所有标注了HttpException注解的异常类
 		classes.stream()
