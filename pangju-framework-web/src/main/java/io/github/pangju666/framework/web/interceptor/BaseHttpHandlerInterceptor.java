@@ -16,6 +16,7 @@
 
 package io.github.pangju666.framework.web.interceptor;
 
+import io.github.pangju666.framework.web.pool.WebConstants;
 import org.springframework.core.Ordered;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -57,25 +58,40 @@ public abstract class BaseHttpHandlerInterceptor implements HandlerInterceptor {
 	protected final List<String> patterns;
 	/**
 	 * 拦截器执行顺序
-	 * <p>默认使用最低优先级</p>
 	 *
 	 * @since 1.0.0
 	 */
-	protected int order = Ordered.LOWEST_PRECEDENCE;
+	protected final int order;
+
+	/**
+	 * 创建拦截器实例
+	 * <p>
+	 * 使用指定的拦截路径和排除路径初始化拦截器，默认使用{@link Ordered#LOWEST_PRECEDENCE 最低优先级}。
+	 * 该构造方法是对三参数构造方法的简化，适用于不需要自定义优先级的场景。
+	 * </p>
+	 *
+	 * @param patterns            拦截路径模式集合，匹配这些路径的请求将被拦截
+	 * @param excludePathPatterns 排除路径模式集合，匹配这些路径的请求将被跳过拦截
+	 * @since 1.0.0
+	 * @see #BaseHttpHandlerInterceptor(Set, Set, int)
+	 */
+	protected BaseHttpHandlerInterceptor(Set<String> patterns, Set<String> excludePathPatterns) {
+		this(excludePathPatterns, patterns, Ordered.LOWEST_PRECEDENCE);
+	}
 
 	/**
 	 * 创建拦截器实例
 	 *
-	 * @param order               拦截器执行顺序（数值越小优先级越高）
-	 * @param excludePathPatterns 排除路径模式集合
 	 * @param patterns            拦截路径模式集合
+	 * @param excludePathPatterns 排除路径模式集合
+	 * @param order               拦截器执行顺序（数值越小优先级越高）
 	 * @since 1.0.0
 	 */
-	protected BaseHttpHandlerInterceptor(int order, Set<String> excludePathPatterns, Set<String> patterns) {
+	protected BaseHttpHandlerInterceptor(Set<String> excludePathPatterns, Set<String> patterns, int order) {
 		this.order = order;
 		this.excludePathPatterns = Objects.isNull(excludePathPatterns) ? Collections.emptyList() :
 			List.copyOf(excludePathPatterns);
-		this.patterns = Objects.isNull(patterns) ? Collections.emptyList() :
+		this.patterns = Objects.isNull(patterns) ? Collections.singletonList(WebConstants.ANY_PATH_PATTERN) :
 			List.copyOf(patterns);
 	}
 

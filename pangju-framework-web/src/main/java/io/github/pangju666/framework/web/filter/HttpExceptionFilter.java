@@ -29,6 +29,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
+import org.springframework.util.Assert;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -87,13 +88,23 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 	private List<HttpExceptionVO> httpExceptionList;
 
 	/**
-	 * 创建过滤器实例（自定义请求路径）
+	 * 创建过滤器实例
+	 * <p>
+	 * 初始化过滤器，设置异常信息访问的请求路径和需要扫描的包路径。
+	 * 通过该构造函数，可以自定义异常类型列表和异常列表的请求路径，
+	 * 以及指定需要扫描的包路径来限定异常扫描范围。
+	 * </p>
 	 *
-	 * @param typesRequestPath 异常类型列表请求路径
-	 * @param listRequestPath  异常列表请求路径
-	 * @param packages        需要扫描的包路径
+	 * @param typesRequestPath 异常类型列表请求路径，不能为空
+	 * @param listRequestPath  异常列表请求路径，不能为空
+	 * @param packages         需要扫描的包路径，可选参数，为空时仅扫描框架包
+	 * @throws IllegalArgumentException 当请求路径参数为空时抛出
+	 * @since 1.0.0
 	 */
 	public HttpExceptionFilter(String typesRequestPath, String listRequestPath, String... packages) {
+		Assert.hasText(typesRequestPath, "typesRequestPath must not be null");
+		Assert.hasText(listRequestPath, "listRequestPath must not be null");
+
 		this.typesRequestPath = typesRequestPath;
 		this.listRequestPath = listRequestPath;
 		this.packages = packages;

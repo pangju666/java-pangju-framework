@@ -100,25 +100,25 @@ public class RequestUtils {
 
 	public static String getIpAddress(final HttpServletRequest request) {
 		if (Objects.isNull(request)) {
-			return Ipv4Utils.UNKNOWN_ADDRESS;
+			return IpUtils.UNKNOWN_ADDRESS;
 		}
 		String ip = request.getHeader("x-forwarded-for");
-		if (Ipv4Utils.isUnknown(ip)) {
+		if (IpUtils.isUnknown(ip)) {
 			ip = request.getHeader("Proxy-Client-IP");
 		}
-		if (Ipv4Utils.isUnknown(ip)) {
+		if (IpUtils.isUnknown(ip)) {
 			ip = request.getHeader("X-Forwarded-For");
 		}
-		if (Ipv4Utils.isUnknown(ip)) {
+		if (IpUtils.isUnknown(ip)) {
 			ip = request.getHeader("WL-Proxy-Client-IP");
 		}
-		if (Ipv4Utils.isUnknown(ip)) {
+		if (IpUtils.isUnknown(ip)) {
 			ip = request.getHeader("X-Real-IP");
 		}
-		if (Ipv4Utils.isUnknown(ip)) {
+		if (IpUtils.isUnknown(ip)) {
 			ip = request.getRemoteAddr();
 		}
-		return Constants.LOCALHOST_IPV6_ADDRESS.equals(ip) ? Constants.LOCALHOST_IPV4_ADDRESS : Ipv4Utils.getMultistageReverseProxyIp(ip);
+		return Constants.LOCALHOST_IPV6_ADDRESS.equals(ip) ? Constants.LOCALHOST_IPV4_ADDRESS : IpUtils.getMultistageReverseProxyIp(ip);
 	}
 
 	public static Map<String, Object> getParameterMap(final HttpServletRequest request) {

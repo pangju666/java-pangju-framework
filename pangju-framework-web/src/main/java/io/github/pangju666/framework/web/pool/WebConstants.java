@@ -77,6 +77,18 @@ public class WebConstants {
 	 */
 	public static final String DEFAULT_FAILURE_MESSAGE = "请求失败";
 
+	/**
+	 * 通用路径匹配模式常量
+	 * <p>
+	 * 表示匹配所有路径及其子路径的Ant风格路径模式。
+	 * 该常量可用于拦截器、过滤器等组件中设置通配路径，
+	 * 例如在配置拦截器时使用此常量可匹配应用中的所有请求路径。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String ANY_PATH_PATTERN = "/**";
+
 	protected WebConstants() {
 	}
 }
