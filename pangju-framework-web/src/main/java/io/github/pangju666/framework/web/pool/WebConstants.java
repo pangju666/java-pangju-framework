@@ -89,6 +89,33 @@ public class WebConstants {
 	 */
 	public static final String ANY_PATH_PATTERN = "/**";
 
+	/**
+	 * 本地主机IP常量
+	 * <p>
+	 * 表示本地回环地址(loopback address)的标准IPv4地址，常用于本地开发和测试环境。
+	 * 所有发往此地址的网络请求都不会被发送到网络接口，而是在本地处理。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String LOCAL_HOST_IP = "127.0.0.1";
+	/**
+	 * 本地主机名常量
+	 * <p>
+	 * 表示本地回环地址的标准主机名，等同于使用IP地址 {@link #LOCAL_HOST_IP}。
+	 * 在网络编程中，通常可以互换使用"localhost"和"127.0.0.1"。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String LOCAL_HOST_NAME = "localhost";
+	/**
+	 * 未知地址标识
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String UNKNOWN_ADDRESS = "unknown";
+
 	protected WebConstants() {
 	}
 }

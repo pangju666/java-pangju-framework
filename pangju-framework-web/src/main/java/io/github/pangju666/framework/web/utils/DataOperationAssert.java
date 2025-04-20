@@ -83,7 +83,7 @@ public class DataOperationAssert {
 	 * @throws DataQueryException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void query(boolean expression, String reason) {
+	public static void query(final boolean expression, final String reason) {
 		if (!expression) {
 			throw new DataQueryException(reason);
 		}
@@ -101,7 +101,7 @@ public class DataOperationAssert {
 	 * @throws DataQueryException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void query(boolean expression, String message, String reason) {
+	public static void query(final boolean expression, final String message, final String reason) {
 		if (!expression) {
 			throw new DataQueryException(message, reason);
 		}
@@ -119,7 +119,7 @@ public class DataOperationAssert {
 	 * @throws DataQueryException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void query(boolean expression, String message, DataOperationError error) {
+	public static void query(final boolean expression, final String message, final DataOperationError error) {
 		if (!expression) {
 			throw new DataQueryException(message, error);
 		}
@@ -136,7 +136,7 @@ public class DataOperationAssert {
 	 * @throws DataCreateException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void create(boolean expression, String reason) {
+	public static void create(final boolean expression, final String reason) {
 		if (!expression) {
 			throw new DataCreateException(reason);
 		}
@@ -154,7 +154,7 @@ public class DataOperationAssert {
 	 * @throws DataCreateException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void create(boolean expression, String message, String reason) {
+	public static void create(final boolean expression, final String message, final String reason) {
 		if (!expression) {
 			throw new DataCreateException(message, reason);
 		}
@@ -172,7 +172,7 @@ public class DataOperationAssert {
 	 * @throws DataCreateException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void create(boolean expression, String message, DataOperationError error) {
+	public static void create(final boolean expression, final String message, final DataOperationError error) {
 		if (!expression) {
 			throw new DataCreateException(message, error);
 		}
@@ -189,7 +189,7 @@ public class DataOperationAssert {
 	 * @throws DataUpdateException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void update(boolean expression, String reason) {
+	public static void update(final boolean expression, final String reason) {
 		if (!expression) {
 			throw new DataUpdateException(reason);
 		}
@@ -207,7 +207,7 @@ public class DataOperationAssert {
 	 * @throws DataUpdateException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void update(boolean expression, String message, String reason) {
+	public static void update(final boolean expression, final String message, final String reason) {
 		if (!expression) {
 			throw new DataUpdateException(message, reason);
 		}
@@ -225,7 +225,7 @@ public class DataOperationAssert {
 	 * @throws DataUpdateException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void update(boolean expression, String message, DataOperationError error) {
+	public static void update(final boolean expression, final String message, final DataOperationError error) {
 		if (!expression) {
 			throw new DataUpdateException(message, error);
 		}
@@ -242,7 +242,7 @@ public class DataOperationAssert {
 	 * @throws DataSaveException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void save(boolean expression, String reason) {
+	public static void save(final boolean expression, final String reason) {
 		if (!expression) {
 			throw new DataSaveException(reason);
 		}
@@ -260,7 +260,7 @@ public class DataOperationAssert {
 	 * @throws DataSaveException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void save(boolean expression, String message, String reason) {
+	public static void save(final boolean expression, final String message, final String reason) {
 		if (!expression) {
 			throw new DataSaveException(message, reason);
 		}
@@ -278,7 +278,7 @@ public class DataOperationAssert {
 	 * @throws DataSaveException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void save(boolean expression, String message, DataOperationError error) {
+	public static void save(final boolean expression, final String message, final DataOperationError error) {
 		if (!expression) {
 			throw new DataSaveException(message, error);
 		}
@@ -295,7 +295,7 @@ public class DataOperationAssert {
 	 * @throws DataRemoveException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void remove(boolean expression, String reason) {
+	public static void remove(final boolean expression, final String reason) {
 		if (!expression) {
 			throw new DataRemoveException(reason);
 		}
@@ -313,7 +313,7 @@ public class DataOperationAssert {
 	 * @throws DataRemoveException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void remove(boolean expression, String message, String reason) {
+	public static void remove(final boolean expression, final String message, final String reason) {
 		if (!expression) {
 			throw new DataRemoveException(message, reason);
 		}
@@ -331,7 +331,7 @@ public class DataOperationAssert {
 	 * @throws DataRemoveException 当断言表达式为 {@code false} 时抛出
 	 * @since 1.0.0
 	 */
-	public static void remove(boolean expression, String message, DataOperationError error) {
+	public static void remove(final boolean expression, final String message, final DataOperationError error) {
 		if (!expression) {
 			throw new DataRemoveException(message, error);
 		}

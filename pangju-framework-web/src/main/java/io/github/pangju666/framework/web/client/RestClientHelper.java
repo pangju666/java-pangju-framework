@@ -217,7 +217,7 @@ public class RestClientHelper {
      * @throws IllegalArgumentException 当restClient为null时抛出
      * @since 1.0.0
      */
-    public static RestClientHelper fromUriString(RestClient restClient, String uriString) {
+	public static RestClientHelper fromUriString(final RestClient restClient, final String uriString) {
         Assert.notNull(restClient, "restClient 不可为null");
 
         if (StringUtils.isNotBlank(uriString)) {
@@ -236,7 +236,7 @@ public class RestClientHelper {
      * @throws IllegalArgumentException 当restClient为null时抛出
      * @since 1.0.0
      */
-    public static RestClientHelper fromUri(RestClient restClient, URI uri) {
+	public static RestClientHelper fromUri(final RestClient restClient, final URI uri) {
         Assert.notNull(restClient, "restClient 不可为null");
 
         if (Objects.nonNull(uri)) {

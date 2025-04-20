@@ -21,6 +21,7 @@ import com.google.gson.reflect.TypeToken;
 import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
+import io.github.pangju666.framework.web.pool.WebConstants;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
@@ -100,7 +101,7 @@ public class RequestUtils {
 
 	public static String getIpAddress(final HttpServletRequest request) {
 		if (Objects.isNull(request)) {
-			return IpUtils.UNKNOWN_ADDRESS;
+			return WebConstants.UNKNOWN_ADDRESS;
 		}
 		String ip = request.getHeader("x-forwarded-for");
 		if (IpUtils.isUnknown(ip)) {

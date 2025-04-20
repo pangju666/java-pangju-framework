@@ -197,7 +197,8 @@ public class ResponseUtils {
 
 			if (start == 0 && end == fileLength - 1) {
 				Range fullRange = new Range(0, fileLength - 1, fileLength);
-				fullRange.setFull(true);
+				//todo
+				//fullRange.setFull(true);
 				return Collections.singletonList(fullRange);
 			}
 
