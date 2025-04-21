@@ -85,6 +85,7 @@ public class RequestUtils {
 	 *     <li>包含 {@link #MOBILE_AGENTS} 中定义的移动设备标识</li>
 	 * </ul>
 	 * </p>
+	 * <p>代码修改自<a href="https://github.com/yangzongzhuan/RuoYi/blob/master/ruoyi-common/src/main/java/com/ruoyi/common/utils/ServletUtils.java">RuoYi Common ServletUtils</a></p>
 	 *
 	 * @param request HTTP请求对象，不能为null
 	 * @return 如果请求来自移动设备则返回true，否则返回false
@@ -120,6 +121,7 @@ public class RequestUtils {
 	 *     <li>检查请求参数__ajax是否包含json或xml值</li>
 	 * </ul>
 	 * </p>
+	 * <p>代码修改自<a href="https://github.com/yangzongzhuan/RuoYi/blob/master/ruoyi-common/src/main/java/com/ruoyi/common/utils/ServletUtils.java">RuoYi Common ServletUtils</a></p>
 	 *
 	 * @param request HTTP请求对象，不能为null
 	 * @return 如果是Ajax请求则返回true，否则返回false
@@ -163,6 +165,7 @@ public class RequestUtils {
 	 * 如果获取到的IP是本地IP，则返回标准IPv4本地地址(127.0.0.1)。
 	 * 如果IP包含多个地址（多级代理），则使用{@link IpUtils#getMultistageReverseProxyIp(String)}获取第一个非unknown地址。
 	 * </p>
+	 * <p>代码修改自<a href="https://github.com/yangzongzhuan/RuoYi/blob/master/ruoyi-common/src/main/java/com/ruoyi/common/utils/ServletUtils.java">RuoYi Common ServletUtils</a></p>
 	 *
 	 * @param request HTTP请求对象，不能为null
 	 * @return 客户端真实IP地址

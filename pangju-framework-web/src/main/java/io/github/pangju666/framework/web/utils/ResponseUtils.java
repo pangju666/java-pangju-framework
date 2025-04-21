@@ -18,6 +18,7 @@ package io.github.pangju666.framework.web.utils;
 
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.FilenameUtils;
+import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.exception.base.BaseHttpException;
 import io.github.pangju666.framework.web.model.common.Range;
@@ -26,7 +27,6 @@ import io.github.pangju666.framework.web.pool.WebConstants;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -205,10 +205,12 @@ public class ResponseUtils {
 		Assert.notNull(response, "response 不可为null");
 		Assert.hasText(contentType, "contentType 不可为空");
 
-		try (OutputStream outputStream = response.getOutputStream()) {
+		try (OutputStream outputStream = response.getOutputStream();
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+			InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes));
 			response.setStatus(status);
 			response.setContentType(contentType);
-			outputStream.write(ArrayUtils.nullToEmpty(bytes));
+			inputStream.transferTo(bufferedOutputStream);
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
@@ -221,9 +223,9 @@ public class ResponseUtils {
 	 * </p>
 	 *
 	 * @param inputStream 要写入的输入流
-	 * @param response HTTP响应对象，不能为null
+	 * @param response    HTTP响应对象，不能为null
 	 * @throws IllegalArgumentException 当response或inputStream为null时抛出
-	 * @throws UncheckedIOException 写入过程发生IO异常时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response) {
@@ -237,10 +239,10 @@ public class ResponseUtils {
 	 * </p>
 	 *
 	 * @param inputStream 要写入的输入流
-	 * @param response HTTP响应对象，不能为null
-	 * @param status HTTP状态码枚举，不能为null
+	 * @param response    HTTP响应对象，不能为null
+	 * @param status      HTTP状态码枚举，不能为null
 	 * @throws IllegalArgumentException 当response、inputStream或status为null时抛出
-	 * @throws UncheckedIOException 写入过程发生IO异常时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
@@ -257,10 +259,10 @@ public class ResponseUtils {
 	 * </p>
 	 *
 	 * @param inputStream 要写入的输入流
-	 * @param response HTTP响应对象，不能为null
-	 * @param status HTTP状态码数值
+	 * @param response    HTTP响应对象，不能为null
+	 * @param status      HTTP状态码数值
 	 * @throws IllegalArgumentException 当response、inputStream为null时抛出
-	 * @throws UncheckedIOException 写入过程发生IO异常时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
@@ -328,10 +330,12 @@ public class ResponseUtils {
 		Assert.notNull(inputStream, "inputStream 不可为null");
 		Assert.hasText(contentType, "contentType 不可为空");
 
-		try (OutputStream outputStream = response.getOutputStream()) {
+		try (BufferedInputStream bufferedInputStream = IOUtils.buffer(inputStream);
+			 OutputStream outputStream = response.getOutputStream();
+			 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 			response.setStatus(status);
 			response.setContentType(contentType);
-			inputStream.transferTo(outputStream);
+			bufferedInputStream.transferTo(bufferedOutputStream);
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
@@ -403,12 +407,12 @@ public class ResponseUtils {
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
 	 * </p>
 	 *
-	 * @param bean 要写入的JavaBean对象
+	 * @param bean     要写入的JavaBean对象
 	 * @param response HTTP响应对象，不能为null
-	 * @param status HTTP状态码枚举，不能为null
-	 * @param <T> Bean对象类型
+	 * @param status   HTTP状态码枚举，不能为null
+	 * @param <T>      Bean对象类型
 	 * @throws IllegalArgumentException 当response或status为null时抛出
-	 * @throws UncheckedIOException 写入过程发生IO异常时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final HttpStatus status) {
@@ -482,12 +486,12 @@ public class ResponseUtils {
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
 	 * </p>
 	 *
-	 * @param result 要写入的Result对象，不能为null
+	 * @param result   要写入的Result对象，不能为null
 	 * @param response HTTP响应对象，不能为null
-	 * @param status HTTP状态码数值
-	 * @param <T> Result中的数据类型
+	 * @param status   HTTP状态码数值
+	 * @param <T>      Result中的数据类型
 	 * @throws IllegalArgumentException 当response或result为null时抛出
-	 * @throws UncheckedIOException 写入过程发生IO异常时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
 	public static <T> void writeResultToResponse(final Result<T> result, final HttpServletResponse response, final int status) {
@@ -520,9 +524,9 @@ public class ResponseUtils {
 		String range = request.getHeader(HttpHeaders.RANGE);
 		if (StringUtils.isBlank(range)) {
 			try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file);
-				 OutputStream outputStream = new BufferedOutputStream(response.getOutputStream())) {
-				inputStream.transferTo(outputStream);
-				outputStream.flush();
+				 OutputStream outputStream = response.getOutputStream();
+				 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+				inputStream.transferTo(bufferedOutputStream);
 			}
 		} else {
 			try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
@@ -533,7 +537,6 @@ public class ResponseUtils {
 				writeRangesToResponse(ranges, randomAccessFile, file.length(), response);
 			}
 		}
-		response.flushBuffer();
 	}
 
 	protected static List<Range> getRanges(final File file, String rangeValue, final HttpServletResponse response) throws IOException {
@@ -556,8 +559,6 @@ public class ResponseUtils {
 
 			if (start == 0 && end == fileLength - 1) {
 				Range fullRange = new Range(0, fileLength - 1, fileLength);
-				//todo
-				//fullRange.setFull(true);
 				return Collections.singletonList(fullRange);
 			}
 

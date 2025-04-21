@@ -110,6 +110,7 @@ public class IpUtils {
 	 * 检查给定的IP地址是否为空白或"unknown"（不区分大小写）。
 	 * 这通常用于处理代理服务器传递的IP信息，代理服务器可能在无法确定客户端IP时使用"unknown"标记。
 	 * </p>
+	 * <p>代码修改自<a href="https://github.com/yangzongzhuan/RuoYi/blob/master/ruoyi-common/src/main/java/com/ruoyi/common/utils/IpUtils.java">RuoYi Common IpUtils</a></p>
 	 *
 	 * @param ipAddress 待检查的IP地址字符串
 	 * @return 如果IP为空白或"unknown"则返回true，否则返回false
@@ -345,7 +346,7 @@ public class IpUtils {
 	 * 检查给定的IPV4地址是否为本地网络内的地址，包括环回地址、私有网络地址等。
 	 * </p>
 	 *
-	 * <p>代码修改自RuoYi Common IpUtils</p>
+	 * <p>代码修改自<a href="https://github.com/yangzongzhuan/RuoYi/blob/master/ruoyi-common/src/main/java/com/ruoyi/common/utils/IpUtils.java">RuoYi Common IpUtils</a></p>
 	 *
 	 * <p>示例：</p>
 	 * <pre>{@code
@@ -394,7 +395,7 @@ public class IpUtils {
 	 * 如果所有IP都是未知的，则返回原始IP字符串。
 	 * </p>
 	 *
-	 * <p>代码修改自RuoYi Common IpUtils</p>
+	 * <p>代码修改自<a href="https://github.com/yangzongzhuan/RuoYi/blob/master/ruoyi-common/src/main/java/com/ruoyi/common/utils/IpUtils.java">RuoYi Common IpUtils</a></p>
 	 *
 	 * <p>示例：</p>
 	 * <pre>{@code
