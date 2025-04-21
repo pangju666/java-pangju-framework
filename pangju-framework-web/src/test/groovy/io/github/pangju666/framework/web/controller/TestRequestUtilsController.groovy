@@ -34,16 +34,15 @@ class TestRequestUtilsController {
 	ResponseEntity<Map<String, Object>> testGet(HttpServletRequest request,
 												@RequestPart("test") String param,
 												@RequestPart("file") MultipartFile multipartFile) {
-		def map = RequestUtils.getMultipartMap(request)
+		def partMap = RequestUtils.getRequestParts(request)
+		Map<String, Object> map = new HashMap<>(partMap.size())
 		for (final def entry in map.entrySet()) {
-			if (Part.class.isAssignableFrom(entry.getValue().getClass())) {
-				Part part = entry.getValue() as Part
-				Map<String, Object> multipartFileMap = new HashMap<>(3);
-				multipartFileMap.put("contentType", part.getContentType());
-				multipartFileMap.put("filename", part.getSubmittedFileName());
-				multipartFileMap.put("size", part.getSize());
-				entry.setValue(multipartFileMap)
-			}
+			Part part = entry.getValue() as Part
+			Map<String, Object> multipartFileMap = new HashMap<>(3);
+			multipartFileMap.put("contentType", part.getContentType());
+			multipartFileMap.put("filename", part.getSubmittedFileName());
+			multipartFileMap.put("size", part.getSize());
+			map.put(entry.getKey(), multipartFileMap)
 		}
 		return ResponseEntity.ok(map)
 	}

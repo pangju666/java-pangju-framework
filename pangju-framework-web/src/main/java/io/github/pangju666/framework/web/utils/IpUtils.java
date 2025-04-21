@@ -22,6 +22,7 @@ import inet.ipaddr.IPAddressStringParameters;
 import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.framework.web.pool.WebConstants;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -114,7 +115,7 @@ public class IpUtils {
 	 * @return 如果IP为空白或"unknown"则返回true，否则返回false
 	 * @since 1.0.0
 	 */
-	public static boolean isUnknown(final String ipAddress) {
+	public static boolean isUnknown(@Nullable final String ipAddress) {
 		return StringUtils.isBlank(ipAddress) || StringUtils.equalsIgnoreCase(WebConstants.UNKNOWN_ADDRESS, ipAddress);
 	}
 
@@ -203,7 +204,7 @@ public class IpUtils {
 	 * @return 如果是有效的IPv4地址则返回true，否则返回false
 	 * @since 1.0.0
 	 */
-	public static boolean isIpv4(final String ipAddress) {
+	public static boolean isIpv4(@Nullable final String ipAddress) {
 		if (StringUtils.isBlank(ipAddress)) {
 			return false;
 		}
@@ -228,7 +229,7 @@ public class IpUtils {
 	 * @return 如果是有效的IPv6地址则返回true，否则返回false
 	 * @since 1.0.0
 	 */
-	public static boolean isIpv6(final String ipAddress) {
+	public static boolean isIpv6(@Nullable final String ipAddress) {
 		if (StringUtils.isBlank(ipAddress)) {
 			return false;
 		}
@@ -253,7 +254,7 @@ public class IpUtils {
 	 * @return 如果是有效的IP地址则返回true，否则返回false
 	 * @since 1.0.0
 	 */
-	public static boolean isValid(final String ipAddress) {
+	public static boolean isValid(@Nullable final String ipAddress) {
 		if (StringUtils.isBlank(ipAddress)) {
 			return false;
 		}
@@ -323,7 +324,7 @@ public class IpUtils {
 	 * @throws IllegalArgumentException 如果网络地址为空
 	 * @since 1.0.0
 	 */
-	public static boolean isIpInNetwork(final String networkAddress, final String ipAddress) {
+	public static boolean isIpInNetwork(final String networkAddress, @Nullable final String ipAddress) {
 		Assert.hasText(networkAddress, "networkAddress 不可为空");
 		if (StringUtils.isBlank(ipAddress)) {
 			return false;
@@ -359,7 +360,7 @@ public class IpUtils {
 	 * @return 如果是内部IPv4地址则返回true，否则返回false；如果输入为空则返回false
 	 * @since 1.0.0
 	 */
-	public static boolean isInternalIpv4(final String ipAddress) {
+	public static boolean isInternalIpv4(@Nullable final String ipAddress) {
 		if (StringUtils.isBlank(ipAddress)) {
 			return false;
 		}
@@ -417,7 +418,7 @@ public class IpUtils {
 	 * @return 处理后的实际客户端IP地址，如果输入为null或空字符串则返回空字符串
 	 * @since 1.0.0
 	 */
-	public static String getMultistageReverseProxyIp(final String ipAddress) {
+	public static String getMultistageReverseProxyIp(@Nullable final String ipAddress) {
 		if (StringUtils.isBlank(ipAddress)) {
 			return StringUtils.EMPTY;
 		}

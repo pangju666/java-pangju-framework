@@ -402,10 +402,11 @@ public class RequestUtils {
 	 * @param <T>     返回对象的类型
 	 * @return 转换后的类型实例，如非JSON请求则返回null
 	 * @throws IOException              读取或解析请求内容失败时抛出
-	 * @throws IllegalArgumentException 如果request参数为null
+	 * @throws IllegalArgumentException 如果request或type为null
 	 * @since 1.0.0
 	 */
 	public static <T> T getJsonRequestBody(final HttpServletRequest request, final Class<T> type) throws IOException {
+		Assert.notNull(type, "type不可为null");
 		if (!isJsonRequestBody(request)) {
 			return null;
 		}
@@ -430,10 +431,11 @@ public class RequestUtils {
 	 * @param <T>       返回对象的类型
 	 * @return 转换后的泛型类型实例，如非JSON请求则返回null
 	 * @throws IOException              读取或解析请求内容失败时抛出
-	 * @throws IllegalArgumentException 如果request参数为null
+	 * @throws IllegalArgumentException 如果request或typeToken为null
 	 * @since 1.0.0
 	 */
 	public static <T> T getJsonRequestBody(final HttpServletRequest request, final TypeToken<T> typeToken) throws IOException {
+		Assert.notNull(typeToken, "typeToken不可为null");
 		if (!isJsonRequestBody(request)) {
 			return null;
 		}
