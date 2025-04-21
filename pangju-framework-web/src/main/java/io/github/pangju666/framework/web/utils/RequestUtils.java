@@ -29,6 +29,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.IOException;
@@ -41,12 +44,17 @@ import java.util.*;
 /**
  * HTTP请求工具类
  * <p>
- * 提供对 {@link HttpServletRequest} 的常用操作方法，包括：
+ * 提供对HTTP请求的全面操作和提取工具，主要包含以下功能：
  * <ul>
- *     <li>请求来源判断：移动设备、Ajax请求等</li>
- *     <li>IP地址获取：支持多级代理</li>
- *     <li>请求数据获取：参数、Header、Multipart表单、JSON请求体等</li>
+ *     <li>请求来源分析：判断移动设备、Ajax请求等</li>
+ *     <li>IP地址解析：准确获取客户端IP，支持多级代理</li>
+ *     <li>请求数据提取：参数、头信息、文件上传内容等</li>
+ *     <li>请求体处理：支持原始字节流、文本内容和JSON解析</li>
  * </ul>
+ * </p>
+ * <p>
+ * 本工具类中的所有方法都针对{@link jakarta.servlet.http.HttpServletRequest}对象进行操作，
+ * 提供不可变返回结果，确保线程安全性。方法参数均进行非空校验，避免空指针异常。
  * </p>
  *
  * @author pangju666
@@ -186,56 +194,52 @@ public class RequestUtils {
 	}
 
 	/**
-	 * 获取请求参数Map
+	 * 获取请求中的所有URL参数
 	 * <p>
-	 * 将请求中的所有参数转换为Map格式，处理规则如下：
-	 * <ul>
-	 *     <li>单值参数：直接存储参数值</li>
-	 *     <li>多值参数：将值存储为List</li>
-	 * </ul>
+	 * 将请求中的参数Map转换为Spring的MultiValueMap结构，保持参数值的顺序。
+	 * 对于单值参数直接存储；对于多值参数保留为列表。
+	 * 返回的MultiValueMap是不可修改的。
 	 * </p>
 	 *
 	 * @param request HTTP请求对象，不能为null
-	 * @return 包含所有请求参数的Map，key为参数名，value为参数值或参数值列表
-	 * @throws IllegalArgumentException 如果request参数为null
+	 * @return 包含所有请求参数的不可修改MultiValueMap
+	 * @throws IllegalArgumentException 当request为null时抛出
 	 * @since 1.0.0
 	 */
-	public static Map<String, Object> getParameterMap(final HttpServletRequest request) {
+	public static MultiValueMap<String, String> getRequestParameters(final HttpServletRequest request) {
 		Assert.notNull(request, "request 不可为null");
 
 		Map<String, String[]> parameterMap = request.getParameterMap();
-		Map<String, Object> requestParamMap = new HashMap<>(parameterMap.size());
+		MultiValueMap<String, String> requestParamMap = new LinkedMultiValueMap<>(parameterMap.size());
 		for (Map.Entry<String, String[]> parameterEntry : parameterMap.entrySet()) {
 			String[] value = parameterEntry.getValue();
 			if (value.length == 1) {
-				requestParamMap.put(parameterEntry.getKey(), value[0]);
+				requestParamMap.add(parameterEntry.getKey(), value[0]);
 			} else {
-				requestParamMap.put(parameterEntry.getKey(), Arrays.asList(value));
+				requestParamMap.addAll(parameterEntry.getKey(), Arrays.asList(value));
 			}
 		}
-		return requestParamMap;
+		return CollectionUtils.unmodifiableMultiValueMap(requestParamMap);
 	}
 
 	/**
-	 * 获取请求头Map
+	 * 获取请求中的所有HTTP头信息
 	 * <p>
-	 * 将请求中的所有HTTP头转换为Map格式，处理规则如下：
-	 * <ul>
-	 *     <li>单值请求头：直接存储值</li>
-	 *     <li>多值请求头：将值存储为List</li>
-	 * </ul>
+	 * 将请求中的所有头信息提取到Spring的HttpHeaders对象中。
+	 * 对于单值头部直接存储；对于多值头部保留为列表。
+	 * 返回的HttpHeaders是只读的。
 	 * </p>
 	 *
 	 * @param request HTTP请求对象，不能为null
-	 * @return 包含所有请求头的Map，key为头名称，value为头值或头值列表
-	 * @throws IllegalArgumentException 如果request参数为null
+	 * @return 包含所有HTTP头信息的只读HttpHeaders对象
+	 * @throws IllegalArgumentException 当request为null时抛出
 	 * @since 1.0.0
 	 */
-	public static Map<String, Object> getHeaderMap(final HttpServletRequest request) {
+	public static HttpHeaders getHttpHeaders(final HttpServletRequest request) {
 		Assert.notNull(request, "request 不可为null");
 
 		Enumeration<String> headerNames = request.getHeaderNames();
-		Map<String, Object> requestHeaderMap = new HashMap<>(20);
+		HttpHeaders headers = new HttpHeaders();
 		while (headerNames.hasMoreElements()) {
 			String headerName = headerNames.nextElement();
 			Enumeration<String> enumeration = request.getHeaders(headerName);
@@ -247,53 +251,40 @@ public class RequestUtils {
 				++count;
 			}
 			if (count == 1) {
-				requestHeaderMap.put(headerName, values.get(0));
+				headers.add(headerName, values.get(0));
 			} else {
-				requestHeaderMap.put(headerName, values);
+				headers.addAll(headerName, values);
 			}
 		}
-		return requestHeaderMap;
+		return HttpHeaders.readOnlyHttpHeaders(headers);
 	}
 
 	/**
-	 * 获取Multipart表单数据Map
+	 * 获取请求中的文件上传部分
 	 * <p>
-	 * 解析{@code multipart/form-data}请求中的所有表单项，并转换为Map格式：
-	 * <ul>
-	 *     <li>文件项（有提交文件名）：保留为原始{@link Part}对象</li>
-	 *     <li>普通表单项：获取参数值</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * <p>
-	 * 此方法保留了文件的原始{@link Part}对象，使调用者能够：
-	 * <ul>
-	 *     <li>通过{@link Part#getInputStream()}访问文件内容</li>
-	 *     <li>获取文件名、大小、内容类型等元数据</li>
-	 *     <li>按需进行文件处理而不必预先加载全部内容</li>
-	 * </ul>
+	 * 从multipart请求中提取所有包含文件的部分。该方法只返回那些具有提交文件名
+	 * 的部分（即实际上传的文件），过滤掉表单字段等不包含文件的部分。
+	 * 返回的Map是不可修改的，以防止意外修改。
 	 * </p>
 	 *
 	 * @param request HTTP请求对象，不能为null
-	 * @return 包含所有表单项的Map，key为表单项名称，value为对应值（文件项为Part对象，普通表单项为字符串）
+	 * @return 以表单字段名为键，Part对象为值的不可修改Map
+	 * @throws IllegalArgumentException 当request为null时抛出
 	 * @throws ServletException 解析multipart请求失败时抛出
 	 * @throws IOException 读取请求内容失败时抛出
-	 * @throws IllegalArgumentException 如果request参数为null
 	 * @since 1.0.0
 	 */
-	public static Map<String, Object> getMultipartMap(final HttpServletRequest request) throws ServletException, IOException {
+	public static Map<String, Part> getRequestParts(final HttpServletRequest request) throws ServletException, IOException {
 		Assert.notNull(request, "request 不可为null");
 
 		Collection<Part> parts = request.getParts();
-		Map<String, Object> formDataMap = new HashMap<>(parts.size());
+		Map<String, Part> requestPartMap = new HashMap<>(parts.size());
 		for (Part part : parts) {
 			if (Objects.nonNull(part.getSubmittedFileName())) {
-				formDataMap.put(part.getName(), part);
-			} else {
-				formDataMap.put(part.getName(), request.getParameter(part.getName()));
+				requestPartMap.put(part.getName(), part);
 			}
 		}
-		return formDataMap;
+		return Collections.unmodifiableMap(requestPartMap);
 	}
 
 	/**
