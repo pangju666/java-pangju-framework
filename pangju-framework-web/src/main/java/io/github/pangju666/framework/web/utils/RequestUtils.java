@@ -44,21 +44,74 @@ import java.util.*;
 /**
  * HTTP请求工具类
  * <p>
- * 提供对HTTP请求的全面操作和提取工具，主要包含以下功能：
+ * 提供对HTTP请求的全面处理功能，简化Web应用中常见的请求处理任务。本工具类主要功能包括：
  * <ul>
- *     <li>请求来源分析：判断移动设备、Ajax请求等</li>
- *     <li>IP地址解析：准确获取客户端IP，支持多级代理</li>
- *     <li>请求数据提取：参数、头信息、文件上传内容等</li>
- *     <li>请求体处理：支持原始字节流、文本内容和JSON解析</li>
+ *     <li>客户端信息识别：判断请求来源（移动设备、Ajax等）</li>
+ *     <li>IP地址获取：从各种代理头中提取真实客户端IP</li>
+ *     <li>请求参数和头信息处理：获取并转换为标准数据结构</li>
+ *     <li>文件上传处理：获取multipart请求中的文件部分</li>
+ *     <li>请求体内容处理：支持获取原始、字符串和JSON格式的请求体</li>
  * </ul>
  * </p>
+ *
  * <p>
- * 本工具类中的所有方法都针对{@link jakarta.servlet.http.HttpServletRequest}对象进行操作，
- * 提供不可变返回结果，确保线程安全性。方法参数均进行非空校验，避免空指针异常。
+ * 设计特点：
+ * <ul>
+ *     <li>方法参数进行严格的非空校验，确保运行安全性</li>
+ *     <li>兼容多种请求场景，如移动终端、浏览器、Ajax等</li>
+ *     <li>提供多种JSON请求解析方式，支持通用和特定类型转换</li>
+ *     <li>对文件上传和复杂请求结构提供友好处理</li>
+ *     <li>使用Spring和Jakarta Servlet API，与主流框架集成良好</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * 使用示例：
+ * <pre>{@code
+ * // 1. 判断请求来源
+ * if (RequestUtils.isFormMobile(request)) {
+ *     // 处理移动设备请求
+ * }
+ *
+ * if (RequestUtils.isFromAjax(request)) {
+ *     // 处理Ajax请求
+ * }
+ *
+ * // 2. 获取客户端IP地址
+ * String clientIp = RequestUtils.getIpAddress(request);
+ *
+ * // 3. 获取请求参数和头信息
+ * MultiValueMap<String, String> params = RequestUtils.getRequestParameters(request);
+ * HttpHeaders headers = RequestUtils.getHttpHeaders(request);
+ *
+ * // 4. 处理文件上传
+ * Map<String, Part> fileParts = RequestUtils.getRequestParts(request);
+ * for (Part part : fileParts.values()) {
+ *     String filename = part.getSubmittedFileName();
+ *     // 处理文件
+ * }
+ *
+ * // 5. 获取和处理JSON请求体
+ * if (RequestUtils.isJsonRequestBody(request)) {
+ *     // 获取为通用JsonElement
+ *     JsonElement jsonElement = RequestUtils.getJsonRequestBody(request);
+ *
+ *     // 转换为特定类型
+ *     User user = RequestUtils.getJsonRequestBody(request, User.class);
+ *
+ *     // 转换为泛型集合
+ *     List<User> users = RequestUtils.getJsonRequestBody(request,
+ *         new TypeToken<List<User>>(){});
+ * }
+ * }</pre>
  * </p>
  *
  * @author pangju666
  * @since 1.0.0
+ * @see jakarta.servlet.http.HttpServletRequest
+ * @see org.springframework.util.MultiValueMap
+ * @see org.springframework.http.HttpHeaders
+ * @see com.google.gson.JsonElement
  */
 public class RequestUtils {
 	/**
