@@ -19,6 +19,7 @@ package io.github.pangju666.framework.web.utils;
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.IPAddressStringParameters;
+import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.framework.web.pool.WebConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
@@ -183,7 +184,7 @@ public class IpUtils {
 			}
 		} catch (SocketException ignored) {
 		}
-		return WebConstants.LOCAL_HOST_IP;
+		return Constants.LOCALHOST_IPV4_ADDRESS;
 	}
 
 	/**

@@ -58,11 +58,10 @@ package io.github.pangju666.framework.web.model.error;
  * }</pre>
  * </p>
  *
- * @param source 数据操作的来源，通常是表名、集合名或其他数据源标识
+ * @param source      数据操作的来源，通常是表名、集合名或其他数据源标识
  * @param description 对操作数据的描述，通常是字段名或字段含义
- * @param data 操作涉及的实际数据，可以是任意类型
- * @param reason 操作失败的具体原因，提供更精确的错误上下文
- *
+ * @param data        操作涉及的实际数据，可以是任意类型
+ * @param reason      操作失败的具体原因，提供更精确的错误上下文
  * @author pangju666
  * @see io.github.pangju666.framework.web.exception.base.DataOperationException 数据操作异常类
  * @since 1.0.0

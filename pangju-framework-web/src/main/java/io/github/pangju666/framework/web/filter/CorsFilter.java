@@ -54,6 +54,7 @@ public class CorsFilter extends org.springframework.web.filter.CorsFilter {
 
 	/**
 	 * 排除路径模式集合
+	 *
 	 * @since 1.0.0
 	 */
 	private final Set<String> excludePathPatterns;
@@ -71,7 +72,7 @@ public class CorsFilter extends org.springframework.web.filter.CorsFilter {
 	/**
 	 * 创建过滤器实例（指定排除路径）
 	 *
-	 * @param configSource CORS配置源
+	 * @param configSource        CORS配置源
 	 * @param excludePathPatterns 排除路径模式集合，匹配的请求将跳过CORS处理
 	 * @since 1.0.0
 	 */
@@ -94,11 +95,11 @@ public class CorsFilter extends org.springframework.web.filter.CorsFilter {
 	 * </ol>
 	 * </p>
 	 *
-	 * @param request HTTP请求对象
-	 * @param response HTTP响应对象
+	 * @param request     HTTP请求对象
+	 * @param response    HTTP响应对象
 	 * @param filterChain 过滤器链
 	 * @throws ServletException Servlet异常
-	 * @throws IOException IO异常
+	 * @throws IOException      IO异常
 	 * @since 1.0.0
 	 */
 	@Override

@@ -148,7 +148,7 @@ public class HttpRemoteServiceException extends ServiceException {
 	 * </p>
 	 *
 	 * @param logger 日志记录器
-	 * @param level 日志级别
+	 * @param level  日志级别
 	 * @since 1.0.0
 	 */
 	@Override

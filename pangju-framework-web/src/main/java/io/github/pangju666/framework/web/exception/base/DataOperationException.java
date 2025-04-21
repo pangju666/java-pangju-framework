@@ -82,8 +82,8 @@ import java.util.Objects;
  * </p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see DataOperationError 数据操作错误记录
+ * @since 1.0.0
  */
 @HttpException(code = 0, type = HttpExceptionType.DATA_OPERATION)
 public class DataOperationException extends BaseHttpException {
@@ -122,8 +122,8 @@ public class DataOperationException extends BaseHttpException {
 	 * 创建一个数据操作异常。
 	 *
 	 * @param operation 发生异常的操作名称
-	 * @param message 异常消息
-	 * @param reason 异常原因的描述
+	 * @param message   异常消息
+	 * @param reason    异常原因的描述
 	 * @since 1.0.0
 	 */
 	public DataOperationException(String operation, String message, String reason) {
@@ -136,9 +136,9 @@ public class DataOperationException extends BaseHttpException {
 	 * 创建一个带有原因异常的数据操作异常。
 	 *
 	 * @param operation 发生异常的操作名称
-	 * @param message 异常消息
-	 * @param reason 异常原因的描述
-	 * @param cause 导致此异常的原始异常
+	 * @param message   异常消息
+	 * @param reason    异常原因的描述
+	 * @param cause     导致此异常的原始异常
 	 * @since 1.0.0
 	 */
 	public DataOperationException(String operation, String message, String reason, Throwable cause) {
@@ -209,12 +209,13 @@ public class DataOperationException extends BaseHttpException {
 	 *
 	 * @param logger 用于记录日志的Logger实例
 	 * @param level  日志记录的级别
-	 * @since 1.0.0
 	 * @see #valueToString(Object, String)
+	 * @since 1.0.0
 	 */
 	@Override
 	public void log(Logger logger, Level level) {
-		if (this.error == EMPTY_ERROR) {}
+		if (this.error == EMPTY_ERROR) {
+		}
 
 		String message = String.format("数据操作错误，来源：%s，操作：%s，数据描述：%s，数据值：%s，原因：%s",
 			StringUtils.defaultIfBlank(this.error.source(), "未知"),

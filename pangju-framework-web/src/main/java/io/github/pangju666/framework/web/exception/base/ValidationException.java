@@ -86,7 +86,7 @@ public class ValidationException extends BaseHttpException {
 	 * </p>
 	 *
 	 * @param message 验证错误消息，同时用作展示信息和错误原因
-	 * @param cause 导致此异常的原始异常
+	 * @param cause   导致此异常的原始异常
 	 * @since 1.0.0
 	 */
 	public ValidationException(String message, Throwable cause) {

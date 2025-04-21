@@ -61,9 +61,9 @@ import io.github.pangju666.framework.web.model.error.DataOperationError;
  * </p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see DataOperationException 数据操作异常基类
  * @see DataOperationError 数据操作错误记录
+ * @since 1.0.0
  */
 @HttpException(code = 500, description = "数据删除错误", type = HttpExceptionType.DATA_OPERATION)
 public class DataRemoveException extends DataOperationException {
@@ -106,7 +106,7 @@ public class DataRemoveException extends DataOperationException {
 	 * </p>
 	 *
 	 * @param reason 错误原因，描述删除失败的具体原因
-	 * @param cause 导致此异常的原始异常，保留完整异常链
+	 * @param cause  导致此异常的原始异常，保留完整异常链
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String reason, Throwable cause) {
@@ -120,7 +120,7 @@ public class DataRemoveException extends DataOperationException {
 	 * </p>
 	 *
 	 * @param message 自定义错误消息，替代默认的"数据删除错误"
-	 * @param reason 错误原因，描述删除失败的具体原因
+	 * @param reason  错误原因，描述删除失败的具体原因
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String message, String reason) {
@@ -134,8 +134,8 @@ public class DataRemoveException extends DataOperationException {
 	 * </p>
 	 *
 	 * @param message 自定义错误消息，替代默认的"数据删除错误"
-	 * @param reason 错误原因，描述删除失败的具体原因
-	 * @param cause 导致此异常的原始异常，保留完整异常链
+	 * @param reason  错误原因，描述删除失败的具体原因
+	 * @param cause   导致此异常的原始异常，保留完整异常链
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String message, String reason, Throwable cause) {
@@ -149,7 +149,7 @@ public class DataRemoveException extends DataOperationException {
 	 * </p>
 	 *
 	 * @param message 自定义错误消息，替代默认的"数据删除错误"
-	 * @param error 数据操作错误信息对象，包含来源、描述、数据值和错误原因
+	 * @param error   数据操作错误信息对象，包含来源、描述、数据值和错误原因
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String message, DataOperationError error) {

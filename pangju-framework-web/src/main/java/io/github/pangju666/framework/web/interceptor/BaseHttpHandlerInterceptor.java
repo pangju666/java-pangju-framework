@@ -72,8 +72,8 @@ public abstract class BaseHttpHandlerInterceptor implements HandlerInterceptor {
 	 *
 	 * @param patterns            拦截路径模式集合，匹配这些路径的请求将被拦截
 	 * @param excludePathPatterns 排除路径模式集合，匹配这些路径的请求将被跳过拦截
-	 * @since 1.0.0
 	 * @see #BaseHttpHandlerInterceptor(Set, Set, int)
+	 * @since 1.0.0
 	 */
 	protected BaseHttpHandlerInterceptor(Set<String> patterns, Set<String> excludePathPatterns) {
 		this(excludePathPatterns, patterns, Ordered.LOWEST_PRECEDENCE);

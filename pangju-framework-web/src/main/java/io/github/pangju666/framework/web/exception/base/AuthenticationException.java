@@ -138,8 +138,8 @@ public class AuthenticationException extends BaseHttpException {
 	 *
 	 * @param logger 用于记录日志的Logger实例
 	 * @param level  日志记录的级别
-	 * @since 1.0.0
 	 * @see #valueToString(Object, String)
+	 * @since 1.0.0
 	 */
 	@Override
 	public void log(Logger logger, Level level) {

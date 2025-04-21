@@ -84,7 +84,7 @@ public class ServiceException extends BaseHttpException {
 	 * </p>
 	 *
 	 * @param message 展示给用户的错误消息
-	 * @param reason 用于日志记录的详细错误原因
+	 * @param reason  用于日志记录的详细错误原因
 	 * @since 1.0.0
 	 */
 	public ServiceException(String message, String reason) {
@@ -99,7 +99,7 @@ public class ServiceException extends BaseHttpException {
 	 * </p>
 	 *
 	 * @param message 错误消息，同时用作展示信息和日志记录
-	 * @param cause 导致此异常的原始异常
+	 * @param cause   导致此异常的原始异常
 	 * @since 1.0.0
 	 */
 	public ServiceException(String message, Throwable cause) {
@@ -114,8 +114,8 @@ public class ServiceException extends BaseHttpException {
 	 * </p>
 	 *
 	 * @param message 展示给用户的错误消息
-	 * @param reason 用于日志记录的详细错误原因
-	 * @param cause 导致此异常的原始异常
+	 * @param reason  用于日志记录的详细错误原因
+	 * @param cause   导致此异常的原始异常
 	 * @since 1.0.0
 	 */
 	public ServiceException(String message, String reason, Throwable cause) {

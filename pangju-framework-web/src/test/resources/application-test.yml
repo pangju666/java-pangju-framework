@@ -1,2 +1,10 @@
 server:
   port: 8080
+  servlet:
+    context-path: /test
+
+spring:
+  servlet:
+    multipart:
+      max-request-size: 100MB
+      max-file-size: 50MB

@@ -70,11 +70,13 @@ public final class Result<T> {
 	private final int code;
 	/**
 	 * 消息
+	 *
 	 * @since 1.0.0
 	 */
 	private final String message;
 	/**
 	 * 数据
+	 *
 	 * @since 1.0.0
 	 */
 	private final T data;
@@ -254,8 +256,8 @@ public final class Result<T> {
 	 * </p>
 	 *
 	 * @return JSON格式的字符串表示
-	 * @since 1.0.0
 	 * @see JsonUtils#toString()
+	 * @since 1.0.0
 	 */
 	@Override
 	public String toString() {

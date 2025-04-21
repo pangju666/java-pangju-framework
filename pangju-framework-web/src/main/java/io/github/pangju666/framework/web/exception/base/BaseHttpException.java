@@ -111,7 +111,7 @@ public abstract class BaseHttpException extends NestedRuntimeException {
 	 * 创建HTTP异常实例
 	 *
 	 * @param message 面向用户的异常消息，用于在API响应中展示
-	 * @param reason 异常的详细原因，用于日志记录
+	 * @param reason  异常的详细原因，用于日志记录
 	 * @since 1.0.0
 	 */
 	protected BaseHttpException(String message, String reason) {
@@ -123,8 +123,8 @@ public abstract class BaseHttpException extends NestedRuntimeException {
 	 * 创建带有原因异常的HTTP异常实例
 	 *
 	 * @param message 面向用户的异常消息，用于在API响应中展示
-	 * @param reason 异常的详细原因，用于日志记录
-	 * @param cause 导致当前异常的原始异常
+	 * @param reason  异常的详细原因，用于日志记录
+	 * @param cause   导致当前异常的原始异常
 	 * @since 1.0.0
 	 */
 	protected BaseHttpException(String message, String reason, Throwable cause) {
