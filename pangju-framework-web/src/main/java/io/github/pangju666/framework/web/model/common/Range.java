@@ -91,7 +91,7 @@ public final class Range {
 	 *
 	 * @since 1.0.0
 	 */
-	private final boolean full;
+	private final boolean complete;
 
 	/**
 	 * 构造范围请求实例
@@ -120,7 +120,7 @@ public final class Range {
 		this.end = end;
 		this.total = total;
 		this.length = end - start + 1;
-		this.full = this.length == this.total;
+		this.complete = this.length == this.total;
 	}
 
 	/**
@@ -163,13 +163,17 @@ public final class Range {
 		return total;
 	}
 
+	public static Range complete(long totalLength) {
+		return new Range(0, totalLength - 1, totalLength);
+	}
+
 	/**
 	 * 判断是否为完整资源请求
 	 *
 	 * @return 如果请求范围等于资源总大小则返回true，否则返回false
 	 * @since 1.0.0
 	 */
-	public boolean isFull() {
-		return full;
+	public boolean isComplete() {
+		return complete;
 	}
 }

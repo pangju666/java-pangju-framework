@@ -1,12 +1,12 @@
 package io.github.pangju666.framework.web.utils;
 
-import io.github.pangju666.commons.io.utils.FileUtils;
-import io.github.pangju666.commons.io.utils.FilenameUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
+import io.github.pangju666.commons.lang.utils.RegExUtils;
 import io.github.pangju666.framework.web.model.common.Range;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,6 +18,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class FileResponseUtils {
@@ -28,96 +29,111 @@ public class FileResponseUtils {
 	 * 支持多个范围段的请求格式解析。
 	 * </p>
 	 */
-	protected static final Pattern RANGE_PATTERN = Pattern.compile("^bytes=\\d*-\\d*(,\\d*-\\d*)*$");
+	public static final Pattern RANGE_PATTERN = Pattern.compile("^bytes=\\d*-\\d*(,\\d*-\\d*)*$");
+	public static final String REQUEST_RANGE_HEADER_VALUE_PREFIX = "bytes=";
+	public static final String RESPONSE_ACCEPT_RANGES_HEADER_VALUE = "bytes";
+	public static final String RESPONSE_CONTENT_RANGE_HEADER_PREFIX = "bytes */";
+	public static final String RANGES_DELIMITER = ",";
+	public static final String RANGE_DELIMITER = "-";
 
 	protected FileResponseUtils() {
 	}
 
-	public static void writeFileToResponse(final File file, @Nullable final String responseFilename, @Nullable final String contentType,
-										   final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+	public static void handleRangeRequest(final byte[] bytes, @Nullable final String filename, @Nullable final String contentType,
+										  final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 		Assert.notNull(request, "request 不可为null");
 		Assert.notNull(response, "response 不可为null");
-		FileUtils.checkFile(file, "file 不可为null");
 
-		if (StringUtils.isNotBlank(responseFilename)) {
-			String attachmentFilename = FilenameUtils.replaceBaseName(file.getName(), responseFilename);
-			ResponseUtils.setAttachmentHeader(response, attachmentFilename);
-		}
-		response.setContentType(contentType);
-		response.setContentLengthLong(file.length());
+		int bytesLength = ArrayUtils.getLength(bytes);
+		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
 
-		String range = request.getHeader(HttpHeaders.RANGE);
-		if (StringUtils.isBlank(range)) {
-			try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file);
+		if (StringUtils.isBlank(rangeHeader)) {
+			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes));
 				 OutputStream outputStream = response.getOutputStream();
 				 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+				ResponseUtils.setFileDownloadHeader(bytesLength, filename, contentType, response);
 				inputStream.transferTo(bufferedOutputStream);
 			}
 		} else {
-			try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
+			List<Range> ranges = getRanges(bytesLength, rangeHeader);
+			// 超出字节数组总长度或格式错误
+			if (Objects.isNull(ranges)) {
+				response.setHeader(HttpHeaders.CONTENT_RANGE, RESPONSE_CONTENT_RANGE_HEADER_PREFIX + bytes.length);
+				response.sendError(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
+				return;
+			}
+
+			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes))) {
+				ResponseUtils.setFileDownloadHeader(bytesLength, filename, contentType, response);
+				response.setBufferSize(IOUtils.getBufferSize(bytesLength));
+				response.setHeader(HttpHeaders.ACCEPT_RANGES, RESPONSE_ACCEPT_RANGES_HEADER_VALUE);
+				response.setStatus(HttpStatus.PARTIAL_CONTENT.value());
+
+				writeRangesToResponse(ranges, inputStream, bytesLength, response);
+			}
+			/*try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
 				response.setBufferSize(IOUtils.DEFAULT_BUFFER_SIZE);
 				response.setHeader(HttpHeaders.ACCEPT_RANGES, "bytes");
 
 				List<Range> ranges = getRanges(file, range, response);
 				writeRangesToResponse(ranges, randomAccessFile, file.length(), response);
-			}
+			}*/
 		}
 	}
 
-	protected static List<Range> getRanges(final File file, String rangeValue, final HttpServletResponse response) throws IOException {
-		long fileLength = file.length();
-		List<Range> ranges = new ArrayList<>();
-
-		if (!RANGE_PATTERN.matcher(rangeValue).matches()) {
-			response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes */" + fileLength);
-			response.sendError(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
-			return Collections.emptyList();
+	public static List<Range> getRanges(final long totalLength, @Nullable final String range) {
+		if (!RegExUtils.matches(RANGE_PATTERN, range)) {
+			return null;
 		}
 
-		rangeValue = StringUtils.substringAfter(rangeValue, "bytes=");
-		for (String part : rangeValue.split(",")) {
-			part = part.split("/")[0];
+		List<Range> ranges = new ArrayList<>();
+		String rangeValue = StringUtils.substringAfter(range, REQUEST_RANGE_HEADER_VALUE_PREFIX);
 
-			int delimiterIndex = part.indexOf("-");
-			long start = rangePartToLong(part, 0, delimiterIndex);
-			long end = rangePartToLong(part, delimiterIndex + 1, part.length());
+		for (String part : rangeValue.split(RANGES_DELIMITER)) {
+			String[] partRange = part.split(RANGE_DELIMITER);
+			if (partRange.length == 0) {
+				return null;
+			} else if (partRange.length == 1) {
+				long start = Long.parseLong(partRange[0]);
 
-			if (start == 0 && end == fileLength - 1) {
-				Range fullRange = new Range(0, fileLength - 1, fileLength);
-				return Collections.singletonList(fullRange);
+				if (start == 0) {
+					ranges.add(Range.complete(totalLength));
+				} else if (start == -1 || start > totalLength - 1) {
+					return null;
+				} else {
+					ranges.add(new Range(start, totalLength - start - 1, totalLength - start));
+				}
+			} else {
+				long start = Long.parseLong(partRange[0]);
+				long end = Long.parseLong(partRange[1]);
+
+				if (start == 0 && end == totalLength - 1) {
+					return Collections.singletonList(Range.complete(totalLength));
+				} else if (start == -1 || end == -1 || start > totalLength - 1 || end > totalLength - 1 || start > end) {
+					return null;
+				} else {
+					ranges.add(new Range(start, end, end - start + 1));
+				}
 			}
-
-			if (start == -1) {
-				start = fileLength - end;
-				end = fileLength - 1;
-			} else if (end == -1 || end > fileLength - 1) {
-				end = fileLength - 1;
-			}
-
-			if (start > end) {
-				response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes */" + fileLength);
-				response.sendError(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
-				return Collections.emptyList();
-			}
-
-			ranges.add(new Range(start, end, end - start + 1));
 		}
 		return ranges;
 	}
 
-	protected static void writeRangesToResponse(final List<Range> ranges, final RandomAccessFile randomAccessFile,
-												final long length, final HttpServletResponse response) throws IOException {
-		try (ServletOutputStream servletOutputStream = response.getOutputStream()) {
-			if (ranges.size() <= 1) {
+	public static void writeRangesToResponse(final List<Range> ranges, final InputStream inputStream,
+											 final long length, final HttpServletResponse response) throws IOException {
+		try (ServletOutputStream servletOutputStream = response.getOutputStream();
+			 InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
+
+			if (ranges.size() == 1) {
 				Range range = ranges.get(0);
 
 				response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + range.getStart() + "-" + range.getEnd() + "/" + range.getTotal());
 				response.setContentLengthLong(range.getLength());
-				if (!range.isFull()) {
+				if (!range.isComplete()) {
 					response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 				}
 
-				writeFileToOutputStream(randomAccessFile, response.getOutputStream(), length, range.getStart(), range.getLength());
+				//writeToOutputStream(inputStream, response.getOutputStream(), length, range.getStart(), range.getLength());
 				servletOutputStream.flush();
 			} else {
 				// 返回文件的多个分段.
@@ -134,7 +150,7 @@ public class FileResponseUtils {
 					servletOutputStream.println(HttpHeaders.CONTENT_RANGE + ": bytes " + range.getStart() + "-" + range.getEnd() + "/" + range.getTotal());
 
 					// 复制多个需要复制的文件分段当中的一个分段.
-					writeFileToOutputStream(randomAccessFile, response.getOutputStream(), length, range.getStart(), range.getLength());
+					//writeToOutputStream(inputStream, response.getOutputStream(), length, range.getStart(), range.getLength());
 				}
 
 				servletOutputStream.println();
@@ -144,7 +160,7 @@ public class FileResponseUtils {
 		}
 	}
 
-	protected static void writeFileToOutputStream(final RandomAccessFile randomAccessFile, final OutputStream output,
+	protected static void writeToOutputStream(final RandomAccessFile randomAccessFile, final OutputStream output,
 												  final long fileSize, final long start, final long length) throws IOException {
 		byte[] buffer = new byte[4096];
 		int read = 0;
@@ -180,10 +196,5 @@ public class FileResponseUtils {
 				}
 			}
 		}
-	}
-
-	protected static Long rangePartToLong(final String part, final int beginIndex, final int endIndex) {
-		String substring = part.substring(beginIndex, endIndex);
-		return (!substring.isEmpty()) ? Long.parseLong(substring) : -1;
 	}
 }
