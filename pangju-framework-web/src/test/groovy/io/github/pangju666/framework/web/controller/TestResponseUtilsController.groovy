@@ -16,11 +16,11 @@
 
 package io.github.pangju666.framework.web.controller
 
+import io.github.pangju666.commons.io.utils.FileUtils
 import io.github.pangju666.commons.io.utils.IOUtils
 import io.github.pangju666.framework.web.model.common.Result
 import io.github.pangju666.framework.web.utils.ResponseUtils
 import jakarta.servlet.http.HttpServletResponse
-import org.apache.commons.lang3.RandomUtils
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -30,8 +30,9 @@ import java.nio.charset.StandardCharsets
 @RequestMapping("/response-utils")
 @RestController
 class TestResponseUtilsController {
-	def bytes = RandomUtils.nextBytes(1000000)
-	def bytes2 = RandomUtils.nextBytes(100000000)
+	def bigFile = new File("D:\\workspace\\resource\\图片\\lADPDg7mUhel9rHMtsyy_178_182.jpg")
+	def smallFile = new File("D:\\workspace\\resource\\图片\\R-C (19).jpg")
+	def bytes = FileUtils.readFileToByteArray(bigFile)
 
 	@GetMapping("/bytes-buffer")
 	void bufferBytes(HttpServletResponse response) {
@@ -50,15 +51,16 @@ class TestResponseUtilsController {
 
 	@GetMapping("/inputStream-buffer")
 	void bufferInputStream(HttpServletResponse response) {
-		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes2)) {
-			ResponseUtils.writeInputStreamToResponse(inputStream, response)
+		try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream());
+			 InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(bigFile)) {
+			inputStream.transferTo(outputStream)
 		}
 	}
 
 	@GetMapping("/inputStream")
 	void inputStream(HttpServletResponse response) {
 		try (OutputStream outputStream = response.getOutputStream();
-			 InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes2)) {
+			 InputStream inputStream = FileUtils.openInputStream(bigFile)) {
 			inputStream.transferTo(outputStream)
 		} catch (IOException e) {
 			throw new UncheckedIOException(e)
@@ -83,15 +85,11 @@ class TestResponseUtilsController {
 
 	@GetMapping("/file-buffer")
 	void fileBuffer(HttpServletResponse response) {
-		ResponseUtils.writeFileToResponse(new File(
-			"D:\\workspace\\project\\personal\\pangju-framework\\pangju-framework-web\\src\\test\\resources\\images\\test.jpg"),
-			null, response)
+		ResponseUtils.writeFileToResponse(bigFile, response)
 	}
 
 	@GetMapping("/file")
 	void file(HttpServletResponse response) {
-		ResponseUtils.writeFileToResponse(new File(
-			"D:\\workspace\\project\\personal\\pangju-framework\\pangju-framework-web\\src\\test\\resources\\images\\test.jpg"),
-			null, response, false)
+		ResponseUtils.writeFileToResponse(bigFile, response, false)
 	}
 }

@@ -180,7 +180,7 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void setDownloadHeaders(final long contentLength, @Nullable final String filename,
-											 @Nullable final String contentType, final HttpServletResponse response) {
+										  @Nullable final String contentType, final HttpServletResponse response) {
 		Assert.notNull(response, "response 不可为null");
 		Assert.isTrue(contentLength >= 0, "contentLength 必须大于等于0");
 
@@ -192,6 +192,57 @@ public class ResponseUtils {
 	}
 
 	/**
+	 * 通过文件写入响应
+	 * <p>
+	 * 该方法将指定文件的内容写入HTTP响应。它会：
+	 * <ul>
+	 *     <li>自动检测文件的MIME类型</li>
+	 *     <li>设置适当的下载响应头</li>
+	 *     <li>使用缓冲输入流读取文件内容</li>
+	 *     <li>将文件内容以HTTP 200 OK状态写入响应</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param file     要写入响应的文件
+	 * @param response HTTP响应对象
+	 * @throws IOException 如果发生I/O错误
+	 * @since 1.0.0
+	 */
+	public static void writeFileToResponse(final File file, final HttpServletResponse response) throws IOException {
+		String fileType = FileUtils.getMimeType(file);
+		setDownloadHeaders(file.length(), file.getName(), fileType, response);
+		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
+			writeInputStreamToResponse(inputStream, response, fileType, HttpStatus.OK.value(), true);
+		}
+	}
+
+	/**
+	 * 通过文件写入响应（可控制缓冲选项）
+	 * <p>
+	 * 该方法将指定文件的内容写入HTTP响应，并允许控制是否使用缓冲。它会：
+	 * <ul>
+	 *     <li>自动检测文件的MIME类型</li>
+	 *     <li>设置适当的下载响应头</li>
+	 *     <li>根据buffer参数决定是否使用缓冲输入流</li>
+	 *     <li>将文件内容以HTTP 200 OK状态写入响应</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param file     要写入响应的文件
+	 * @param response HTTP响应对象
+	 * @param buffer   是否使用缓冲输入流，true表示使用缓冲，false表示使用非缓冲流
+	 * @throws IOException 如果发生I/O错误
+	 * @since 1.0.0
+	 */
+	public static void writeFileToResponse(final File file, final HttpServletResponse response, final boolean buffer) throws IOException {
+		String fileType = FileUtils.getMimeType(file);
+		setDownloadHeaders(file.length(), file.getName(), fileType, response);
+		try (InputStream inputStream = buffer ? FileUtils.openUnsynchronizedBufferedInputStream(file) : FileUtils.openInputStream(file)) {
+			writeInputStreamToResponse(inputStream, response, fileType, HttpStatus.OK.value(), buffer);
+		}
+	}
+
+	/**
 	 * 将文件写入HTTP响应
 	 * <p>
 	 * 读取指定文件内容并写入HTTP响应流，自动设置适当的下载头信息。
@@ -200,17 +251,17 @@ public class ResponseUtils {
 	 *
 	 * @param file             要写入的文件，不能为null
 	 * @param downloadFilename 下载时显示的文件名，如为null则使用原始文件名
+	 * @param fileType      文件类型，如为null则自动解析文件类型
 	 * @param response         HTTP响应对象，不能为null
 	 * @throws IOException              如果读取文件或写入响应过程中发生IO异常
 	 * @throws IllegalArgumentException 如果file或response为null
 	 * @since 1.0.0
 	 */
 	public static void writeFileToResponse(final File file, @Nullable final String downloadFilename,
-										   final HttpServletResponse response) throws IOException {
-		String contentType = FileUtils.getMimeType(file);
-		long fileLength = file.length();
-		setDownloadHeaders(fileLength, ObjectUtils.defaultIfNull(downloadFilename,
-			file.getName()), contentType, response);
+										   @Nullable final String fileType, final HttpServletResponse response) throws IOException {
+		String contentType = ObjectUtils.defaultIfNull(fileType, FileUtils.getMimeType(file));
+		setDownloadHeaders(file.length(), ObjectUtils.defaultIfNull(downloadFilename, file.getName()),
+			contentType, response);
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
 			writeInputStreamToResponse(inputStream, response, contentType, HttpStatus.OK.value(), true);
 		}
@@ -225,6 +276,7 @@ public class ResponseUtils {
 	 *
 	 * @param file             要写入的文件，不能为null
 	 * @param downloadFilename 下载时显示的文件名，如为null则使用原始文件名
+	 * @param fileType      文件类型，如为null则自动解析文件类型
 	 * @param response         HTTP响应对象，不能为null
 	 * @param buffer           是否启用响应缓冲，true表示使用缓冲流，false表示直接写入
 	 * @throws IOException              如果读取文件或写入响应过程中发生IO异常
@@ -232,11 +284,11 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeFileToResponse(final File file, @Nullable final String downloadFilename,
-										   final HttpServletResponse response, final boolean buffer) throws IOException {
-		String contentType = FileUtils.getMimeType(file);
-		long fileLength = file.length();
-		setDownloadHeaders(fileLength, ObjectUtils.defaultIfNull(downloadFilename,
-			file.getName()), contentType, response);
+										   @Nullable final String fileType, final HttpServletResponse response,
+										   final boolean buffer) throws IOException {
+		String contentType = ObjectUtils.defaultIfNull(fileType, FileUtils.getMimeType(file));
+		setDownloadHeaders(file.length(), ObjectUtils.defaultIfNull(downloadFilename, file.getName()),
+			contentType, response);
 		try (InputStream inputStream = buffer ? FileUtils.openUnsynchronizedBufferedInputStream(file) : FileUtils.openInputStream(file)) {
 			writeInputStreamToResponse(inputStream, response, contentType, HttpStatus.OK.value(), buffer);
 		}
@@ -909,26 +961,22 @@ public class ResponseUtils {
 		Assert.notNull(inputStream, "inputStream 不可为null");
 
 		if (buffer) {
-			if (inputStream instanceof BufferedInputStream ||
-				inputStream instanceof UnsynchronizedByteArrayInputStream ||
-				inputStream instanceof UnsynchronizedBufferedInputStream ||
-				inputStream instanceof BufferedFileChannelInputStream) {
-				try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
-					response.setStatus(status);
-					response.setContentType(ObjectUtils.defaultIfNull(contentType, MediaType.APPLICATION_OCTET_STREAM_VALUE));
+			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
+				response.setStatus(status);
+				response.setContentType(ObjectUtils.defaultIfNull(contentType, MediaType.APPLICATION_OCTET_STREAM_VALUE));
+
+				if (inputStream instanceof BufferedInputStream ||
+					inputStream instanceof UnsynchronizedByteArrayInputStream ||
+					inputStream instanceof UnsynchronizedBufferedInputStream ||
+					inputStream instanceof BufferedFileChannelInputStream) {
 					inputStream.transferTo(outputStream);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
+				} else {
+					try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
+						bufferedInputStream.transferTo(outputStream);
+					}
 				}
-			} else {
-				try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream());
-					 InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
-					response.setStatus(status);
-					response.setContentType(ObjectUtils.defaultIfNull(contentType, MediaType.APPLICATION_OCTET_STREAM_VALUE));
-					bufferedInputStream.transferTo(outputStream);
-				} catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
 			}
 		} else {
 			try (OutputStream outputStream = response.getOutputStream()) {
@@ -1003,12 +1051,12 @@ public class ResponseUtils {
 			if (annotation.log()) {
 				httpException.log(LOGGER, Level.ERROR);
 			}
-			writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+			writeBytesToResponse(result.toString().getBytes(), response,
 				MediaType.APPLICATION_JSON_VALUE, annotation.status().value(), buffer);
 		} else {
 			Result<Void> result = Result.fail(WebConstants.BASE_ERROR_CODE, httpException.getMessage());
 			httpException.log(LOGGER, Level.ERROR);
-			writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+			writeBytesToResponse(result.toString().getBytes(), response,
 				MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), buffer);
 		}
 	}
@@ -1022,7 +1070,7 @@ public class ResponseUtils {
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
 	 * </p>
 	 * <p>
-	 *     默认启用响应缓冲以提高传输性能。
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bean     要写入的JavaBean对象
@@ -1033,7 +1081,7 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response) {
-		writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
+		writeBytesToResponse(Result.ok(bean).toString().getBytes(),
 			response, MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), true);
 	}
 
@@ -1046,7 +1094,7 @@ public class ResponseUtils {
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
 	 * </p>
 	 * <p>
-	 *     默认启用响应缓冲以提高传输性能。
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bean     要写入的JavaBean对象
@@ -1060,7 +1108,7 @@ public class ResponseUtils {
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final HttpStatus status) {
 		Assert.notNull(status, "status 不可为null");
 
-		writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
+		writeBytesToResponse(Result.ok(bean).toString().getBytes(),
 			response, MediaType.APPLICATION_JSON_VALUE, status, true);
 	}
 
@@ -1073,7 +1121,7 @@ public class ResponseUtils {
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
 	 * </p>
 	 * <p>
-	 *     默认启用响应缓冲以提高传输性能。
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bean     要写入的JavaBean对象
@@ -1085,7 +1133,7 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final int status) {
-		writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
+		writeBytesToResponse(Result.ok(bean).toString().getBytes(),
 			response, MediaType.APPLICATION_JSON_VALUE, status, true);
 	}
 
@@ -1095,7 +1143,7 @@ public class ResponseUtils {
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
 	 * </p>
 	 * <p>
-	 *     默认启用响应缓冲以提高传输性能。
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param result   要写入的Result对象
@@ -1108,7 +1156,7 @@ public class ResponseUtils {
 	public static <T> void writeResultToResponse(final Result<T> result, final HttpServletResponse response) {
 		Assert.notNull(result, "result 不可为null");
 
-		writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+		writeBytesToResponse(result.toString().getBytes(), response,
 			MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), true);
 	}
 
@@ -1118,7 +1166,7 @@ public class ResponseUtils {
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
 	 * </p>
 	 * <p>
-	 *     默认启用响应缓冲以提高传输性能。
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param result   要写入的Result对象
@@ -1133,7 +1181,7 @@ public class ResponseUtils {
 		Assert.notNull(status, "status 不可为null");
 		Assert.notNull(result, "result 不可为null");
 
-		writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+		writeBytesToResponse(result.toString().getBytes(), response,
 			MediaType.APPLICATION_JSON_VALUE, status.value(), true);
 	}
 
@@ -1157,7 +1205,7 @@ public class ResponseUtils {
 	public static <T> void writeResultToResponse(final Result<T> result, final HttpServletResponse response, final int status) {
 		Assert.notNull(result, "result 不可为null");
 
-		writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+		writeBytesToResponse(result.toString().getBytes(), response,
 			MediaType.APPLICATION_JSON_VALUE, status, true);
 	}
 
@@ -1179,7 +1227,7 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final boolean buffer) {
-		writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
+		writeBytesToResponse(Result.ok(bean).toString().getBytes(),
 			response, MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), buffer);
 	}
 
@@ -1205,7 +1253,7 @@ public class ResponseUtils {
 											   final HttpStatus status, final boolean buffer) {
 		Assert.notNull(status, "status 不可为null");
 
-		writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
+		writeBytesToResponse(Result.ok(bean).toString().getBytes(),
 			response, MediaType.APPLICATION_JSON_VALUE, status, buffer);
 	}
 
@@ -1229,7 +1277,7 @@ public class ResponseUtils {
 	 */
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final int status,
 											   final boolean buffer) {
-		writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
+		writeBytesToResponse(Result.ok(bean).toString().getBytes(),
 			response, MediaType.APPLICATION_JSON_VALUE, status, buffer);
 	}
 
@@ -1251,7 +1299,7 @@ public class ResponseUtils {
 												 final boolean buffer) {
 		Assert.notNull(result, "result 不可为null");
 
-		writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+		writeBytesToResponse(result.toString().getBytes(), response,
 			MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), buffer);
 	}
 
@@ -1275,7 +1323,7 @@ public class ResponseUtils {
 		Assert.notNull(status, "status 不可为null");
 		Assert.notNull(result, "result 不可为null");
 
-		writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+		writeBytesToResponse(result.toString().getBytes(), response,
 			MediaType.APPLICATION_JSON_VALUE, status.value(), buffer);
 	}
 
@@ -1298,7 +1346,7 @@ public class ResponseUtils {
 												 final int status, final boolean buffer) {
 		Assert.notNull(result, "result 不可为null");
 
-		writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+		writeBytesToResponse(result.toString().getBytes(), response,
 			MediaType.APPLICATION_JSON_VALUE, status, buffer);
 	}
 }

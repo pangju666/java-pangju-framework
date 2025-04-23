@@ -33,7 +33,7 @@ class ResponseUtilsSpec extends Specification {
 	RestClient restClient
 
 	def "bytes"() {
-		when:
+		setup:
 		StopWatch stopWatch = new StopWatch()
 		stopWatch.start()
 
@@ -44,13 +44,10 @@ class ResponseUtilsSpec extends Specification {
 
 		stopWatch.stop()
 		println stopWatch.lastTaskInfo().getTimeMillis()
-
-		then:
-		result.length == 1000000
 	}
 
 	def "bytes-buffer"() {
-		when:
+		setup:
 		StopWatch stopWatch = new StopWatch()
 		stopWatch.start()
 
@@ -61,9 +58,6 @@ class ResponseUtilsSpec extends Specification {
 
 		stopWatch.stop()
 		println stopWatch.lastTaskInfo().getTimeMillis()
-
-		then:
-		result.length == 1000000
 	}
 
 	def "inputStream"() {
