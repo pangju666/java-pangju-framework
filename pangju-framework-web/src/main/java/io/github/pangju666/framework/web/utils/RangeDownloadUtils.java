@@ -6,6 +6,7 @@ import io.github.pangju666.commons.lang.utils.RegExUtils;
 import io.github.pangju666.framework.web.model.common.Range;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-public class FileResponseUtils {
+public class RangeDownloadUtils {
 	/**
 	 * 范围请求头模式匹配器
 	 * <p>
@@ -41,23 +42,54 @@ public class FileResponseUtils {
 	public static final String RESPONSE_CONTENT_RANGE_END = "--" + RESPONSE_RANGES_CONTENT_DELIMITER + "--";
 	public static final String NEW_LINE = "\r\n";
 
-	protected FileResponseUtils() {
+	protected RangeDownloadUtils() {
 	}
 
-	public static void handleRangeRequest(final File file, final HttpServletRequest request,
-										  final HttpServletResponse response) throws IOException {
-		handleRangeRequest(file, null, null, request, response);
-	}
-
-	public static void handleRangeRequest(final File file, @Nullable final String downloadFilename, @Nullable final String contentType,
-										  final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+	public static void downloadBytes(final byte[] bytes, @Nullable final String downloadFilename, @Nullable final String contentType,
+									 final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 		Assert.notNull(request, "request 不可为null");
 		Assert.notNull(response, "response 不可为null");
 
 		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
 		if (StringUtils.isBlank(rangeHeader)) {
-			ResponseUtils.setDownloadHeaders(file.length(), downloadFilename, contentType, response);
-			ResponseUtils.writeFileToResponse(file, downloadFilename, contentType, response, true);
+			ResponseUtils.setDownloadHeaders(response, bytes.length, downloadFilename, contentType);
+			ResponseUtils.writeBytesToResponse(bytes, response, contentType, true);
+		} else {
+			List<Range> ranges = getRanges(bytes.length, rangeHeader);
+
+			// 超出字节数组总长度或格式错误
+			if (Objects.isNull(ranges)) {
+				response.setHeader(HttpHeaders.CONTENT_RANGE, RESPONSE_CONTENT_RANGE_HEADER_PREFIX + bytes.length);
+				response.setStatus(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
+				return;
+			}
+
+			// 返回完整内容
+			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
+				ResponseUtils.setDownloadHeaders(response, bytes.length, downloadFilename, contentType);
+				ResponseUtils.writeBytesToResponse(bytes, response, contentType, true);
+				return;
+			}
+
+			response.setHeader(HttpHeaders.ACCEPT_RANGES, RESPONSE_ACCEPT_RANGES_HEADER_VALUE);
+			response.setStatus(HttpStatus.PARTIAL_CONTENT.value());
+			writeRangesToResponse(ranges, bytes, response);
+		}
+	}
+
+	public static void downloadFile(final File file, final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+		downloadFile(file, null, null, request, response);
+	}
+
+	public static void downloadFile(final File file, @Nullable final String downloadFilename, @Nullable final String contentType,
+									final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+		Assert.notNull(request, "request 不可为null");
+		Assert.notNull(response, "response 不可为null");
+
+		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
+		if (StringUtils.isBlank(rangeHeader)) {
+			ResponseUtils.setDownloadHeaders(response, file.length(), downloadFilename, contentType);
+			ResponseUtils.writeFileToResponse(file, response, downloadFilename, contentType, true);
 		} else {
 			long totalLength = file.length();
 			List<Range> ranges = getRanges(totalLength, rangeHeader);
@@ -71,8 +103,8 @@ public class FileResponseUtils {
 
 			// 返回完整内容
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
-				ResponseUtils.setDownloadHeaders(totalLength, downloadFilename, contentType, response);
-				ResponseUtils.writeFileToResponse(file, downloadFilename, contentType, response, true);
+				ResponseUtils.setDownloadHeaders(response, totalLength, downloadFilename, contentType);
+				ResponseUtils.writeFileToResponse(file, response, downloadFilename, contentType, true);
 				return;
 			}
 
@@ -144,15 +176,7 @@ public class FileResponseUtils {
 				response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
 
 				for (Range range : ranges) {
-					//为每个Range添加MULTIPART边界和标题字段
-					outputStream.write((RESPONSE_CONTENT_RANGE_START + NEW_LINE).getBytes());
-					outputStream.write((HttpHeaders.CONTENT_TYPE + ": " + MediaType.APPLICATION_OCTET_STREAM_VALUE
-						+ NEW_LINE).getBytes());
-					outputStream.write((HttpHeaders.CONTENT_LENGTH + ": " + range.getLength() + NEW_LINE).getBytes());
-					outputStream.write((HttpHeaders.CONTENT_RANGE + ": " + RESPONSE_CONTENT_RANGE_FORMAT.formatted(
-						range.getStart(), range.getEnd(), range.getTotal()) + NEW_LINE).getBytes());
-					outputStream.write(NEW_LINE.getBytes());
-
+					writeHeadersToRange(range, outputStream);
 					randomAccessFile.seek(range.getStart());
 					byte[] buffer = new byte[(int) (range.getEnd() - range.getStart() + 1)];
 					randomAccessFile.readFully(buffer);
@@ -162,5 +186,47 @@ public class FileResponseUtils {
 				outputStream.write((RESPONSE_CONTENT_RANGE_END).getBytes());
 			}
 		}
+	}
+
+	public static void writeRangesToResponse(final List<Range> ranges, final byte[] bytes,
+											 final HttpServletResponse response) throws IOException {
+		if (ranges.size() == 1) {
+			Range range = ranges.get(0);
+
+			response.setHeader(HttpHeaders.CONTENT_RANGE, RESPONSE_CONTENT_RANGE_FORMAT.formatted(
+				range.getStart(), range.getEnd(), range.getTotal()));
+			response.setContentLengthLong(range.getLength());
+			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+
+			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
+				outputStream.write(ArrayUtils.subarray(bytes, (int) range.getStart(),
+					(int) range.getEnd() + 1));
+			}
+		} else {
+			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
+				// 返回文件的多个分段.
+				response.setContentType(RESPONSE_RANGES_CONTENT_TYPE);
+				response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+
+				for (Range range : ranges) {
+					writeHeadersToRange(range, outputStream);
+					outputStream.write(ArrayUtils.subarray(bytes, (int) range.getStart(),
+						(int) range.getEnd() + 1));
+					outputStream.write(NEW_LINE.getBytes());
+				}
+				outputStream.write((RESPONSE_CONTENT_RANGE_END).getBytes());
+			}
+		}
+	}
+
+	protected static void writeHeadersToRange(Range range, OutputStream outputStream) throws IOException {
+		//为每个Range添加MULTIPART边界和标题字段
+		outputStream.write((RESPONSE_CONTENT_RANGE_START + NEW_LINE).getBytes());
+		outputStream.write((HttpHeaders.CONTENT_TYPE + ": " + MediaType.APPLICATION_OCTET_STREAM_VALUE
+			+ NEW_LINE).getBytes());
+		outputStream.write((HttpHeaders.CONTENT_LENGTH + ": " + range.getLength() + NEW_LINE).getBytes());
+		outputStream.write((HttpHeaders.CONTENT_RANGE + ": " + RESPONSE_CONTENT_RANGE_FORMAT.formatted(
+			range.getStart(), range.getEnd(), range.getTotal()) + NEW_LINE).getBytes());
+		outputStream.write(NEW_LINE.getBytes());
 	}
 }

@@ -106,7 +106,6 @@ import java.util.Objects;
  * @see jakarta.servlet.http.HttpServletResponse
  * @see org.springframework.http.HttpStatus
  * @see org.springframework.http.MediaType
- * @see FileResponseUtils
  * @since 1.0.0
  */
 public class ResponseUtils {
@@ -179,8 +178,8 @@ public class ResponseUtils {
 	 * @throws IllegalArgumentException 当response为null或contentLength小于0时抛出
 	 * @since 1.0.0
 	 */
-	public static void setDownloadHeaders(final long contentLength, @Nullable final String filename,
-										  @Nullable final String contentType, final HttpServletResponse response) {
+	public static void setDownloadHeaders(final HttpServletResponse response, final long contentLength,
+										  @Nullable final String filename, @Nullable final String contentType) {
 		Assert.notNull(response, "response 不可为null");
 		Assert.isTrue(contentLength >= 0, "contentLength 必须大于等于0");
 
@@ -210,7 +209,7 @@ public class ResponseUtils {
 	 */
 	public static void writeFileToResponse(final File file, final HttpServletResponse response) throws IOException {
 		String fileType = FileUtils.getMimeType(file);
-		setDownloadHeaders(file.length(), file.getName(), fileType, response);
+		setDownloadHeaders(response, file.length(), file.getName(), fileType);
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
 			writeInputStreamToResponse(inputStream, response, fileType, HttpStatus.OK.value(), true);
 		}
@@ -236,7 +235,7 @@ public class ResponseUtils {
 	 */
 	public static void writeFileToResponse(final File file, final HttpServletResponse response, final boolean buffer) throws IOException {
 		String fileType = FileUtils.getMimeType(file);
-		setDownloadHeaders(file.length(), file.getName(), fileType, response);
+		setDownloadHeaders(response, file.length(), file.getName(), fileType);
 		try (InputStream inputStream = buffer ? FileUtils.openUnsynchronizedBufferedInputStream(file) : FileUtils.openInputStream(file)) {
 			writeInputStreamToResponse(inputStream, response, fileType, HttpStatus.OK.value(), buffer);
 		}
@@ -257,11 +256,11 @@ public class ResponseUtils {
 	 * @throws IllegalArgumentException 如果file或response为null
 	 * @since 1.0.0
 	 */
-	public static void writeFileToResponse(final File file, @Nullable final String downloadFilename,
-										   @Nullable final String fileType, final HttpServletResponse response) throws IOException {
+	public static void writeFileToResponse(final File file, final HttpServletResponse response,
+										   @Nullable final String downloadFilename, @Nullable final String fileType) throws IOException {
 		String contentType = ObjectUtils.defaultIfNull(fileType, FileUtils.getMimeType(file));
-		setDownloadHeaders(file.length(), ObjectUtils.defaultIfNull(downloadFilename, file.getName()),
-			contentType, response);
+		setDownloadHeaders(response, file.length(),
+			ObjectUtils.defaultIfNull(downloadFilename, file.getName()), contentType);
 		try (InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
 			writeInputStreamToResponse(inputStream, response, contentType, HttpStatus.OK.value(), true);
 		}
@@ -283,12 +282,12 @@ public class ResponseUtils {
 	 * @throws IllegalArgumentException 如果file或response为null
 	 * @since 1.0.0
 	 */
-	public static void writeFileToResponse(final File file, @Nullable final String downloadFilename,
-										   @Nullable final String fileType, final HttpServletResponse response,
+	public static void writeFileToResponse(final File file, final HttpServletResponse response,
+										   @Nullable final String downloadFilename, @Nullable final String fileType,
 										   final boolean buffer) throws IOException {
 		String contentType = ObjectUtils.defaultIfNull(fileType, FileUtils.getMimeType(file));
-		setDownloadHeaders(file.length(), ObjectUtils.defaultIfNull(downloadFilename, file.getName()),
-			contentType, response);
+		setDownloadHeaders(response, file.length(),
+			ObjectUtils.defaultIfNull(downloadFilename, file.getName()), contentType);
 		try (InputStream inputStream = buffer ? FileUtils.openUnsynchronizedBufferedInputStream(file) : FileUtils.openInputStream(file)) {
 			writeInputStreamToResponse(inputStream, response, contentType, HttpStatus.OK.value(), buffer);
 		}

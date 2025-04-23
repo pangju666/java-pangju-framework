@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 
 @ActiveProfiles("test")
 @ContextConfiguration(classes = TestApplication.class, loader = SpringBootContextLoader.class)
-class FileResponseUtilsSpec extends Specification {
+class RangeDownloadUtilsSpec extends Specification {
 	def file = new File("D:\\workspace\\resource\\图片\\lADPDg7mUhel9rHMtsyy_178_182.jpg")
 	def bytes = FileUtils.readFileToByteArray(file)
 

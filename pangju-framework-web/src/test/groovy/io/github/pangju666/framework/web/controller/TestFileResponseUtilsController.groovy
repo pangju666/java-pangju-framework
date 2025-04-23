@@ -17,7 +17,7 @@
 package io.github.pangju666.framework.web.controller
 
 
-import io.github.pangju666.framework.web.utils.FileResponseUtils
+import io.github.pangju666.framework.web.utils.RangeDownloadUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.web.bind.annotation.GetMapping
@@ -35,6 +35,6 @@ class TestFileResponseUtilsController {
 
 	@GetMapping("/file")
 	void file(HttpServletRequest request, HttpServletResponse response) {
-		FileResponseUtils.handleRangeRequest(file, request, response)
+		RangeDownloadUtils.handleRangeRequest(file, request, response)
 	}
 }
