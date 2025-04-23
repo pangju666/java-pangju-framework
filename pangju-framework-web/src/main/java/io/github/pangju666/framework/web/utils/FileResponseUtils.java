@@ -14,7 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,9 @@ public class FileResponseUtils {
 	public static final String RESPONSE_CONTENT_RANGE_HEADER_PREFIX = "bytes */";
 	public static final String RANGES_DELIMITER = ",";
 	public static final String RANGE_DELIMITER = "-";
+	public static final String RESPONSE_RANGES_CONTENT_TYPE = "multipart/byteranges; boundary=MULTIPART_BYTERANGES";
+	public static final String RESPONSE_CONTENT_RANGE_START = "--MULTIPART_BYTERANGES";
+	public static final String RESPONSE_CONTENT_RANGE_END = "--MULTIPART_BYTERANGES--";
 
 	protected FileResponseUtils() {
 	}
@@ -48,36 +52,29 @@ public class FileResponseUtils {
 		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
 
 		if (StringUtils.isBlank(rangeHeader)) {
-			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes));
-				 OutputStream outputStream = response.getOutputStream();
-				 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
-				ResponseUtils.setFileDownloadHeaders(bytesLength, filename, contentType, response);
-				inputStream.transferTo(bufferedOutputStream);
-			}
+			ResponseUtils.setDownloadHeaders(bytesLength, filename, contentType, response);
+			ResponseUtils.writeBytesToResponse(bytes, response, contentType);
 		} else {
 			List<Range> ranges = getRanges(bytesLength, rangeHeader);
+
 			// 超出字节数组总长度或格式错误
 			if (Objects.isNull(ranges)) {
-				response.setHeader(HttpHeaders.CONTENT_RANGE, RESPONSE_CONTENT_RANGE_HEADER_PREFIX + bytes.length);
-				response.sendError(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
+				sendError(bytesLength, response);
+				return;
+			}
+
+			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
+				ResponseUtils.setDownloadHeaders(bytes.length, filename, contentType, response);
+				ResponseUtils.writeBytesToResponse(bytes, response, contentType);
 				return;
 			}
 
 			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes))) {
-				ResponseUtils.setFileDownloadHeaders(bytesLength, filename, contentType, response);
-				response.setBufferSize(IOUtils.getBufferSize(bytesLength));
 				response.setHeader(HttpHeaders.ACCEPT_RANGES, RESPONSE_ACCEPT_RANGES_HEADER_VALUE);
 				response.setStatus(HttpStatus.PARTIAL_CONTENT.value());
 
-				writeRangesToResponse(ranges, inputStream, bytesLength, response);
+				writeRangesToResponse(ranges, inputStream, response);
 			}
-			/*try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
-				response.setBufferSize(IOUtils.DEFAULT_BUFFER_SIZE);
-				response.setHeader(HttpHeaders.ACCEPT_RANGES, "bytes");
-
-				List<Range> ranges = getRanges(file, range, response);
-				writeRangesToResponse(ranges, randomAccessFile, file.length(), response);
-			}*/
 		}
 	}
 
@@ -120,81 +117,56 @@ public class FileResponseUtils {
 	}
 
 	public static void writeRangesToResponse(final List<Range> ranges, final InputStream inputStream,
-											 final long length, final HttpServletResponse response) throws IOException {
-		try (ServletOutputStream servletOutputStream = response.getOutputStream();
-			 InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
+											 final HttpServletResponse response) throws IOException {
 
-			if (ranges.size() == 1) {
-				Range range = ranges.get(0);
+		if (ranges.size() == 1) {
+			Range range = ranges.get(0);
 
-				response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + range.getStart() + "-" + range.getEnd() + "/" + range.getTotal());
-				response.setContentLengthLong(range.getLength());
-				if (!range.isComplete()) {
-					response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-				}
+			response.setHeader(HttpHeaders.CONTENT_RANGE, "bytes " + range.getStart() + "-" + range.getEnd()
+				+ "/" + range.getTotal());
+			response.setContentLengthLong(range.getLength());
+			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
-				//writeToOutputStream(inputStream, response.getOutputStream(), length, range.getStart(), range.getLength());
-				servletOutputStream.flush();
-			} else {
+			try (ServletOutputStream servletOutputStream = response.getOutputStream();
+				 InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
+				writeRangeToResponse(range, bufferedInputStream, servletOutputStream);
+			}
+		} else {
+			try (ServletOutputStream servletOutputStream = response.getOutputStream();
+				 InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
 				// 返回文件的多个分段.
-				response.setContentType("multipart/byteranges; boundary=MULTIPART_BYTERANGES");
-				response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT); // 206.
+				response.setContentType(RESPONSE_RANGES_CONTENT_TYPE);
+				response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
 
-				// 复制多个文件分段.
 				for (Range range : ranges) {
 					//为每个Range添加MULTIPART边界和标题字段
 					servletOutputStream.println();
-					servletOutputStream.println("--MULTIPART_BYTERANGES");
+					servletOutputStream.println(RESPONSE_CONTENT_RANGE_START);
 					servletOutputStream.println(HttpHeaders.CONTENT_TYPE + ": " + MediaType.APPLICATION_OCTET_STREAM_VALUE);
 					servletOutputStream.println(HttpHeaders.CONTENT_LENGTH + ": " + range.getLength());
-					servletOutputStream.println(HttpHeaders.CONTENT_RANGE + ": bytes " + range.getStart() + "-" + range.getEnd() + "/" + range.getTotal());
+					servletOutputStream.println(HttpHeaders.CONTENT_RANGE + ": bytes " + range.getStart() + "-"
+						+ range.getEnd() + "/" + range.getTotal());
 
-					// 复制多个需要复制的文件分段当中的一个分段.
-					//writeToOutputStream(inputStream, response.getOutputStream(), length, range.getStart(), range.getLength());
+					writeRangeToResponse(range, bufferedInputStream, response.getOutputStream());
 				}
-
 				servletOutputStream.println();
-				servletOutputStream.println("--MULTIPART_BYTERANGES--");
-				servletOutputStream.flush();
+				servletOutputStream.println(RESPONSE_CONTENT_RANGE_END);
 			}
 		}
 	}
 
-	protected static void writeToOutputStream(final RandomAccessFile randomAccessFile, final OutputStream output,
-												  final long fileSize, final long start, final long length) throws IOException {
-		byte[] buffer = new byte[4096];
-		int read = 0;
-		long transmitted = 0;
-		if (fileSize == length) {
-			randomAccessFile.seek(start);
-			//需要下载的文件长度与文件长度相同，下载整个文件.
-			while ((transmitted + read) <= length && (read = randomAccessFile.read(buffer)) != -1) {
-				output.write(buffer, 0, read);
-				transmitted += read;
-			}
-			//处理最后不足buff大小的部分
-			if (transmitted < length) {
-				read = randomAccessFile.read(buffer, 0, (int) (length - transmitted));
-				output.write(buffer, 0, read);
-			}
+	protected static void writeRangeToResponse(final Range range, final InputStream inputStream,
+											   final ServletOutputStream outputStream) throws IOException {
+		byte[] bytes = new byte[(int) range.getLength()];
+		if (range.getLength() != inputStream.readNBytes(bytes, (int) range.getStart(), (int) range.getLength())) {
+			throw new IOException("Range read error");
 		} else {
-			randomAccessFile.seek(start);
-			long toRead = length;
-
-			//如果需要读取的片段，比单次读取的4096小，则使用读取片段大小读取
-			if (toRead < buffer.length) {
-				output.write(buffer, 0, randomAccessFile.read(new byte[(int) toRead]));
-				return;
-			}
-			while ((read = randomAccessFile.read(buffer)) > 0) {
-				toRead -= read;
-				if (toRead > 0) {
-					output.write(buffer, 0, read);
-				} else {
-					output.write(buffer, 0, (int) toRead + read);
-					break;
-				}
-			}
+			outputStream.write(bytes);
 		}
+	}
+
+	protected static void sendError(long contentLength, HttpServletResponse response) {
+		response.setHeader(HttpHeaders.CONTENT_RANGE, RESPONSE_CONTENT_RANGE_HEADER_PREFIX + contentLength);
+		response.setStatus(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
 	}
 }

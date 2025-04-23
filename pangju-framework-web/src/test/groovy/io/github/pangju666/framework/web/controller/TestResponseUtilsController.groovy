@@ -16,13 +16,11 @@
 
 package io.github.pangju666.framework.web.controller
 
-import io.github.pangju666.framework.web.exception.base.ServiceException
+import io.github.pangju666.commons.io.utils.IOUtils
 import io.github.pangju666.framework.web.model.common.Result
-import io.github.pangju666.framework.web.utils.FileResponseUtils
 import io.github.pangju666.framework.web.utils.ResponseUtils
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.http.MediaType
+import org.apache.commons.lang3.RandomUtils
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -32,30 +30,68 @@ import java.nio.charset.StandardCharsets
 @RequestMapping("/response-utils")
 @RestController
 class TestResponseUtilsController {
-	@GetMapping("/stream")
-	void stream(HttpServletResponse response) {
-		ResponseUtils.writeInputStreamToResponse(new ByteArrayInputStream(Result.ok("测试").toString().getBytes(StandardCharsets.UTF_8)), response)
+	def bytes = RandomUtils.nextBytes(1000000)
+	def bytes2 = RandomUtils.nextBytes(100000000)
+
+	@GetMapping("/bytes-buffer")
+	void bufferBytes(HttpServletResponse response) {
+		ResponseUtils.writeBytesToResponse(bytes, response)
 	}
 
 	@GetMapping("/bytes")
-	void bytes(HttpServletResponse response) {
-		ResponseUtils.writeBytesToResponse(Result.ok("测试").toString().getBytes(StandardCharsets.UTF_8), response)
+	void Bytes(HttpServletResponse response) {
+		try (OutputStream outputStream = response.getOutputStream()) {
+			InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes)
+			inputStream.transferTo(outputStream)
+		} catch (IOException e) {
+			throw new UncheckedIOException(e)
+		}
+	}
+
+	@GetMapping("/inputStream-buffer")
+	void bufferInputStream(HttpServletResponse response) {
+		try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes2)) {
+			ResponseUtils.writeInputStreamToResponse(inputStream, response)
+		}
+	}
+
+	@GetMapping("/inputStream")
+	void inputStream(HttpServletResponse response) {
+		try (OutputStream outputStream = response.getOutputStream();
+			 InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(bytes2)) {
+			inputStream.transferTo(outputStream)
+		} catch (IOException e) {
+			throw new UncheckedIOException(e)
+		}
+	}
+
+	@GetMapping("/result-buffer")
+	void bufferResult(HttpServletResponse response) {
+		ResponseUtils.writeBytesToResponse(Result.ok(null).toString().getBytes(StandardCharsets.UTF_8), response)
 	}
 
 	@GetMapping("/result")
 	void result(HttpServletResponse response) {
-		ResponseUtils.writeResultToResponse(Result.ok("测试"), response)
+		try (OutputStream outputStream = response.getOutputStream()) {
+			InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(
+				Result.ok(null).toString().getBytes(StandardCharsets.UTF_8))
+			inputStream.transferTo(outputStream)
+		} catch (IOException e) {
+			throw new UncheckedIOException(e)
+		}
 	}
 
-	@GetMapping("/exception")
-	void exception(HttpServletResponse response) {
-		ResponseUtils.writeHttpExceptionToResponse(new ServiceException("测试异常"), response)
+	@GetMapping("/file-buffer")
+	void fileBuffer(HttpServletResponse response) {
+		ResponseUtils.writeFileToResponse(new File(
+			"D:\\workspace\\project\\personal\\pangju-framework\\pangju-framework-web\\src\\test\\resources\\images\\test.jpg"),
+			null, response)
 	}
 
 	@GetMapping("/file")
-	void file(HttpServletRequest request, HttpServletResponse response) {
-		FileResponseUtils.writeFileToResponse(new File(
+	void file(HttpServletResponse response) {
+		ResponseUtils.writeFileToResponse(new File(
 			"D:\\workspace\\project\\personal\\pangju-framework\\pangju-framework-web\\src\\test\\resources\\images\\test.jpg"),
-			null, MediaType.IMAGE_JPEG_VALUE, request, response)
+			null, response, false)
 	}
 }

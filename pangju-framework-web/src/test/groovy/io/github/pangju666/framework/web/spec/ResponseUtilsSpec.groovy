@@ -121,4 +121,32 @@ class ResponseUtilsSpec extends Specification {
 		stopWatch.stop()
 		println stopWatch.lastTaskInfo().getTimeMillis()
 	}
+
+	def "file"() {
+		setup:
+		StopWatch stopWatch = new StopWatch()
+		stopWatch.start()
+
+		def url = "http://127.0.0.1/response-utils/file"
+		RestClientHelper.fromUriString(restClient, url)
+			.toBytesEntity()
+			.getBody()
+
+		stopWatch.stop()
+		println stopWatch.lastTaskInfo().getTimeMillis()
+	}
+
+	def "file-buffer"() {
+		setup:
+		StopWatch stopWatch = new StopWatch()
+		stopWatch.start()
+
+		def url = "http://127.0.0.1/response-utils/file-buffer"
+		RestClientHelper.fromUriString(restClient, url)
+			.toBytesEntity()
+			.getBody()
+
+		stopWatch.stop()
+		println stopWatch.lastTaskInfo().getTimeMillis()
+	}
 }
