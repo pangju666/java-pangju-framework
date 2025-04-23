@@ -1063,7 +1063,7 @@ public class ResponseUtils {
 	/**
 	 * 将JavaBean对象以JSON格式写入响应，使用HTTP 200状态码
 	 * <p>
-	 * 将对象包装为{@link Result#ok(T)}并以JSON格式写入响应，状态码为HTTP 200。
+	 * 将对象包装为{@link Result#ok(Object)}并以JSON格式写入响应，状态码为HTTP 200。
 	 * </p>
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
@@ -1087,7 +1087,7 @@ public class ResponseUtils {
 	/**
 	 * 将JavaBean对象以JSON格式写入响应，使用指定状态枚举
 	 * <p>
-	 * 将对象包装为{@link Result#ok(T)}并以JSON格式写入响应，使用指定HTTP状态码。
+	 * 将对象包装为{@link Result#ok(Object)}并以JSON格式写入响应，使用指定HTTP状态码。
 	 * </p>
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
@@ -1114,7 +1114,7 @@ public class ResponseUtils {
 	/**
 	 * 将JavaBean对象以JSON格式写入响应，使用指定状态码
 	 * <p>
-	 * 将对象包装为{@link Result#ok(T)}并以JSON格式写入响应，使用指定HTTP状态码。
+	 * 将对象包装为{@link Result#ok(Object)}并以JSON格式写入响应，使用指定HTTP状态码。
 	 * </p>
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
@@ -1211,7 +1211,7 @@ public class ResponseUtils {
 	/**
 	 * 将JavaBean对象以JSON格式写入响应，使用HTTP 200状态码
 	 * <p>
-	 * 将对象包装为{@link Result#ok(T)}并以JSON格式写入响应，状态码为HTTP 200。
+	 * 将对象包装为{@link Result#ok(Object)}并以JSON格式写入响应，状态码为HTTP 200。
 	 * </p>
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
@@ -1233,7 +1233,7 @@ public class ResponseUtils {
 	/**
 	 * 将JavaBean对象以JSON格式写入响应，使用指定状态枚举
 	 * <p>
-	 * 将对象包装为{@link Result#ok(T)}并以JSON格式写入响应，使用指定HTTP状态码。
+	 * 将对象包装为{@link Result#ok(Object)}并以JSON格式写入响应，使用指定HTTP状态码。
 	 * </p>
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
@@ -1259,7 +1259,7 @@ public class ResponseUtils {
 	/**
 	 * 将JavaBean对象以JSON格式写入响应，使用指定状态码
 	 * <p>
-	 * 将对象包装为{@link Result#ok(T)}并以JSON格式写入响应，使用指定HTTP状态码。
+	 * 将对象包装为{@link Result#ok(Object)}并以JSON格式写入响应，使用指定HTTP状态码。
 	 * </p>
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。

@@ -173,7 +173,7 @@ public class HttpRemoteServiceErrorBuilder {
 	/**
 	 * 构建远程服务错误信息实例
 	 *
-	 * @return 新的{@link RemoteServiceError}实例
+	 * @return 新的 {@link HttpRemoteServiceError}实例
 	 * @since 1.0.0
 	 */
 	public HttpRemoteServiceError build() {
