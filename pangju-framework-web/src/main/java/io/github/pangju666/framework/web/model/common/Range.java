@@ -31,7 +31,6 @@ import org.springframework.util.Assert;
  * <ul>
  *     <li><code>bytes=0-499</code> - 请求前500字节</li>
  *     <li><code>bytes=500-999</code> - 请求第500-999字节</li>
- *     <li><code>bytes=-500</code> - 请求最后500字节</li>
  *     <li><code>bytes=500-</code> - 请求第500字节到结尾</li>
  * </ul>
  * </p>
@@ -163,6 +162,17 @@ public final class Range {
 		return total;
 	}
 
+	/**
+	 * 创建完整范围对象
+	 * <p>
+	 * 创建一个表示资源完整内容的范围对象，范围从0开始到资源末尾。
+	 * 这是一个便捷方法，用于表示请求或响应中的完整资源，而不是部分内容。
+	 * </p>
+	 *
+	 * @param totalLength 资源的总长度（字节数）
+	 * @return 表示完整资源范围的Range对象，起始位置为0，结束位置为totalLength-1
+	 * @since 1.0.0
+	 */
 	public static Range complete(long totalLength) {
 		return new Range(0, totalLength - 1, totalLength);
 	}
