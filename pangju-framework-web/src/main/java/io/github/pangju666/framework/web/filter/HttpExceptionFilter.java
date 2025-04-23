@@ -88,6 +88,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 	 * @since 1.0.0
 	 */
 	private List<HttpExceptionVO> httpExceptionList;
+	private boolean useBuffer = true;
 
 	/**
 	 * 创建过滤器实例
@@ -110,6 +111,14 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 		this.typesRequestPath = typesRequestPath;
 		this.listRequestPath = listRequestPath;
 		this.packages = packages;
+	}
+
+	public boolean isUseBuffer() {
+		return useBuffer;
+	}
+
+	public void setUseBuffer(boolean useBuffer) {
+		this.useBuffer = useBuffer;
 	}
 
 	/**
@@ -163,7 +172,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 				}
 			}
 		}
-		ResponseUtils.writeBeanToResponse(this.httpExceptionTypeList, response);
+		ResponseUtils.writeBeanToResponse(this.httpExceptionTypeList, response, useBuffer);
 	}
 
 	/**
@@ -184,7 +193,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 				}
 			}
 		}
-		ResponseUtils.writeBeanToResponse(httpExceptionList, response);
+		ResponseUtils.writeBeanToResponse(httpExceptionList, response, useBuffer);
 	}
 
 	/**

@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.apache.commons.io.input.MemoryMappedFileInputStream;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;
+import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,7 @@ import java.util.Objects;
  *     <li>内容类型管理：支持多种媒体类型的响应设置</li>
  *     <li>JSON处理：将Java对象、Result包装对象转换为JSON并写入响应</li>
  *     <li>异常处理：将HTTP异常信息标准化输出到客户端</li>
+ *     <li>响应缓冲控制：支持配置是否使用响应缓冲区，优化性能</li>
  * </ul>
  * </p>
  *
@@ -63,6 +65,8 @@ import java.util.Objects;
  *     <li>支持多种HTTP状态码和内容类型设置</li>
  *     <li>采用流式处理，提升大数据量传输效率</li>
  *     <li>自动资源管理，所有流操作安全关闭</li>
+ *     <li>方法重载丰富，提供灵活的参数组合选项</li>
+ *     <li>与Spring框架和Jakarta EE无缝集成</li>
  * </ul>
  * </p>
  *
@@ -91,6 +95,10 @@ import java.util.Objects;
  * try (InputStream fileStream = new FileInputStream(file)) {
  *     ResponseUtils.writeInputStreamToResponse(fileStream, response, "image/jpeg");
  * }
+ *
+ * // 6. 控制响应缓冲
+ * ResponseUtils.writeBytesToResponse(largeData, response, "application/octet-stream", false);
+ * }</pre>
  * }</pre>
  * </p>
  *
@@ -171,7 +179,7 @@ public class ResponseUtils {
 	 * @throws IllegalArgumentException 当response为null或contentLength小于0时抛出
 	 * @since 1.0.0
 	 */
-	public static void setFileDownloadHeader(final long contentLength, @Nullable final String filename,
+	public static void setFileDownloadHeaders(final long contentLength, @Nullable final String filename,
 											 @Nullable final String contentType, final HttpServletResponse response) {
 		Assert.notNull(response, "response 不可为null");
 		Assert.isTrue(contentLength >= 0, "contentLength 必须大于等于0");
@@ -188,21 +196,34 @@ public class ResponseUtils {
 	 * <p>
 	 * 使用{@code application/octet-stream}内容类型和HTTP 200状态码将字节数据写入响应。
 	 * </p>
+	 * <p>
+	 * 如果字节数组为null，则使用空数组代替。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
+	 * </p>
 	 *
-	 * @param bytes    要写入的字节数组
+	 * @param bytes    要写入的字节数组，可以为null（会被转换为空数组）
 	 * @param response HTTP响应对象，不能为null
 	 * @throws IllegalArgumentException 当response为null时抛出
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
 	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response) {
-		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, HttpStatus.OK.value());
+		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE,
+			HttpStatus.OK.value(), true);
 	}
 
 	/**
 	 * 将字节数组写入HTTP响应，使用默认二进制流类型和指定状态枚举
 	 * <p>
 	 * 使用{@code application/octet-stream}内容类型和指定HTTP状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 如果字节数组为null，则使用空数组代替。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bytes    要写入的字节数组
@@ -215,13 +236,20 @@ public class ResponseUtils {
 	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response, final HttpStatus status) {
 		Assert.notNull(status, "status 不可为null");
 
-		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status.value());
+		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status.value(),
+			true);
 	}
 
 	/**
 	 * 将字节数组写入HTTP响应，使用默认二进制流类型和指定状态码
 	 * <p>
 	 * 使用{@code application/octet-stream}内容类型和指定HTTP状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 如果字节数组为null，则使用空数组代替。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bytes    要写入的字节数组
@@ -232,13 +260,19 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response, final int status) {
-		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status);
+		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status, true);
 	}
 
 	/**
 	 * 将字节数组写入HTTP响应，使用指定内容类型和默认200状态码
 	 * <p>
 	 * 使用指定内容类型和HTTP 200状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 如果字节数组为null，则使用空数组代替。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bytes       要写入的字节数组
@@ -249,13 +283,19 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response, final String contentType) {
-		writeBytesToResponse(bytes, response, contentType, HttpStatus.OK.value());
+		writeBytesToResponse(bytes, response, contentType, HttpStatus.OK.value(), true);
 	}
 
 	/**
 	 * 将字节数组写入HTTP响应，使用指定内容类型和状态枚举
 	 * <p>
 	 * 使用指定内容类型和HTTP状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 如果字节数组为null，则使用空数组代替。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bytes       要写入的字节数组
@@ -270,14 +310,19 @@ public class ResponseUtils {
 											final String contentType, final HttpStatus status) {
 		Assert.notNull(status, "status 不可为null");
 
-		writeBytesToResponse(bytes, response, contentType, status.value());
+		writeBytesToResponse(bytes, response, contentType, status.value(), true);
 	}
 
 	/**
 	 * 将字节数组写入HTTP响应，使用指定内容类型和状态码
 	 * <p>
 	 * 使用指定内容类型和HTTP状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
 	 * 如果字节数组为null，则使用空数组代替。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bytes       要写入的字节数组，可以为null
@@ -290,16 +335,194 @@ public class ResponseUtils {
 	 */
 	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
 											final String contentType, final int status) {
+		writeBytesToResponse(bytes, response, contentType, status, true);
+	}
+
+	/**
+	 * 将字节数组写入HTTP响应，使用默认二进制流类型和200状态码
+	 * <p>
+	 * 使用{@code application/octet-stream}内容类型和HTTP 200状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，使用缓冲输出流，适合较大数据传输，提高I/O性能</li>
+	 *   <li>当buffer为false时，直接写入响应流，适合小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 如果字节数组为null，则使用空数组代替，确保安全写入。
+	 * </p>
+	 *
+	 * @param bytes    要写入的字节数组
+	 * @param response HTTP响应对象，不能为null
+	 * @param buffer   是否启用响应缓冲，true表示使用缓冲输出流，false表示直接写入
+	 * @throws IllegalArgumentException 当response为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response, final boolean buffer) {
+		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE,
+			HttpStatus.OK.value(), buffer);
+	}
+
+	/**
+	 * 将字节数组写入HTTP响应，使用默认二进制流类型和指定状态枚举
+	 * <p>
+	 * 使用{@code application/octet-stream}内容类型和指定HTTP状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，使用缓冲输出流，适合较大数据传输，提高I/O性能</li>
+	 *   <li>当buffer为false时，直接写入响应流，适合小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 如果字节数组为null，则使用空数组代替，确保安全写入。
+	 * </p>
+	 *
+	 * @param bytes    要写入的字节数组
+	 * @param response HTTP响应对象，不能为null
+	 * @param status   HTTP状态码枚举，不能为null
+	 * @param buffer   是否启用响应缓冲，true表示使用缓冲输出流，false表示直接写入
+	 * @throws IllegalArgumentException 当response或status为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
+											final HttpStatus status, final boolean buffer) {
+		Assert.notNull(status, "status 不可为null");
+
+		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status.value(),
+			buffer);
+	}
+
+	/**
+	 * 将字节数组写入HTTP响应，使用默认二进制流类型和指定状态码
+	 * <p>
+	 * 使用{@code application/octet-stream}内容类型和指定HTTP状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，使用缓冲输出流，适合较大数据传输，提高I/O性能</li>
+	 *   <li>当buffer为false时，直接写入响应流，适合小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 如果字节数组为null，则使用空数组代替，确保安全写入。
+	 * </p>
+	 *
+	 * @param bytes    要写入的字节数组
+	 * @param response HTTP响应对象，不能为null
+	 * @param status   HTTP状态码数值
+	 * @param buffer   是否启用响应缓冲，true表示使用缓冲输出流，false表示直接写入
+	 * @throws IllegalArgumentException 当response为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
+											final int status, final boolean buffer) {
+		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status, buffer);
+	}
+
+	/**
+	 * 将字节数组写入HTTP响应，使用指定内容类型和默认200状态码
+	 * <p>
+	 * 使用指定内容类型和HTTP 200状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，使用缓冲输出流，适合较大数据传输，提高I/O性能</li>
+	 *   <li>当buffer为false时，直接写入响应流，适合小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 如果字节数组为null，则使用空数组代替，确保安全写入。
+	 * </p>
+	 *
+	 * @param bytes       要写入的字节数组
+	 * @param response    HTTP响应对象，不能为null
+	 * @param contentType 响应内容类型
+	 * @param buffer      是否启用响应缓冲，true表示使用缓冲输出流，false表示直接写入
+	 * @throws IllegalArgumentException 当response为null或contentType为空时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
+											final String contentType, final boolean buffer) {
+		writeBytesToResponse(bytes, response, contentType, HttpStatus.OK.value(), buffer);
+	}
+
+	/**
+	 * 将字节数组写入HTTP响应，使用指定内容类型和状态枚举
+	 * <p>
+	 * 使用指定内容类型和HTTP状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，使用缓冲输出流，适合较大数据传输，提高I/O性能</li>
+	 *   <li>当buffer为false时，直接写入响应流，适合小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 如果字节数组为null，则使用空数组代替，确保安全写入。
+	 * </p>
+	 *
+	 * @param bytes       要写入的字节数组
+	 * @param response    HTTP响应对象，不能为null
+	 * @param contentType 响应内容类型
+	 * @param status      HTTP状态码枚举，不能为null
+	 * @param buffer      是否启用响应缓冲，true表示使用缓冲输出流，false表示直接写入
+	 * @throws IllegalArgumentException 当response、status为null或contentType为空时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
+											final String contentType, final HttpStatus status, final boolean buffer) {
+		Assert.notNull(status, "status 不可为null");
+
+		writeBytesToResponse(bytes, response, contentType, status.value(), buffer);
+	}
+
+	/**
+	 * 将字节数组写入HTTP响应，使用指定内容类型、状态码和可控的缓冲选项
+	 * <p>
+	 * 使用指定内容类型和HTTP状态码将字节数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，使用缓冲输出流，适合较大数据传输，提高I/O性能</li>
+	 *   <li>当buffer为false时，直接写入响应流，适合小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 如果字节数组为null，则使用空数组代替，确保安全写入。
+	 * </p>
+	 *
+	 * @param bytes       要写入的字节数组，可以为null（会被转换为空数组）
+	 * @param response    HTTP响应对象，不能为null
+	 * @param contentType 响应内容类型，不能为空
+	 * @param status      HTTP状态码数值
+	 * @param buffer      是否启用响应缓冲，true表示使用缓冲输出流，false表示直接写入
+	 * @throws IllegalArgumentException 当response为null或contentType为空时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
+											final String contentType, final int status, final boolean buffer) {
 		Assert.notNull(response, "response 不可为null");
 		Assert.hasText(contentType, "contentType 不可为空");
 
-		try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
-			InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes));
-			response.setStatus(status);
-			response.setContentType(contentType);
-			inputStream.transferTo(outputStream);
-		} catch (IOException e) {
-			throw new UncheckedIOException(e);
+		if (buffer) {
+			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
+				InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes));
+				response.setStatus(status);
+				response.setContentType(contentType);
+				inputStream.transferTo(outputStream);
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
+		} else {
+			try (OutputStream outputStream = response.getOutputStream()) {
+				response.setStatus(status);
+				response.setContentType(contentType);
+				outputStream.write(ArrayUtils.nullToEmpty(bytes));
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
 		}
 	}
 
@@ -307,6 +530,9 @@ public class ResponseUtils {
 	 * 将输入流内容写入HTTP响应，使用默认二进制流类型和200状态码
 	 * <p>
 	 * 使用"application/octet-stream"内容类型和HTTP 200状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param inputStream 要写入的输入流
@@ -316,13 +542,17 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response) {
-		writeInputStreamToResponse(inputStream, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, HttpStatus.OK.value());
+		writeInputStreamToResponse(inputStream, response, MediaType.APPLICATION_OCTET_STREAM_VALUE,
+			HttpStatus.OK.value(), true);
 	}
 
 	/**
 	 * 将输入流内容写入HTTP响应，使用默认二进制流类型和指定状态枚举
 	 * <p>
 	 * 使用"application/octet-stream"内容类型和指定HTTP状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param inputStream 要写入的输入流
@@ -336,13 +566,17 @@ public class ResponseUtils {
 												  final HttpStatus status) {
 		Assert.notNull(status, "status 不可为null");
 
-		writeInputStreamToResponse(inputStream, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status.value());
+		writeInputStreamToResponse(inputStream, response, MediaType.APPLICATION_OCTET_STREAM_VALUE,
+			status.value(), true);
 	}
 
 	/**
 	 * 将输入流内容写入HTTP响应，使用默认二进制流类型和指定状态码
 	 * <p>
 	 * 使用"application/octet-stream"内容类型和指定HTTP状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param inputStream 要写入的输入流
@@ -354,13 +588,16 @@ public class ResponseUtils {
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
 												  final int status) {
-		writeInputStreamToResponse(inputStream, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status);
+		writeInputStreamToResponse(inputStream, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status, true);
 	}
 
 	/**
 	 * 将输入流内容写入HTTP响应，使用指定内容类型和默认200状态码
 	 * <p>
 	 * 使用指定内容类型和HTTP 200状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param inputStream 要写入的输入流
@@ -372,13 +609,16 @@ public class ResponseUtils {
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
 												  final String contentType) {
-		writeInputStreamToResponse(inputStream, response, contentType, HttpStatus.OK.value());
+		writeInputStreamToResponse(inputStream, response, contentType, HttpStatus.OK.value(), true);
 	}
 
 	/**
 	 * 将输入流内容写入HTTP响应，使用指定内容类型和状态枚举
 	 * <p>
 	 * 使用指定内容类型和HTTP状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param inputStream 要写入的输入流
@@ -393,7 +633,7 @@ public class ResponseUtils {
 												  final String contentType, final HttpStatus status) {
 		Assert.notNull(status, "status 不可为null");
 
-		writeInputStreamToResponse(inputStream, response, contentType, status.value());
+		writeInputStreamToResponse(inputStream, response, contentType, status.value(), true);
 	}
 
 	/**
@@ -401,6 +641,9 @@ public class ResponseUtils {
 	 * <p>
 	 * 使用指定内容类型和HTTP状态码将输入流数据写入响应。
 	 * 输入流会完整传输到响应输出流中。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param inputStream 要写入的输入流，不能为null
@@ -413,27 +656,237 @@ public class ResponseUtils {
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
 												  final String contentType, final int status) {
+		writeInputStreamToResponse(inputStream, response, contentType, status, true);
+	}
+
+	/**
+	 * 将输入流内容写入HTTP响应，使用默认二进制流类型和200状态码
+	 * <p>
+	 * 使用"application/octet-stream"内容类型和HTTP 200状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，系统会根据输入流类型选择最佳处理方式：
+	 *     <ul>
+	 *       <li>已缓冲的输入流(如BufferedInputStream等)将直接传输到缓冲输出流</li>
+	 *       <li>未缓冲的输入流会被包装为缓冲输入流后传输，以提高性能</li>
+	 *     </ul>
+	 *   </li>
+	 *   <li>当buffer为false时，直接将输入流内容传输到响应输出流，适用于小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 输入流会完整传输到响应输出流中，并自动应用适当的HTTP头信息。
+	 * </p>
+	 *
+	 * @param inputStream 要写入的输入流
+	 * @param response    HTTP响应对象，不能为null
+	 * @param buffer      是否启用响应缓冲，true表示根据输入流类型选择最佳缓冲方式，false表示直接写入
+	 * @throws IllegalArgumentException 当response或inputStream为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
+												  final boolean buffer) {
+		writeInputStreamToResponse(inputStream, response, MediaType.APPLICATION_OCTET_STREAM_VALUE,
+			HttpStatus.OK.value(), buffer);
+	}
+
+	/**
+	 * 将输入流内容写入HTTP响应，使用默认二进制流类型和指定状态枚举
+	 * <p>
+	 * 使用"application/octet-stream"内容类型和指定HTTP状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，系统会根据输入流类型选择最佳处理方式：
+	 *     <ul>
+	 *       <li>已缓冲的输入流(如BufferedInputStream等)将直接传输到缓冲输出流</li>
+	 *       <li>未缓冲的输入流会被包装为缓冲输入流后传输，以提高性能</li>
+	 *     </ul>
+	 *   </li>
+	 *   <li>当buffer为false时，直接将输入流内容传输到响应输出流，适用于小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 输入流会完整传输到响应输出流中，并自动应用适当的HTTP头信息。
+	 * </p>
+	 *
+	 * @param inputStream 要写入的输入流
+	 * @param response    HTTP响应对象，不能为null
+	 * @param status      HTTP状态码枚举，不能为null
+	 * @param buffer      是否启用响应缓冲，true表示根据输入流类型选择最佳缓冲方式，false表示直接写入
+	 * @throws IllegalArgumentException 当response、inputStream或status为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
+												  final HttpStatus status, final boolean buffer) {
+		Assert.notNull(status, "status 不可为null");
+
+		writeInputStreamToResponse(inputStream, response, MediaType.APPLICATION_OCTET_STREAM_VALUE,
+			status.value(), buffer);
+	}
+
+	/**
+	 * 将输入流内容写入HTTP响应，使用默认二进制流类型和指定状态码
+	 * <p>
+	 * 使用"application/octet-stream"内容类型和指定HTTP状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，系统会根据输入流类型选择最佳处理方式：
+	 *     <ul>
+	 *       <li>已缓冲的输入流(如BufferedInputStream等)将直接传输到缓冲输出流</li>
+	 *       <li>未缓冲的输入流会被包装为缓冲输入流后传输，以提高性能</li>
+	 *     </ul>
+	 *   </li>
+	 *   <li>当buffer为false时，直接将输入流内容传输到响应输出流，适用于小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 输入流会完整传输到响应输出流中，并自动应用适当的HTTP头信息。
+	 * </p>
+	 *
+	 * @param inputStream 要写入的输入流
+	 * @param response    HTTP响应对象，不能为null
+	 * @param status      HTTP状态码数值
+	 * @param buffer      是否启用响应缓冲，true表示根据输入流类型选择最佳缓冲方式，false表示直接写入
+	 * @throws IllegalArgumentException 当response、inputStream为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
+												  final int status, final boolean buffer) {
+		writeInputStreamToResponse(inputStream, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status, buffer);
+	}
+
+	/**
+	 * 将输入流内容写入HTTP响应，使用指定内容类型和默认200状态码
+	 * <p>
+	 * 使用指定内容类型和HTTP 200状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，系统会根据输入流类型选择最佳处理方式：
+	 *     <ul>
+	 *       <li>已缓冲的输入流(如BufferedInputStream等)将直接传输到缓冲输出流</li>
+	 *       <li>未缓冲的输入流会被包装为缓冲输入流后传输，以提高性能</li>
+	 *     </ul>
+	 *   </li>
+	 *   <li>当buffer为false时，直接将输入流内容传输到响应输出流，适用于小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 输入流会完整传输到响应输出流中，并自动应用适当的HTTP头信息。
+	 * </p>
+	 *
+	 * @param inputStream 要写入的输入流
+	 * @param response    HTTP响应对象，不能为null
+	 * @param contentType 响应内容类型
+	 * @param buffer      是否启用响应缓冲，true表示根据输入流类型选择最佳缓冲方式，false表示直接写入
+	 * @throws IllegalArgumentException 当response、inputStream或contentType为null/空时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
+												  final String contentType, final boolean buffer) {
+		writeInputStreamToResponse(inputStream, response, contentType, HttpStatus.OK.value(), buffer);
+	}
+
+	/**
+	 * 将输入流内容写入HTTP响应，使用指定内容类型和状态枚举
+	 * <p>
+	 * 使用指定内容类型和HTTP状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，系统会根据输入流类型选择最佳处理方式：
+	 *     <ul>
+	 *       <li>已缓冲的输入流(如BufferedInputStream等)将直接传输到缓冲输出流</li>
+	 *       <li>未缓冲的输入流会被包装为缓冲输入流后传输，以提高性能</li>
+	 *     </ul>
+	 *   </li>
+	 *   <li>当buffer为false时，直接将输入流内容传输到响应输出流，适用于小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 输入流会完整传输到响应输出流中，并自动应用适当的HTTP头信息。
+	 * </p>
+	 *
+	 * @param inputStream 要写入的输入流
+	 * @param response    HTTP响应对象，不能为null
+	 * @param contentType 响应内容类型
+	 * @param status      HTTP状态码枚举，不能为null
+	 * @param buffer      是否启用响应缓冲，true表示根据输入流类型选择最佳缓冲方式，false表示直接写入
+	 * @throws IllegalArgumentException 当response、inputStream、status或contentType为null/空时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
+												  final String contentType, final HttpStatus status, final boolean buffer) {
+		Assert.notNull(status, "status 不可为null");
+
+		writeInputStreamToResponse(inputStream, response, contentType, status.value(), buffer);
+	}
+
+	/**
+	 * 将输入流内容写入HTTP响应，使用指定内容类型、状态码和可控的缓冲选项
+	 * <p>
+	 * 使用指定内容类型和HTTP状态码将输入流数据写入响应。
+	 * </p>
+	 * <p>
+	 * 可以通过buffer参数控制是否启用响应缓冲：
+	 * <ul>
+	 *   <li>当buffer为true时，系统会根据输入流类型选择最佳处理方式：
+	 *     <ul>
+	 *       <li>已缓冲的输入流(如BufferedInputStream等)将直接传输到缓冲输出流</li>
+	 *       <li>未缓冲的输入流会被包装为缓冲输入流后传输，以提高性能</li>
+	 *     </ul>
+	 *   </li>
+	 *   <li>当buffer为false时，直接将输入流内容传输到响应输出流，适用于小数据或需要立即刷新的场景</li>
+	 * </ul>
+	 * 输入流会完整传输到响应输出流中，并自动应用适当的HTTP头信息。
+	 * </p>
+	 *
+	 * @param inputStream 要写入的输入流，不能为null
+	 * @param response    HTTP响应对象，不能为null
+	 * @param contentType 响应内容类型，不能为空
+	 * @param status      HTTP状态码数值
+	 * @param buffer      是否启用响应缓冲，true表示根据输入流类型选择最佳缓冲方式，false表示直接写入
+	 * @throws IllegalArgumentException 当response、inputStream为null或contentType为空时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
+												  final String contentType, final int status, final boolean buffer) {
 		Assert.notNull(response, "response 不可为null");
 		Assert.notNull(inputStream, "inputStream 不可为null");
 		Assert.hasText(contentType, "contentType 不可为空");
 
-		if (inputStream instanceof BufferedInputStream ||
-			inputStream instanceof UnsynchronizedBufferedInputStream ||
-			inputStream instanceof BufferedFileChannelInputStream ||
-			inputStream instanceof MemoryMappedFileInputStream) {
-			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
+		if (buffer) {
+			if (inputStream instanceof BufferedInputStream ||
+				inputStream instanceof UnsynchronizedByteArrayInputStream ||
+				inputStream instanceof UnsynchronizedBufferedInputStream ||
+				inputStream instanceof BufferedFileChannelInputStream ||
+				inputStream instanceof MemoryMappedFileInputStream) {
+				try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
+					response.setStatus(status);
+					response.setContentType(contentType);
+					inputStream.transferTo(outputStream);
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+			} else {
+				try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream());
+					 InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
+					response.setStatus(status);
+					response.setContentType(contentType);
+					bufferedInputStream.transferTo(outputStream);
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+			}
+		} else {
+			try (OutputStream outputStream = response.getOutputStream()) {
 				response.setStatus(status);
 				response.setContentType(contentType);
 				inputStream.transferTo(outputStream);
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-		} else {
-			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream());
-				 InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
-				response.setStatus(status);
-				response.setContentType(contentType);
-				bufferedInputStream.transferTo(outputStream);
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}
@@ -446,6 +899,7 @@ public class ResponseUtils {
 	 * 根据异常类型上的@HttpException注解配置，将异常信息转换为标准Result格式并写入响应。
 	 * 如异常类型上没有注解，则使用默认错误码和HTTP 200状态码。
 	 * 根据异常注解配置决定是否记录错误日志。
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
@@ -460,6 +914,38 @@ public class ResponseUtils {
 	 */
 	public static <E extends BaseHttpException> void writeHttpExceptionToResponse(final E httpException,
 																				  final HttpServletResponse response) {
+		writeHttpExceptionToResponse(httpException, response, true);
+	}
+
+	/**
+	 * 将HTTP异常信息写入响应
+	 * <p>
+	 * 根据异常类型上的@HttpException注解配置，将异常信息转换为标准Result格式并写入响应。
+	 * 如异常类型上没有注解，则使用默认错误码和HTTP 200状态码。
+	 * 根据异常注解配置决定是否记录错误日志。
+	 * </p>
+	 * <p>
+	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 * <p>
+	 * 通过buffer参数可控制响应输出方式：
+	 * <ul>
+	 *   <li>当buffer为true时，使用缓冲输出流，适合大多数场景，可提高传输性能</li>
+	 *   <li>当buffer为false时，直接写入响应流，适合小数据量或需要立即发送的场景</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param httpException HTTP异常对象，不能为null
+	 * @param response      HTTP响应对象，不能为null
+	 * @param buffer        是否启用响应缓冲，true表示使用缓冲流，false表示直接写入
+	 * @param <E>           继承自BaseHttpException的异常类型
+	 * @throws IllegalArgumentException 当response或httpException为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static <E extends BaseHttpException> void writeHttpExceptionToResponse(final E httpException,
+																				  final HttpServletResponse response,
+																				  boolean buffer) {
 		Assert.notNull(response, "response 不可为null");
 		Assert.notNull(httpException, "httpException 不可为null");
 
@@ -470,12 +956,12 @@ public class ResponseUtils {
 				httpException.log(LOGGER, Level.ERROR);
 			}
 			ResponseUtils.writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
-				MediaType.APPLICATION_JSON_VALUE, annotation.status().value());
+				MediaType.APPLICATION_JSON_VALUE, annotation.status().value(), buffer);
 		} else {
 			Result<Void> result = Result.fail(WebConstants.BASE_ERROR_CODE, httpException.getMessage());
 			httpException.log(LOGGER, Level.ERROR);
 			ResponseUtils.writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
-				MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value());
+				MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), buffer);
 		}
 	}
 
@@ -487,6 +973,9 @@ public class ResponseUtils {
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
 	 * </p>
+	 * <p>
+	 *     默认启用响应缓冲以提高传输性能。
+	 * </p>
 	 *
 	 * @param bean     要写入的JavaBean对象
 	 * @param response HTTP响应对象，不能为null
@@ -497,7 +986,7 @@ public class ResponseUtils {
 	 */
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response) {
 		ResponseUtils.writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
-			response, MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value());
+			response, MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), true);
 	}
 
 	/**
@@ -507,6 +996,9 @@ public class ResponseUtils {
 	 * </p>
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 * <p>
+	 *     默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bean     要写入的JavaBean对象
@@ -521,7 +1013,7 @@ public class ResponseUtils {
 		Assert.notNull(status, "status 不可为null");
 
 		ResponseUtils.writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
-			response, MediaType.APPLICATION_JSON_VALUE, status);
+			response, MediaType.APPLICATION_JSON_VALUE, status, true);
 	}
 
 	/**
@@ -531,6 +1023,9 @@ public class ResponseUtils {
 	 * </p>
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 * <p>
+	 *     默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param bean     要写入的JavaBean对象
@@ -543,13 +1038,16 @@ public class ResponseUtils {
 	 */
 	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final int status) {
 		ResponseUtils.writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
-			response, MediaType.APPLICATION_JSON_VALUE, status);
+			response, MediaType.APPLICATION_JSON_VALUE, status, true);
 	}
 
 	/**
 	 * 将{@link Result}以JSON格式写入响应，使用HTTP 200状态码
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 * <p>
+	 *     默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param result   要写入的Result对象
@@ -563,13 +1061,16 @@ public class ResponseUtils {
 		Assert.notNull(result, "result 不可为null");
 
 		ResponseUtils.writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
-			MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value());
+			MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), true);
 	}
 
 	/**
 	 * 将{@link Result}以JSON格式写入响应，使用指定状态枚举
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 * <p>
+	 *     默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param result   要写入的Result对象
@@ -580,19 +1081,21 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static <T> void writeResultToResponse(final Result<T> result, final HttpServletResponse response,
-												 final HttpStatus status) {
+	public static <T> void writeResultToResponse(final Result<T> result, final HttpServletResponse response, final HttpStatus status) {
 		Assert.notNull(status, "status 不可为null");
 		Assert.notNull(result, "result 不可为null");
 
 		ResponseUtils.writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
-			MediaType.APPLICATION_JSON_VALUE, status.value());
+			MediaType.APPLICATION_JSON_VALUE, status.value(), true);
 	}
 
 	/**
 	 * 将{@link Result}以JSON格式写入响应，使用指定状态码
 	 * <p>
 	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 * <p>
+	 * 默认启用响应缓冲以提高传输性能。
 	 * </p>
 	 *
 	 * @param result   要写入的Result对象，不能为null
@@ -607,6 +1110,147 @@ public class ResponseUtils {
 		Assert.notNull(result, "result 不可为null");
 
 		ResponseUtils.writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
-			MediaType.APPLICATION_JSON_VALUE, status);
+			MediaType.APPLICATION_JSON_VALUE, status, true);
+	}
+
+	/**
+	 * 将JavaBean对象以JSON格式写入响应，使用HTTP 200状态码
+	 * <p>
+	 * 将对象包装为{@link Result#ok(T)}并以JSON格式写入响应，状态码为HTTP 200。
+	 * </p>
+	 * <p>
+	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 *
+	 * @param bean     要写入的JavaBean对象
+	 * @param response HTTP响应对象，不能为null
+	 * @param buffer   是否启用响应缓冲，true表示使用缓冲流，false表示直接写入
+	 * @param <T>      Bean对象类型
+	 * @throws IllegalArgumentException 当response为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final boolean buffer) {
+		ResponseUtils.writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
+			response, MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), buffer);
+	}
+
+	/**
+	 * 将JavaBean对象以JSON格式写入响应，使用指定状态枚举
+	 * <p>
+	 * 将对象包装为{@link Result#ok(T)}并以JSON格式写入响应，使用指定HTTP状态码。
+	 * </p>
+	 * <p>
+	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 *
+	 * @param bean     要写入的JavaBean对象
+	 * @param response HTTP响应对象，不能为null
+	 * @param status   HTTP状态码枚举，不能为null
+	 * @param buffer   是否启用响应缓冲，true表示使用缓冲流，false表示直接写入
+	 * @param <T>      Bean对象类型
+	 * @throws IllegalArgumentException 当response或status为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response,
+											   final HttpStatus status, final boolean buffer) {
+		Assert.notNull(status, "status 不可为null");
+
+		ResponseUtils.writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
+			response, MediaType.APPLICATION_JSON_VALUE, status, buffer);
+	}
+
+	/**
+	 * 将JavaBean对象以JSON格式写入响应，使用指定状态码
+	 * <p>
+	 * 将对象包装为{@link Result#ok(T)}并以JSON格式写入响应，使用指定HTTP状态码。
+	 * </p>
+	 * <p>
+	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 *
+	 * @param bean     要写入的JavaBean对象
+	 * @param response HTTP响应对象，不能为null
+	 * @param status   HTTP状态码数值
+	 * @param buffer   是否启用响应缓冲，true表示使用缓冲流，false表示直接写入
+	 * @param <T>      Bean对象类型
+	 * @throws IllegalArgumentException 当response为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static <T> void writeBeanToResponse(final T bean, final HttpServletResponse response, final int status,
+											   final boolean buffer) {
+		ResponseUtils.writeBytesToResponse(Result.ok(bean).toString().getBytes(StandardCharsets.UTF_8),
+			response, MediaType.APPLICATION_JSON_VALUE, status, buffer);
+	}
+
+	/**
+	 * 将{@link Result}以JSON格式写入响应，使用HTTP 200状态码
+	 * <p>
+	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 *
+	 * @param result   要写入的Result对象，不能为null
+	 * @param response HTTP响应对象，不能为null
+	 * @param buffer   是否启用响应缓冲，true表示使用缓冲流，false表示直接写入
+	 * @param <T>      Result中的数据类型
+	 * @throws IllegalArgumentException 当response或result为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static <T> void writeResultToResponse(final Result<T> result, final HttpServletResponse response,
+												 final boolean buffer) {
+		Assert.notNull(result, "result 不可为null");
+
+		ResponseUtils.writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+			MediaType.APPLICATION_JSON_VALUE, HttpStatus.OK.value(), buffer);
+	}
+
+	/**
+	 * 将{@link Result}以JSON格式写入响应，使用指定状态枚举
+	 * <p>
+	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 *
+	 * @param result   要写入的Result对象，不能为null
+	 * @param response HTTP响应对象，不能为null
+	 * @param status   HTTP状态码枚举，不能为null
+	 * @param buffer   是否启用响应缓冲，true表示使用缓冲流，false表示直接写入
+	 * @param <T>      Result中的数据类型
+	 * @throws IllegalArgumentException 当response、result或status为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static <T> void writeResultToResponse(final Result<T> result, final HttpServletResponse response,
+												 final HttpStatus status, final boolean buffer) {
+		Assert.notNull(status, "status 不可为null");
+		Assert.notNull(result, "result 不可为null");
+
+		ResponseUtils.writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+			MediaType.APPLICATION_JSON_VALUE, status.value(), buffer);
+	}
+
+	/**
+	 * 将{@link Result}以JSON格式写入响应，使用指定状态码
+	 * <p>
+	 * 响应使用UTF-8字符集编码，内容类型为{@code application/json}。
+	 * </p>
+	 *
+	 * @param result   要写入的Result对象，不能为null
+	 * @param response HTTP响应对象，不能为null
+	 * @param status   HTTP状态码数值
+	 * @param buffer   是否启用响应缓冲，true表示使用缓冲流，false表示直接写入
+	 * @param <T>      Result中的数据类型
+	 * @throws IllegalArgumentException 当response或result为null时抛出
+	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
+	 * @since 1.0.0
+	 */
+	public static <T> void writeResultToResponse(final Result<T> result, final HttpServletResponse response,
+												 final int status, final boolean buffer) {
+		Assert.notNull(result, "result 不可为null");
+
+		ResponseUtils.writeBytesToResponse(result.toString().getBytes(StandardCharsets.UTF_8), response,
+			MediaType.APPLICATION_JSON_VALUE, status, buffer);
 	}
 }

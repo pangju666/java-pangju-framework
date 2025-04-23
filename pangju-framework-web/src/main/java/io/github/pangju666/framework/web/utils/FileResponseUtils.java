@@ -51,7 +51,7 @@ public class FileResponseUtils {
 			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes));
 				 OutputStream outputStream = response.getOutputStream();
 				 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
-				ResponseUtils.setFileDownloadHeader(bytesLength, filename, contentType, response);
+				ResponseUtils.setFileDownloadHeaders(bytesLength, filename, contentType, response);
 				inputStream.transferTo(bufferedOutputStream);
 			}
 		} else {
@@ -64,7 +64,7 @@ public class FileResponseUtils {
 			}
 
 			try (InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes))) {
-				ResponseUtils.setFileDownloadHeader(bytesLength, filename, contentType, response);
+				ResponseUtils.setFileDownloadHeaders(bytesLength, filename, contentType, response);
 				response.setBufferSize(IOUtils.getBufferSize(bytesLength));
 				response.setHeader(HttpHeaders.ACCEPT_RANGES, RESPONSE_ACCEPT_RANGES_HEADER_VALUE);
 				response.setStatus(HttpStatus.PARTIAL_CONTENT.value());
