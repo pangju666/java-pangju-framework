@@ -260,7 +260,7 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response) {
 		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE,
 			HttpStatus.OK.value(), true);
 	}
@@ -284,7 +284,7 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response, final HttpStatus status) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, final HttpStatus status) {
 		Assert.notNull(status, "status 不可为null");
 
 		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status.value(),
@@ -310,7 +310,7 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response, final int status) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, final int status) {
 		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status, true);
 	}
 
@@ -333,7 +333,7 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response, final String contentType) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, @Nullable final String contentType) {
 		writeBytesToResponse(bytes, response, contentType, HttpStatus.OK.value(), true);
 	}
 
@@ -357,8 +357,8 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
-											final String contentType, final HttpStatus status) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response,
+											@Nullable final String contentType, final HttpStatus status) {
 		Assert.notNull(status, "status 不可为null");
 
 		writeBytesToResponse(bytes, response, contentType, status.value(), true);
@@ -384,8 +384,8 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
-											final String contentType, final int status) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response,
+											@Nullable final String contentType, final int status) {
 		writeBytesToResponse(bytes, response, contentType, status, true);
 	}
 
@@ -410,7 +410,7 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response, final boolean buffer) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, final boolean buffer) {
 		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE,
 			HttpStatus.OK.value(), buffer);
 	}
@@ -437,7 +437,7 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response,
 											final HttpStatus status, final boolean buffer) {
 		Assert.notNull(status, "status 不可为null");
 
@@ -467,8 +467,8 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
-											final int status, final boolean buffer) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response, final int status,
+											final boolean buffer) {
 		writeBytesToResponse(bytes, response, MediaType.APPLICATION_OCTET_STREAM_VALUE, status, buffer);
 	}
 
@@ -494,8 +494,8 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
-											final String contentType, final boolean buffer) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response,
+											@Nullable final String contentType, final boolean buffer) {
 		writeBytesToResponse(bytes, response, contentType, HttpStatus.OK.value(), buffer);
 	}
 
@@ -522,8 +522,8 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
-											final String contentType, final HttpStatus status, final boolean buffer) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response,
+											@Nullable final String contentType, final HttpStatus status, final boolean buffer) {
 		Assert.notNull(status, "status 不可为null");
 
 		writeBytesToResponse(bytes, response, contentType, status.value(), buffer);
@@ -552,16 +552,15 @@ public class ResponseUtils {
 	 * @throws UncheckedIOException     写入过程发生IO异常时抛出
 	 * @since 1.0.0
 	 */
-	public static void writeBytesToResponse(@Nullable final byte[] bytes, final HttpServletResponse response,
-											final String contentType, final int status, final boolean buffer) {
+	public static void writeBytesToResponse(final byte[] bytes, final HttpServletResponse response,
+											@Nullable final String contentType, final int status, final boolean buffer) {
 		Assert.notNull(response, "response 不可为null");
-		Assert.hasText(contentType, "contentType 不可为空");
 
 		if (buffer) {
 			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
 				InputStream inputStream = IOUtils.toUnsynchronizedByteArrayInputStream(ArrayUtils.nullToEmpty(bytes));
 				response.setStatus(status);
-				response.setContentType(contentType);
+				response.setContentType(ObjectUtils.defaultIfNull(contentType, MediaType.APPLICATION_OCTET_STREAM_VALUE));
 				inputStream.transferTo(outputStream);
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
@@ -569,7 +568,7 @@ public class ResponseUtils {
 		} else {
 			try (OutputStream outputStream = response.getOutputStream()) {
 				response.setStatus(status);
-				response.setContentType(contentType);
+				response.setContentType(ObjectUtils.defaultIfNull(contentType, MediaType.APPLICATION_OCTET_STREAM_VALUE));
 				outputStream.write(ArrayUtils.nullToEmpty(bytes));
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
@@ -659,7 +658,7 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
-												  final String contentType) {
+												  @Nullable final String contentType) {
 		writeInputStreamToResponse(inputStream, response, contentType, HttpStatus.OK.value(), true);
 	}
 
@@ -681,7 +680,7 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
-												  final String contentType, final HttpStatus status) {
+												  @Nullable final String contentType, final HttpStatus status) {
 		Assert.notNull(status, "status 不可为null");
 
 		writeInputStreamToResponse(inputStream, response, contentType, status.value(), true);
@@ -706,7 +705,7 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
-												  final String contentType, final int status) {
+												  @Nullable final String contentType, final int status) {
 		writeInputStreamToResponse(inputStream, response, contentType, status, true);
 	}
 
@@ -837,7 +836,7 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
-												  final String contentType, final boolean buffer) {
+												  @Nullable final String contentType, final boolean buffer) {
 		writeInputStreamToResponse(inputStream, response, contentType, HttpStatus.OK.value(), buffer);
 	}
 
@@ -870,7 +869,7 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
-												  final String contentType, final HttpStatus status, final boolean buffer) {
+												  @Nullable final String contentType, final HttpStatus status, final boolean buffer) {
 		Assert.notNull(status, "status 不可为null");
 
 		writeInputStreamToResponse(inputStream, response, contentType, status.value(), buffer);
@@ -905,10 +904,9 @@ public class ResponseUtils {
 	 * @since 1.0.0
 	 */
 	public static void writeInputStreamToResponse(final InputStream inputStream, final HttpServletResponse response,
-												  final String contentType, final int status, final boolean buffer) {
+												  @Nullable final String contentType, final int status, final boolean buffer) {
 		Assert.notNull(response, "response 不可为null");
 		Assert.notNull(inputStream, "inputStream 不可为null");
-		Assert.hasText(contentType, "contentType 不可为空");
 
 		if (buffer) {
 			if (inputStream instanceof BufferedInputStream ||
@@ -917,7 +915,7 @@ public class ResponseUtils {
 				inputStream instanceof BufferedFileChannelInputStream) {
 				try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
 					response.setStatus(status);
-					response.setContentType(contentType);
+					response.setContentType(ObjectUtils.defaultIfNull(contentType, MediaType.APPLICATION_OCTET_STREAM_VALUE));
 					inputStream.transferTo(outputStream);
 				} catch (IOException e) {
 					throw new UncheckedIOException(e);
@@ -926,7 +924,7 @@ public class ResponseUtils {
 				try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream());
 					 InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
 					response.setStatus(status);
-					response.setContentType(contentType);
+					response.setContentType(ObjectUtils.defaultIfNull(contentType, MediaType.APPLICATION_OCTET_STREAM_VALUE));
 					bufferedInputStream.transferTo(outputStream);
 				} catch (IOException e) {
 					throw new UncheckedIOException(e);
@@ -935,7 +933,7 @@ public class ResponseUtils {
 		} else {
 			try (OutputStream outputStream = response.getOutputStream()) {
 				response.setStatus(status);
-				response.setContentType(contentType);
+				response.setContentType(ObjectUtils.defaultIfNull(contentType, MediaType.APPLICATION_OCTET_STREAM_VALUE));
 				inputStream.transferTo(outputStream);
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
