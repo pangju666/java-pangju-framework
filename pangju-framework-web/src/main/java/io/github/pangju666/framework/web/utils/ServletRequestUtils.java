@@ -19,8 +19,8 @@ package io.github.pangju666.framework.web.utils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.reflect.TypeToken;
-import io.github.pangju666.commons.lang.pool.Constants;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
+import io.github.pangju666.framework.web.pool.WebConstants;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
@@ -246,8 +246,9 @@ public class ServletRequestUtils extends org.springframework.web.bind.ServletReq
 			ip = request.getRemoteAddr();
 		}
 
-		return StringUtils.equalsAnyIgnoreCase(ip, Constants.LOCALHOST_IPV4_ADDRESS,
-			Constants.LOCALHOST_IPV6_ADDRESS) ? Constants.LOCALHOST_IPV4_ADDRESS : IpUtils.getMultistageReverseProxyIp(ip);
+		return StringUtils.equalsAnyIgnoreCase(ip, WebConstants.LOCALHOST_IPV4_ADDRESS,
+			WebConstants.LOCALHOST_IPV6_ADDRESS) ? WebConstants.LOCALHOST_IPV4_ADDRESS :
+			IpUtils.getMultistageReverseProxyIp(ip);
 	}
 
 	/**

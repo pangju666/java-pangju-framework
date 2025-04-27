@@ -16,8 +16,6 @@
 
 package io.github.pangju666.framework.web.pool;
 
-import io.github.pangju666.commons.lang.pool.Constants;
-
 /**
  * Web模块常量池
  *
@@ -25,6 +23,31 @@ import io.github.pangju666.commons.lang.pool.Constants;
  * @since 1.0.0
  */
 public class WebConstants {
+	/**
+	 * http协议前缀
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String HTTP_PREFIX = "http://";
+	/**
+	 * https协议前缀
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String HTTPS_PREFIX = "https://";
+	/**
+	 * http路径分隔符
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String HTTP_PATH_SEPARATOR = "/";
+
+	/**
+	 * Token前缀
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String TOKEN_PREFIX = "Bearer ";
 	/**
 	 * 管理员角色标识
 	 * <p>
@@ -85,9 +108,21 @@ public class WebConstants {
 	public static final String ANY_PATH_PATTERN = "/**";
 
 	/**
+	 * 本地Ipv4地址
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String LOCALHOST_IPV4_ADDRESS = "127.0.0.1";
+	/**
+	 * 本地Ipv6地址
+	 *
+	 * @since 1.0.0
+	 */
+	public static final String LOCALHOST_IPV6_ADDRESS = "0:0:0:0:0:0:0:1";
+	/**
 	 * 本地主机名常量
 	 * <p>
-	 * 表示本地回环地址的标准主机名，等同于使用IP地址 {@link Constants#LOCALHOST_IPV4_ADDRESS}。
+	 * 表示本地回环地址的标准主机名，等同于使用IP地址 {@link #LOCALHOST_IPV4_ADDRESS}。
 	 * 在网络编程中，通常可以互换使用"localhost"和"127.0.0.1"。
 	 * </p>
 	 *
