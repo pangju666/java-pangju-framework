@@ -22,7 +22,7 @@ import io.github.pangju666.framework.web.exception.base.BaseHttpException;
 import io.github.pangju666.framework.web.model.vo.EnumVO;
 import io.github.pangju666.framework.web.model.vo.HttpExceptionVO;
 import io.github.pangju666.framework.web.pool.WebConstants;
-import io.github.pangju666.framework.web.utils.ResponseUtils;
+import io.github.pangju666.framework.web.utils.ServletResponseUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -172,7 +172,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 				}
 			}
 		}
-		ResponseUtils.writeBeanToResponse(this.httpExceptionTypeList, response, useBuffer);
+		ServletResponseUtils.writeBeanToResponse(this.httpExceptionTypeList, response, useBuffer);
 	}
 
 	/**
@@ -193,7 +193,7 @@ public class HttpExceptionFilter extends OncePerRequestFilter {
 				}
 			}
 		}
-		ResponseUtils.writeBeanToResponse(httpExceptionList, response, useBuffer);
+		ServletResponseUtils.writeBeanToResponse(httpExceptionList, response, useBuffer);
 	}
 
 	/**

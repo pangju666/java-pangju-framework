@@ -16,7 +16,7 @@
 
 package io.github.pangju666.framework.web.model.common;
 
-import io.github.pangju666.framework.web.utils.ResponseUtils;
+import io.github.pangju666.framework.web.utils.ServletResponseUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * </p>
  *
  * @author pangju666
- * @see ResponseUtils
+ * @see ServletResponseUtils
  * @since 1.0.0
  */
 public final class Range {

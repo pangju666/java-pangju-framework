@@ -112,8 +112,9 @@ import java.util.*;
  * @see org.springframework.util.MultiValueMap
  * @see org.springframework.http.HttpHeaders
  * @see com.google.gson.JsonElement
+ * @see org.springframework.web.bind.ServletRequestUtils
  */
-public class RequestUtils {
+public class ServletRequestUtils extends org.springframework.web.bind.ServletRequestUtils {
 	/**
 	 * 移动设备的用户代理标识字符串数组
 	 * <p>
@@ -125,7 +126,7 @@ public class RequestUtils {
 	 */
 	protected static final String[] MOBILE_AGENTS = {"Android", "iPhone", "iPod", "iPad", "Windows Phone", "MQQBrowser"};
 
-	protected RequestUtils() {
+	protected ServletRequestUtils() {
 	}
 
 	/**

@@ -19,7 +19,7 @@ package io.github.pangju666.framework.web.controller
 import io.github.pangju666.commons.io.utils.FileUtils
 import io.github.pangju666.commons.io.utils.IOUtils
 import io.github.pangju666.framework.web.model.common.Result
-import io.github.pangju666.framework.web.utils.ResponseUtils
+import io.github.pangju666.framework.web.utils.ServletResponseUtils
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -36,7 +36,7 @@ class TestResponseUtilsController {
 
 	@GetMapping("/bytes-buffer")
 	void bufferBytes(HttpServletResponse response) {
-		ResponseUtils.writeBytesToResponse(bytes, response)
+		ServletResponseUtils.writeBytesToResponse(bytes, response)
 	}
 
 	@GetMapping("/bytes")
@@ -69,7 +69,7 @@ class TestResponseUtilsController {
 
 	@GetMapping("/result-buffer")
 	void bufferResult(HttpServletResponse response) {
-		ResponseUtils.writeBytesToResponse(Result.ok(null).toString().getBytes(StandardCharsets.UTF_8), response)
+		ServletResponseUtils.writeBytesToResponse(Result.ok(null).toString().getBytes(StandardCharsets.UTF_8), response)
 	}
 
 	@GetMapping("/result")
@@ -85,11 +85,11 @@ class TestResponseUtilsController {
 
 	@GetMapping("/file-buffer")
 	void fileBuffer(HttpServletResponse response) {
-		ResponseUtils.writeFileToResponse(bigFile, response)
+		ServletResponseUtils.writeFileToResponse(bigFile, response)
 	}
 
 	@GetMapping("/file")
 	void file(HttpServletResponse response) {
-		ResponseUtils.writeFileToResponse(bigFile, response, false)
+		ServletResponseUtils.writeFileToResponse(bigFile, response, false)
 	}
 }

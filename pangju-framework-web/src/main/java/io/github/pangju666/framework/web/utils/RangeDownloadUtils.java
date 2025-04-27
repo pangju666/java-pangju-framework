@@ -192,7 +192,7 @@ public class RangeDownloadUtils {
 		if (StringUtils.isBlank(rangeHeader)) {
 			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 			response.setContentLengthLong(bytes.length);
-			ResponseUtils.writeBytesToResponse(bytes, response, true);
+			ServletResponseUtils.writeBytesToResponse(bytes, response, true);
 		} else {
 			List<Range> ranges = getRanges(bytes.length, rangeHeader);
 
@@ -207,7 +207,7 @@ public class RangeDownloadUtils {
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
 				response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 				response.setContentLengthLong(bytes.length);
-				ResponseUtils.writeBytesToResponse(bytes, response, true);
+				ServletResponseUtils.writeBytesToResponse(bytes, response, true);
 				return;
 			}
 
@@ -245,7 +245,7 @@ public class RangeDownloadUtils {
 		if (StringUtils.isBlank(rangeHeader)) {
 			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 			response.setContentLengthLong(file.length());
-			ResponseUtils.writeFileToResponse(file, response, null, null, true);
+			ServletResponseUtils.writeFileToResponse(file, response, null, null, true);
 		} else {
 			long fileLength = file.length();
 			List<Range> ranges = getRanges(fileLength, rangeHeader);
@@ -261,7 +261,7 @@ public class RangeDownloadUtils {
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
 				response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 				response.setContentLengthLong(fileLength);
-				ResponseUtils.writeFileToResponse(file, response, null, null, true);
+				ServletResponseUtils.writeFileToResponse(file, response, null, null, true);
 				return;
 			}
 
