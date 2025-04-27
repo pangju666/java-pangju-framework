@@ -21,6 +21,7 @@
 		<module>pangju-framework-data-mybatis-plus</module>
 		<module>pangju-framework-data-redis</module>
 		<module>pangju-framework-data-mongodb</module>
+		<module>pangju-framework-spring</module>
 		<module>pangju-framework-bom</module>
 		<module>pangju-framework-all</module>
 	</modules>
