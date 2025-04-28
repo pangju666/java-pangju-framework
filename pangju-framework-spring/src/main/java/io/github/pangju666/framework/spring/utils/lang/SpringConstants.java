@@ -47,6 +47,7 @@ public class SpringConstants {
 	 * @since 1.0.0
 	 */
 	public static final String CGLIB_RENAMED_METHOD_PREFIX = "CGLIB$";
+
 	protected SpringConstants() {
 	}
 }

@@ -16,11 +16,12 @@
 
 package io.github.pangju666.framework.spring.utils;
 
-import io.github.pangju666.framework.spring.utils.lang.SpringConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.*;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -166,25 +167,61 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	}
 
 	/**
+	 * 获取集合中元素的类型。
+	 * <p>
+	 * 该方法通过检查集合中的第一个元素来确定集合中元素的类型。
+	 * 如果集合为空或没有元素，则返回 null。
+	 *
+	 * @param collection 需要检查的集合
+	 * @return 集合元素的类型，如果集合为空则返回 null
+	 * @since 1.0.0
+	 */
+	public static Class<?> getCollectionElementType(final Collection<?> collection) {
+		if (CollectionUtils.isEmpty(collection) || !collection.iterator().hasNext()) {
+			return null;
+		}
+		return collection.iterator().next().getClass();
+	}
+
+	/**
 	 * 获取类泛型的第一个类型参数
+	 * <p>
+	 * 此方法仅适用于获取父类定义了泛型参数，子类实现了该泛型参数的情况。
+	 * </p>
+	 * <p>
+	 * 例如：{@code class MyClass extends GenericParent<String>} 可以获取到 {@code String.class}
+	 * </p>
+	 * <p>
+	 * 注意：无法获取接口或方法上定义的泛型参数类型。
+	 * </p>
 	 *
 	 * @param clazz 目标类对象
 	 * @param <T>   泛型类型
 	 * @return 泛型类型Class对象，无法获取时返回null
 	 * @since 1.0.0
+	 * @see Class#getGenericSuperclass()
 	 */
 	public static <T> Class<T> getClassGenericType(final Class<?> clazz) {
 		return getClassGenericType(clazz, 0);
 	}
 
 	/**
-	 * 获取指定索引的类泛型参数类型
+	 * 获取指定索引的类泛型的类型参数
+	 * <p>
+	 * 此方法仅适用于获取父类定义了泛型参数，子类实现了该泛型参数的情况。
+	 * </p>
+	 * <p>
+	 * 例如：{@code class MyClass extends GenericParent<String>} 可以获取到 {@code String.class}
+	 * </p>
+	 * <p>
+	 * 注意：无法获取接口或方法上定义的泛型参数类型。
+	 * </p>
 	 *
 	 * @param clazz 目标类对象
-	 * @param index 泛型参数索引
 	 * @param <T>   泛型类型
 	 * @return 泛型类型Class对象，无法获取时返回null
 	 * @since 1.0.0
+	 * @see Class#getGenericSuperclass()
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Class<T> getClassGenericType(final Class<?> clazz, final int index) {
@@ -200,24 +237,6 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 			return null;
 		}
 		return (Class<T>) params[index];
-	}
-
-	/**
-	 * 获取对象的真实类（处理CGLIB代理情况）
-	 *
-	 * @param instance 对象实例
-	 * @return 去除CGLIB代理后的真实类
-	 * @since 1.0.0
-	 */
-	public static Class<?> getRealClass(final Object instance) {
-		Class<?> clazz = instance.getClass();
-		if (clazz.getName().contains(SpringConstants.CGLIB_CLASS_SEPARATOR)) {
-			Class<?> superClass = clazz.getSuperclass();
-			if (Objects.nonNull(superClass) && !Object.class.equals(superClass)) {
-				return superClass;
-			}
-		}
-		return clazz;
 	}
 
 	/**
