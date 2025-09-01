@@ -107,6 +107,32 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	}
 
 	/**
+	 * 使用现有的RedisTemplate构造一个新的ScanRedisTemplate实例
+	 * <p>
+	 * 此构造方法会复制源RedisTemplate的以下配置：
+	 * <ul>
+	 *     <li>键序列化器</li>
+	 *     <li>值序列化器</li>
+	 *     <li>哈希键序列化器</li>
+	 *     <li>哈希值序列化器</li>
+	 *     <li>Redis连接工厂</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param redisTemplate 源RedisTemplate实例
+	 * @throws IllegalArgumentException 当redisTemplate为null时抛出
+	 * @since 1.0.0
+	 */
+	public ScanRedisTemplate(RedisTemplate<?, ?> redisTemplate) {
+		setKeySerializer(redisTemplate.getKeySerializer());
+		setValueSerializer(redisTemplate.getValueSerializer());
+		setHashKeySerializer(redisTemplate.getHashKeySerializer());
+		setHashValueSerializer(redisTemplate.getHashValueSerializer());
+		setConnectionFactory(redisTemplate.getConnectionFactory());
+		afterPropertiesSet();
+	}
+
+	/**
 	 * 设置键序列化器并更新扫描支持状态
 	 * <p>
 	 * 当键序列化器为{@link StringRedisSerializer}时启用键扫描支持
@@ -164,32 +190,6 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 		if (hashKeySerializer instanceof StringRedisSerializer) {
 			supportHashKeyScan = true;
 		}
-	}
-
-	/**
-	 * 使用现有的RedisTemplate构造一个新的ScanRedisTemplate实例
-	 * <p>
-	 * 此构造方法会复制源RedisTemplate的以下配置：
-	 * <ul>
-	 *     <li>键序列化器</li>
-	 *     <li>值序列化器</li>
-	 *     <li>哈希键序列化器</li>
-	 *     <li>哈希值序列化器</li>
-	 *     <li>Redis连接工厂</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param redisTemplate 源RedisTemplate实例
-	 * @throws IllegalArgumentException 当redisTemplate为null时抛出
-	 * @since 1.0.0
-	 */
-	public ScanRedisTemplate(RedisTemplate<?, ?> redisTemplate) {
-		setKeySerializer(redisTemplate.getKeySerializer());
-		setValueSerializer(redisTemplate.getValueSerializer());
-		setHashKeySerializer(redisTemplate.getHashKeySerializer());
-		setHashValueSerializer(redisTemplate.getHashValueSerializer());
-		setConnectionFactory(redisTemplate.getConnectionFactory());
-		afterPropertiesSet();
 	}
 
 	/**
