@@ -56,31 +56,15 @@ import java.util.Optional;
  * }</pre>
  * </p>
  *
- * @param <T> 响应数据类型
+ * @param <T>     响应数据类型
+ * @param code    状态码
+ * @param message 消息
+ * @param data    数据
  * @author pangju666
  * @since 1.0.0
  */
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-public final class Result<T> {
-	/**
-	 * 状态码
-	 *
-	 * @since 1.0.0
-	 */
-	private final int code;
-	/**
-	 * 消息
-	 *
-	 * @since 1.0.0
-	 */
-	private final String message;
-	/**
-	 * 数据
-	 *
-	 * @since 1.0.0
-	 */
-	private final T data;
-
+public record Result<T>(int code, String message, T data) {
 	/**
 	 * 私有构造方法
 	 *
@@ -89,10 +73,7 @@ public final class Result<T> {
 	 * @param data    数据
 	 * @since 1.0.0
 	 */
-	private Result(int code, String message, T data) {
-		this.code = code;
-		this.message = message;
-		this.data = data;
+	public Result {
 	}
 
 	/**
@@ -225,7 +206,8 @@ public final class Result<T> {
 	 * @return 状态码，0表示成功，其他值表示失败
 	 * @since 1.0.0
 	 */
-	public int getCode() {
+	@Override
+	public int code() {
 		return code;
 	}
 
@@ -235,7 +217,8 @@ public final class Result<T> {
 	 * @return 响应消息文本
 	 * @since 1.0.0
 	 */
-	public String getMessage() {
+	@Override
+	public String message() {
 		return message;
 	}
 
@@ -245,7 +228,8 @@ public final class Result<T> {
 	 * @return 响应数据对象，可能为null
 	 * @since 1.0.0
 	 */
-	public T getData() {
+	@Override
+	public T data() {
 		return data;
 	}
 

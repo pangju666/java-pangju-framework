@@ -19,7 +19,7 @@ package io.github.pangju666.framework.web.model.vo;
 /**
  * 枚举值对象
  * <p>
- * 用于前后端交互时传输枚举数据，包含：
+ * 用于传输枚举数据信息，包含：
  * <ul>
  *     <li>标签：用于显示的文本描述</li>
  *     <li>值：实际的枚举值</li>

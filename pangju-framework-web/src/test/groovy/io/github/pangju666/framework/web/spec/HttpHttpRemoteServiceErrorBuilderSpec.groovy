@@ -37,7 +37,7 @@ class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
 		builder.build().with {
 			service() == "测试服务"
 			api() == "测试接口"
-			httpStatus() == HttpStatus.OK.value()
+			httpStatus().value() == HttpStatus.OK.value()
 			message() == null
 			code() == null
 			uri() == null
@@ -56,7 +56,7 @@ class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
 			service() == "测试服务"
 			api() == "测试接口"
 			it.uri() == uri
-			httpStatus() == HttpStatus.OK.value()
+			httpStatus().value() == HttpStatus.OK.value()
 			message() == null
 			code() == null
 		}
@@ -118,7 +118,7 @@ class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
 		builder.httpStatus(HttpStatus.NOT_FOUND)
 
 		then: "HTTP状态码应被正确设置"
-		builder.build().httpStatus() == HttpStatus.NOT_FOUND.value()
+		builder.build().httpStatus().value() == HttpStatus.NOT_FOUND.value()
 	}
 
 	def "buildException应正确处理网关超时异常"() {
@@ -132,7 +132,7 @@ class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
 
 		then: "应返回超时异常"
 		result instanceof HttpRemoteServiceTimeoutException
-		result.getError().httpStatus() == HttpStatus.GATEWAY_TIMEOUT.value()
+		result.getError().httpStatus().value() == HttpStatus.GATEWAY_TIMEOUT.value()
 	}
 
 	def "buildException应正确处理响应异常"() {
@@ -158,7 +158,7 @@ class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
 		with(result.getError()) {
 			code() == "E001"
 			message() == "业务错误"
-			httpStatus() == 400
+			httpStatus().value() == 400
 		}
 	}
 

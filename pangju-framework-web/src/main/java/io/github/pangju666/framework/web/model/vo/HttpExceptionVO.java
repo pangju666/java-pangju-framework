@@ -21,7 +21,7 @@ import io.github.pangju666.framework.web.enums.HttpExceptionType;
 /**
  * HTTP异常信息值对象
  * <p>
- * 用于描述HTTP异常的基本信息，包含：
+ * 用于传输HTTP异常的基本信息，包含：
  * <ul>
  *     <li>异常类型：标识异常的分类</li>
  *     <li>错误码：唯一标识异常的编码</li>

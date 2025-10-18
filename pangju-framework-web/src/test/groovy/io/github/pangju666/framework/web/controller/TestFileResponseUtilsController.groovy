@@ -35,6 +35,6 @@ class TestFileResponseUtilsController {
 
 	@GetMapping("/file")
 	void file(HttpServletRequest request, HttpServletResponse response) {
-		RangeDownloadUtils.handleRangeRequest(file, request, response)
+		RangeDownloadUtils.downloadFile(file, request, response)
 	}
 }
