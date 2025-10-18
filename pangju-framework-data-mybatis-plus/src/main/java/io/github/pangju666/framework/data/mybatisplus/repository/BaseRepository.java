@@ -1624,22 +1624,22 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	}
 
 	/**
-	 * 将任意类型集合转换为JSON数组字符串
+	 * 将集合转换为JSON数组字符串
 	 * <p>
-	 * 该方法使用默认的非空过滤器（{@code Objects::nonNull}）来过滤集合中的null元素，
-	 * 然后将过滤后的集合转换为JSON数组格式的字符串。如果传入的集合为空或全部为null元素，
-	 * 则返回null。
+	 * 该方法将给定的集合对象转换为JSON数组格式的字符串。如果传入的集合为空（null或无元素），则返回null。转换过程通过{@link JsonUtils#toString}方法进行，并在结果为空字符串时返回null。
 	 * </p>
 	 *
-	 * @param values 任意类型的集合
+	 * @param values 待转换的集合对象
 	 * @param <V>    集合元素类型
-	 * @return 转换后的JSON数组字符串，如果集合为空或全部为null元素则返回null
-	 * @see #getJsonArrayString(Collection, Predicate)
+	 * @return 转换后的JSON数组字符串，如果集合为空则返回null
 	 * @apiNote 此方法仅可在<strong>MySQL</strong>数据库环境下使用
 	 * @since 1.0.0
 	 */
 	protected <V> String getJsonArrayString(Collection<V> values) {
-		return getJsonArrayString(values, Objects::nonNull);
+		if (CollectionUtils.isEmpty(values)) {
+			return null;
+		}
+		return StringUtils.defaultIfEmpty(JsonUtils.toString(values), null);
 	}
 
 	/**
