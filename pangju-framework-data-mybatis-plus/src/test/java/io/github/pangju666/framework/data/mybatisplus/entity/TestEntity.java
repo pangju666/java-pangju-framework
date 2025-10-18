@@ -2,7 +2,7 @@ package io.github.pangju666.framework.data.mybatisplus.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import io.github.pangju666.framework.data.mybatisplus.model.entity.auto.AutoIdLogicBasicDO;
+import io.github.pangju666.framework.data.mybatisplus.model.entity.auto.AutoIdLogicBasicEntity;
 import io.github.pangju666.framework.data.mybatisplus.type.handler.ClassTypeHandler;
 import io.github.pangju666.framework.data.mybatisplus.type.handler.JsonTypeHandler;
 import io.github.pangju666.framework.data.mybatisplus.type.handler.list.LongVarcharToListTypeHandler;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @TableName(value = "test", autoResultMap = true)
-public class TestEntity extends AutoIdLogicBasicDO {
+public class TestEntity extends AutoIdLogicBasicEntity {
 	private String name;
 	@TableField(typeHandler = JsonTypeHandler.class)
 	private Map<String, Object> jsonValue;
