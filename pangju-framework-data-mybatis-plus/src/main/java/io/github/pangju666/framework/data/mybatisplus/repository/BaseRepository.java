@@ -25,6 +25,7 @@ import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.commons.lang.utils.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.Validate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -33,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -1620,5 +1622,59 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			return "null";
 		}
 		return JsonUtils.toString(value);
+	}
+
+	/**
+	 * 将字符串集合转换为JSON数组字符串
+	 * <p>
+	 * 该方法使用默认的空白字符串过滤条件（使用{@link StringUtils#isBlank}判断），将符合条件的字符串元素转换为标准JSON数组格式。
+	 * </p>
+	 *
+	 * @param values 需要转换的字符串集合
+	 * @return 转换后的JSON数组字符串
+	 * @apiNote 此方法仅可在<strong>MySQL</strong>数据库环境下使用
+	 * @see #getJsonArrayString(Collection, Predicate)
+	 * @since 1.0.0
+	 */
+	protected String getJsonArrayString(Collection<String> values) {
+		return getJsonArrayString(values, StringUtils::isBlank);
+	}
+
+	/**
+	 * 将字符串集合转换为JSON数组字符串，支持自定义过滤条件
+	 * <p>
+	 * 该方法根据指定的断言条件过滤集合中的元素，将符合条件的元素转换为标准JSON数组格式。
+	 * 生成的JSON字符串格式为：["值1","值2","值3"]。
+	 * </p>
+	 * <p>
+	 * 例如，使用以下代码可以过滤掉空白字符串：
+	 * <pre>
+	 * List&lt;String&gt; values = Arrays.asList("项目1", "", "项目2", "  ", "项目3");
+	 * String json = getJsonArrayString(values, StringUtils::isBlank);
+	 * // 结果: ["项目1","项目2","项目3"]
+	 * </pre>
+	 * </p>
+	 *
+	 * @param values    需要转换的字符串集合
+	 * @param predicate 用于过滤元素的断言，返回true的元素将被包含在结果中
+	 * @return 转换后的JSON数组字符串
+	 * @throws IllegalArgumentException 如果values为空集合
+	 * @throws NullPointerException     如果predicate为null
+	 * @apiNote 此方法仅可在<strong>MySQL</strong>数据库环境下使用
+	 * @since 1.0.0
+	 */
+	protected String getJsonArrayString(Collection<String> values, Predicate<String> predicate) {
+		Validate.notEmpty(values);
+		Objects.requireNonNull(predicate);
+
+		StringBuilder jsonArrayStringBuilder = new StringBuilder("[");
+		for (String value : values) {
+			if (predicate.test(value)) {
+				jsonArrayStringBuilder.append("\"").append(value).append("\",");
+			}
+		}
+		jsonArrayStringBuilder.deleteCharAt(jsonArrayStringBuilder.length() - 1);
+		jsonArrayStringBuilder.append("]");
+		return jsonArrayStringBuilder.toString();
 	}
 }
