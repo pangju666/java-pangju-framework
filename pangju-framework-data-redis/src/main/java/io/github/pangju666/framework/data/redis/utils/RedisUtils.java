@@ -16,10 +16,12 @@
 
 package io.github.pangju666.framework.data.redis.utils;
 
+import io.github.pangju666.framework.data.redis.enums.RedisSerializerType;
 import io.github.pangju666.framework.data.redis.pool.RedisConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.Assert;
 
 import java.util.Objects;
@@ -298,5 +300,33 @@ public class RedisUtils {
 		Assert.hasText(keyword, "keyword不可为null");
 		return scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword + RedisConstants.CURSOR_PATTERN_SYMBOL,
 			dataType, count);
+	}
+
+	/**
+	 * 获取指定类型的Redis序列化器
+	 * <p>
+	 * 根据传入的序列化器类型返回对应的Spring Redis序列化器实例。支持以下序列化类型：
+	 * <ul>
+	 *     <li>{@link RedisSerializerType#STRING} - 返回字符串序列化器，用于处理String类型数据</li>
+	 *     <li>{@link RedisSerializerType#JAVA} - 返回Java序列化器，使用Java原生序列化机制</li>
+	 *     <li>{@link RedisSerializerType#JSON} - 返回JSON序列化器，用于对象与JSON的转换</li>
+	 *     <li>{@link RedisSerializerType#BYTE_ARRAY} - 返回字节数组序列化器，用于处理原始字节数据</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param type 序列化器类型
+	 * @return 对应类型的Redis序列化器实例
+	 * @throws IllegalArgumentException 如果type为null
+	 * @see RedisSerializerType
+	 * @see org.springframework.data.redis.serializer.RedisSerializer
+	 * @since 1.0.0
+	 */
+	public static RedisSerializer<?> getSerializer(RedisSerializerType type) {
+		return switch (type) {
+			case STRING -> RedisSerializer.string();
+			case JAVA -> RedisSerializer.java();
+			case JSON -> RedisSerializer.json();
+			case BYTE_ARRAY -> RedisSerializer.byteArray();
+		};
 	}
 }
