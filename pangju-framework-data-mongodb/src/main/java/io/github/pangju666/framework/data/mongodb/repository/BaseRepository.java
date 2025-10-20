@@ -105,13 +105,34 @@ public abstract class BaseRepository<ID, T> {
 	protected String collectionName;
 
 	/**
-	 * 构造函数
-	 * <p>通过反射获取泛型类型</p>
+	 * 默认构造函数
+	 * <p>该构造函数执行以下操作：</p>
+	 * <ol>
+	 *     <li>通过反射获取子类的第二个泛型参数类型（实体类型）</li>
+	 *     <li>检查实体类是否标注了{@link Document}注解</li>
+	 *     <li>从注解中提取集合名称，优先使用value属性，如果为空则使用collection属性</li>
+	 *     <li>设置{@link #collectionName}字段，用于后续MongoDB操作</li>
+	 * </ol>
+	 * <p>注意：此构造函数仅初始化实体类型和集合名称，不设置{@link #mongoOperations}，
+	 * 通常需要配合{@link #setMongoOperations(MongoOperations)}方法使用，
+	 * 或者使用{@link #BaseRepository(MongoOperations)}构造函数。</p>
 	 *
 	 * @since 1.0.0
+	 * @see Document
 	 */
 	protected BaseRepository() {
 		this.entityClass = ReflectionUtils.getClassGenericType(this.getClass(), 1);
+		if (Objects.nonNull(this.entityClass)) {
+			String collectionName = null;
+			Document document = this.entityClass.getAnnotation(Document.class);
+			if (Objects.nonNull(document)) {
+				collectionName = document.value();
+				if (StringUtils.isEmpty(collectionName)) {
+					collectionName = document.collection();
+				}
+			}
+			this.collectionName = collectionName;
+		}
 	}
 
 	/**
@@ -136,52 +157,31 @@ public abstract class BaseRepository<ID, T> {
 	}
 
 	/**
-	 * 设置MongoDB操作类并初始化集合名称
-	 * <p>
-	 * 该方法执行以下操作：
+	 * 设置MongoDB操作类实例
+	 * <p>该方法执行以下操作：</p>
 	 * <ol>
-	 *     <li>验证mongoOperations参数的有效性</li>
-	 *     <li>设置MongoDB操作类实例</li>
-	 *     <li>获取实体类上的@Document注解信息</li>
-	 *     <li>按以下优先级确定集合名称：
-	 *         <ul>
-	 *             <li>首先使用@Document注解的value属性</li>
-	 *             <li>如果value为空，则使用collection属性</li>
-	 *             <li>如果以上都为空，则使用MongoOperations自动推断的集合名称</li>
-	 *         </ul>
-	 *     </li>
+	 *     <li>验证传入的{@code mongoOperations}参数不为null</li>
+	 *     <li>将参数赋值给{@link #mongoOperations}字段</li>
+	 *     <li>如果{@link #collectionName}为空，则通过{@code mongoOperations}获取实体类对应的集合名称</li>
 	 * </ol>
-	 * </p>
-	 *
-	 * <p>
-	 * 集合名称确定规则：
+	 * <p>此方法通常在以下情况下使用：</p>
 	 * <ul>
-	 *     <li>优先使用@Document注解中显式指定的名称</li>
-	 *     <li>如果注解中未指定，则使用Spring Data MongoDB的默认命名策略</li>
-	 *     <li>默认命名策略通常将类名转换为小写并添加's'后缀（例如：User -> users）</li>
+	 *     <li>使用默认构造函数创建仓储实例后，需要设置MongoDB操作类</li>
+	 *     <li>需要在运行时更改MongoDB操作类实例</li>
 	 * </ul>
-	 * </p>
 	 *
-	 * @param mongoOperations MongoDB操作类实例，用于执行数据库操作
-	 * @throws IllegalArgumentException 当mongoOperations参数为null时抛出
+	 * @param mongoOperations MongoDB操作类实例，不能为null
+	 * @throws IllegalArgumentException 如果{@code mongoOperations}为null
 	 * @since 1.0.0
+	 * @see MongoOperations#getCollectionName(Class)
 	 */
 	public void setMongoOperations(MongoOperations mongoOperations) {
 		Assert.notNull(mongoOperations, "mongoOperations 不可为null");
 
 		this.mongoOperations = mongoOperations;
-		String collectionName = null;
-		Document document = this.entityClass.getAnnotation(Document.class);
-		if (Objects.nonNull(document)) {
-			collectionName = document.value();
-			if (StringUtils.isEmpty(collectionName)) {
-				collectionName = document.collection();
-			}
+		if (StringUtils.isBlank(this.collectionName)) {
+			this.collectionName = this.mongoOperations.getCollectionName(entityClass);
 		}
-		if (StringUtils.isBlank(collectionName)) {
-			collectionName = this.mongoOperations.getCollectionName(entityClass);
-		}
-		this.collectionName = collectionName;
 	}
 
 	/**
