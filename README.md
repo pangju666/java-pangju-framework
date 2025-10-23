@@ -191,15 +191,15 @@ Pangju Framework 是一个基于 Spring Frameowrk拓展而来的业务型框架�
 **功能**：
 
 - 基础实体类 ：
-    - BasicDO ：提供基础的创建时间和更新时间字段
-    - LogicBasicDO ：支持逻辑删除功能的基础实体类
-    - LogicTimeBasicDO ：支持时间戳逻辑删除功能的基础实体类
-    - VersionBasicDO ：支持乐观锁功能的基础实体类
-    - VersionLogicTimeBasicDO ：同时支持乐观锁和时间戳逻辑删除功能的基础实体类
+    - BasicEntity ：提供基础的创建时间和更新时间字段
+    - LogicBasicEntity ：支持逻辑删除功能的基础实体类
+    - LogicTimeBasicEntity ：支持时间戳逻辑删除功能的基础实体类
+    - VersionBasicEntity ：支持乐观锁功能的基础实体类
+    - VersionLogicTimeBasicEntity ：同时支持乐观锁和时间戳逻辑删除功能的基础实体类
 - ID类型实体类 ：
-    - AutoIdBasicDO/AutoIdLogicBasicDO/AutoIdLogicTimeBasicDO ：使用自增ID的各类基础实体
-    - UUIdBasicDO/UUIdLogicBasicDO/UUIdLogicTimeBasicDO ：使用UUID的各类基础实体
-    - SnowflakeIdBasicDO/SnowflakeIdLogicBasicDO/SnowflakeIdLogicTimeBasicDO ：使用雪花算法ID的各类基础实体
+    - AutoIdBasicEntity/AutoIdLogicBasicEntity/AutoIdLogicTimeBasicEntity ：使用自增ID的各类基础实体
+    - UUIdBasicEntity/UUIdLogicBasicEntity/UUIdLogicTimeBasicEntity ：使用UUID的各类基础实体
+    - SnowflakeIdBasicEntity/SnowflakeIdLogicBasicEntity/SnowflakeIdLogicTimeBasicEntity ：使用雪花算法ID的各类基础实体
 - 数据传输对象 ：
     - AutoIdListDTO/AutoIdRequiredListDTO ：自增ID列表数据传输对象
     - UUIdListDTO/UUIdRequiredListDTO ：UUID列表数据传输对象

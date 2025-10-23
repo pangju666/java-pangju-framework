@@ -198,16 +198,18 @@ Function :
 **Function**:
 
 - Basic entity class:
-    - BasicDO: Provides basic creation time and update time fields
-    - LogicBasicDO: Basic entity class that supports logical deletion function
-    - LogicTimeBasicDO: Basic entity class that supports the time stamp logic deletion function
-    - VersionBasicDO: Basic entity class that supports optimistic locking function
-    - VersionLogicTimeBasicDO: Basic entity class that supports both optimistic locking and timestamp logic deletion
+    - BasicEntity: Provides basic creation time and update time fields
+    - LogicBasicEntity: Basic entity class that supports logical deletion function
+    - LogicTimeBasicEntity: Basic entity class that supports the time stamp logic deletion function
+    - VersionBasicEntity: Basic entity class that supports optimistic locking function
+    - VersionLogicTimeBasicEntity: Basic entity class that supports both optimistic locking and timestamp logic deletion
       functions
 - ID type entity class:
-    - AutoIdBasicDO/AutoIdLogicBasicDO/AutoIdLogicTimeBasicDO: Various basic entities that use self-increase IDs
-    - UUIdBasicDO/UUIdLogicBasicDO/UUIdLogicTimeBasicDO: Various basic entities that use UUID
-    - SnowflakeIdBasicDO/SnowflakeIdLogicBasicDO/SnowflakeIdLogicTimeBasicDO: Various basic entities using snowflake
+    - AutoIdBasicEntity/AutoIdLogicBasicEntity/AutoIdLogicTimeBasicEntity: Various basic entities that use self-increase
+      IDs
+    - UUIdBasicEntity/UUIdLogicBasicEntity/UUIdLogicTimeBasicEntity: Various basic entities that use UUID
+    - SnowflakeIdBasicEntity/SnowflakeIdLogicBasicEntity/SnowflakeIdLogicTimeBasicEntity: Various basic entities using
+      snowflake
       algorithm ID
 - Data transfer object:
     - AutoIdListDTO/AutoIdRequiredListDTO: Auto-increment ID list data transmission object
