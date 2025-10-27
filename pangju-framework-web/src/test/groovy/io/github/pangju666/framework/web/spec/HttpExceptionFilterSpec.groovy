@@ -1,10 +1,10 @@
 package io.github.pangju666.framework.web.spec
 
+import HttpExceptionVO
 import io.github.pangju666.framework.web.TestApplication
 import io.github.pangju666.framework.web.client.RestClientHelper
 import io.github.pangju666.framework.web.model.common.Result
 import io.github.pangju666.framework.web.model.vo.EnumVO
-import io.github.pangju666.framework.web.model.vo.HttpExceptionVO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader
 import org.springframework.core.ParameterizedTypeReference

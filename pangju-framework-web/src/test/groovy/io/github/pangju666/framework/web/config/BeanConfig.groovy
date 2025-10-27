@@ -16,8 +16,8 @@
 
 package io.github.pangju666.framework.web.config
 
+import HttpExceptionFilter
 import io.github.pangju666.framework.web.filter.ContentCachingWrapperFilter
-import io.github.pangju666.framework.web.filter.HttpExceptionFilter
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
