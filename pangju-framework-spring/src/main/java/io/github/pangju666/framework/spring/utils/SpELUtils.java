@@ -19,7 +19,6 @@ package io.github.pangju666.framework.spring.utils;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
@@ -27,38 +26,62 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
- * Spring表达式语言(SpEL)工具类
- * <p>
- * 该工具类提供了Spring表达式语言(SpEL)的常用操作，简化了SpEL的使用。
- * 主要功能包括：
+ * Spring 表达式语言（SpEL）工具类
+ *
+ * <p>该工具类封装了 Spring 表达式语言（SpEL）的常用功能，简化表达式解析与计算逻辑。
+ * 提供了以下核心功能：</p>
+ *
  * <ul>
- *     <li>初始化表达式计算上下文</li>
- *     <li>解析表达式并获取结果</li>
- *     <li>解析表达式并转换为指定类型</li>
+ *     <li>初始化方法级别的表达式计算上下文（支持参数名绑定）</li>
+ *     <li>提供默认的表达式解析器 {@link SpelExpressionParser}</li>
+ *     <li>提供可复用的表达式计算上下文 {@link StandardEvaluationContext}</li>
  * </ul>
- * </p>
+ *
+ * <h3>主要用途：</h3>
+ * <ul>
+ *     <li>在 Spring AOP 切面中根据方法参数动态计算表达式</li>
+ *     <li>在配置文件、规则引擎、数据校验等场景中进行动态值解析</li>
+ * </ul>
+ *
+ * <h3>线程安全说明：</h3>
+ * <ul>
+ *     <li>{@link #DEFAULT_EXPRESSION_PARSER} 是线程安全的，可在多线程间共享。</li>
+ *     <li>{@link #DEFAULT_EVALUATION_CONTEXT} 为共享实例，若需要隔离上下文（例如不同请求间变量不同），
+ *         应使用 {@link StandardEvaluationContext} 的新实例。</li>
+ * </ul>
  *
  * @author pangju666
  * @see SpelExpressionParser
  * @see EvaluationContext
+ * @see MethodBasedEvaluationContext
  * @since 1.0.0
  */
 public class SpELUtils {
 	/**
-	 * 默认的SpEL表达式解析器
-	 * <p>
-	 * 用于解析SpEL表达式字符串，线程安全，可在多个线程间共享。
-	 * </p>
+	 * 默认的 SpEL 表达式解析器
+	 *
+	 * <p>该解析器基于 {@link org.springframework.expression.spel.standard.SpelExpressionParser}，
+	 * 用于解析 SpEL 表达式字符串，例如：
+	 * <pre>{@code
+	 * Expression expression = SpELUtils.DEFAULT_EXPRESSION_PARSER.parseExpression("#a + #b");
+	 * }</pre>
+	 *
+	 * <p>线程安全，可在多线程场景下共享使用。</p>
 	 *
 	 * @since 1.0.0
 	 */
 	public static final SpelExpressionParser DEFAULT_EXPRESSION_PARSER = new SpelExpressionParser();
+
 	/**
 	 * 默认的表达式计算上下文
-	 * <p>
-	 * 用于提供表达式计算的上下文环境，包含变量、函数等信息。
-	 * 注意：此上下文是共享的，如果需要隔离变量，应创建新的上下文。
-	 * </p>
+	 *
+	 * <p>用于提供 SpEL 表达式执行时的变量、函数和根对象等上下文信息。</p>
+	 *
+	 * <h3>注意：</h3>
+	 * <ul>
+	 *     <li>该实例是共享的，修改其中变量会影响其他使用方。</li>
+	 *     <li>如需线程隔离或动态变量，应通过 {@code new StandardEvaluationContext()} 创建新实例。</li>
+	 * </ul>
 	 *
 	 * @since 1.0.0
 	 */
@@ -92,76 +115,13 @@ public class SpELUtils {
 	 * @throws NullPointerException 如果参数名称发现器无法获取参数名
 	 * @since 1.0.0
 	 */
-	public static EvaluationContext initEvaluationContext(final Method method, final Object[] args,
+	public static MethodBasedEvaluationContext initEvaluationContext(final Method method, final Object[] args,
 														  final ParameterNameDiscoverer discoverer) {
-		EvaluationContext context = new MethodBasedEvaluationContext(method, method, args, discoverer);
+		MethodBasedEvaluationContext context = new MethodBasedEvaluationContext(method, method, args, discoverer);
 		String[] parametersName = discoverer.getParameterNames(method);
 		for (int i = 0; i < args.length; i++) {
 			context.setVariable(Objects.requireNonNull(parametersName)[i], args[i]);
 		}
 		return context;
-	}
-
-	/**
-	 * 解析SpEL表达式并返回结果
-	 * <p>
-	 * 该方法使用默认的表达式解析器和计算上下文解析表达式，并返回结果。
-	 * 结果类型由表达式计算结果决定。
-	 * </p>
-	 *
-	 * <p>
-	 * 示例:
-	 * <pre>{@code
-	 * Object result = SpELUtils.parseExpression("'Hello ' + 'World'");
-	 * // result = "Hello World"
-	 *
-	 * Object result2 = SpELUtils.parseExpression("2 * 3");
-	 * // result2 = 6
-	 * }</pre>
-	 * </p>
-	 *
-	 * @param expressionString SpEL表达式字符串
-	 * @return 表达式计算结果
-	 * @throws org.springframework.expression.ParseException      如果表达式解析出错
-	 * @throws org.springframework.expression.EvaluationException 如果表达式计算出错
-	 * @since 1.0.0
-	 */
-	public static Object parseExpression(final String expressionString) {
-		Expression expression = DEFAULT_EXPRESSION_PARSER.parseExpression(expressionString);
-		return expression.getValue(DEFAULT_EVALUATION_CONTEXT);
-	}
-
-	/**
-	 * 解析SpEL表达式并将结果转换为指定类型
-	 * <p>
-	 * 该方法使用默认的表达式解析器和计算上下文解析表达式，并将结果转换为指定的类型。
-	 * 如果无法转换为指定类型，将抛出异常。
-	 * </p>
-	 *
-	 * <p>
-	 * 示例:
-	 * <pre>{@code
-	 * String result = SpELUtils.parseExpression("'Hello ' + 'World'", String.class);
-	 * // result = "Hello World"
-	 *
-	 * Integer result2 = SpELUtils.parseExpression("2 * 3", Integer.class);
-	 * // result2 = 6
-	 *
-	 * Boolean result3 = SpELUtils.parseExpression("2 > 1", Boolean.class);
-	 * // result3 = true
-	 * }</pre>
-	 * </p>
-	 *
-	 * @param expressionString  SpEL表达式字符串
-	 * @param desiredResultType 期望的结果类型
-	 * @param <T>               结果类型
-	 * @return 转换后的表达式计算结果
-	 * @throws org.springframework.expression.ParseException      如果表达式解析出错
-	 * @throws org.springframework.expression.EvaluationException 如果表达式计算出错或类型转换失败
-	 * @since 1.0.0
-	 */
-	public static <T> T parseExpression(final String expressionString, final Class<T> desiredResultType) {
-		Expression expression = DEFAULT_EXPRESSION_PARSER.parseExpression(expressionString);
-		return expression.getValue(DEFAULT_EVALUATION_CONTEXT, desiredResultType);
 	}
 }
