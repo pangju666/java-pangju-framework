@@ -25,29 +25,39 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
- * 反射操作工具类，继承并扩展了{@link org.springframework.util.ReflectionUtils}的功能
- * <p>提供字段访问、方法处理、类信息获取等反射相关操作</p>
- * <p>创意来自ruoyi</p>
+ * 反射操作工具类，继承并扩展了 {@link org.springframework.util.ReflectionUtils} 的功能。
+ *
+ * <p>
+ * 提供更加便捷的字段访问、方法调用、类信息提取、泛型类型解析等反射辅助操作，
+ * 在 Spring 的基础工具之上进行了功能增强与异常包装处理。
+ * </p>
+ *
+ * <p>
+ * 设计灵感来自开源框架 <strong>RuoYi</strong>，并遵循线程安全、简洁可复用的原则。
+ * </p>
  *
  * @author pangju666
- * @see org.springframework.util.ReflectionUtils
  * @since 1.0.0
+ * @see org.springframework.util.ReflectionUtils
  */
 public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	protected ReflectionUtils() {
 	}
 
 	/**
-	 * 获取对象指定字段的值
+	 * 获取指定对象中某字段的值。
+	 *
+	 * <p>该方法会递归查找父类中定义的字段。</p>
 	 *
 	 * @param obj       目标对象实例
-	 * @param fieldName 要获取的字段名称
+	 * @param fieldName 字段名称
 	 * @param <E>       返回值类型
-	 * @return 字段值，若字段不存在返回null
+	 * @return 字段的值；若字段不存在或访问失败则返回 {@code null}
 	 * @since 1.0.0
+	 * @see #getFieldValue(Object, Field)
 	 */
 	public static <E> E getFieldValue(final Object obj, final String fieldName) {
-		Field field = getField(obj, fieldName);
+		Field field = findField(obj.getClass(), fieldName);
 		if (Objects.isNull(field)) {
 			return null;
 		}
@@ -55,12 +65,14 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	}
 
 	/**
-	 * 通过反射字段对象获取字段值
+	 * 获取对象指定字段的值。
+	 *
+	 * <p>在访问私有字段时，会尝试修改可访问性。</p>
 	 *
 	 * @param obj   目标对象实例
-	 * @param field 要访问的字段对象
+	 * @param field 字段对象
 	 * @param <E>   返回值类型
-	 * @return 字段值，若访问失败返回null
+	 * @return 字段值；访问失败时返回 {@code null}
 	 * @since 1.0.0
 	 */
 	@SuppressWarnings("unchecked")
@@ -82,16 +94,17 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	}
 
 	/**
-	 * 设置对象指定字段的值
+	 * 设置对象中指定字段的值。
+	 *
+	 * <p>该方法会递归查找字段定义于父类中的情况。</p>
 	 *
 	 * @param obj       目标对象实例
-	 * @param fieldName 要设置的字段名称
+	 * @param fieldName 字段名称
 	 * @param value     要设置的值
-	 * @param <E>       值类型
 	 * @since 1.0.0
 	 */
-	public static <E> void setFieldValue(final Object obj, final String fieldName, final E value) {
-		Field field = getField(obj, fieldName);
+	public static void setFieldValue(final Object obj, final String fieldName, final Object value) {
+		Field field = findField(obj.getClass(), fieldName);
 		if (Objects.isNull(field)) {
 			return;
 		}
@@ -99,15 +112,16 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	}
 
 	/**
-	 * 通过反射字段对象设置字段值
+	 * 设置字段的值。
+	 *
+	 * <p>该方法会在必要时强制修改可访问性。</p>
 	 *
 	 * @param obj   目标对象实例
-	 * @param field 要设置的字段对象
+	 * @param field 字段对象
 	 * @param value 要设置的值
-	 * @param <E>   值类型
 	 * @since 1.0.0
 	 */
-	public static <E> void setFieldValue(final Object obj, final Field field, final E value) {
+	public static void setFieldValue(final Object obj, final Field field, final Object value) {
 		boolean accessible = field.canAccess(obj);
 		if (!accessible && !canMakeAccessible(field)) {
 			return;
@@ -123,43 +137,21 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	}
 
 	/**
-	 * 获取对象包含指定字段的Field对象
+	 * 获取对象所属类的简单名称（不含包路径）。
 	 *
-	 * @param obj       目标对象实例
-	 * @param fieldName 要查找的字段名称
-	 * @return 找到的字段对象，未找到返回null
+	 * @param obj   对象实例
+	 * @return 类的简单名称
 	 * @since 1.0.0
 	 */
-	public static Field getField(final Object obj, final String fieldName) {
-		if (Objects.isNull(obj)) {
-			return null;
-		}
-		for (Class<?> superClass = obj.getClass(); superClass != Object.class; superClass = superClass.getSuperclass()) {
-			try {
-				return superClass.getDeclaredField(fieldName);
-			} catch (NoSuchFieldException ignored) {
-			}
-		}
-		return null;
+	public static String getSimpleClassName(final Object obj) {
+		return getSimpleClassName(obj.getClass());
 	}
 
 	/**
-	 * 获取对象的简化类名
+	 * 获取类的简单名称（不含包路径）。
 	 *
-	 * @param t   目标对象实例
-	 * @param <T> 对象类型
-	 * @return 类名（不包含包路径）
-	 * @since 1.0.0
-	 */
-	public static <T> String getSimpleClassName(final T t) {
-		return getSimpleClassName(t.getClass());
-	}
-
-	/**
-	 * 获取类的简化名称
-	 *
-	 * @param clz 目标类对象
-	 * @return 类名（不包含包路径）
+	 * @param clz 类对象
+	 * @return 简单类名
 	 * @since 1.0.0
 	 */
 	public static String getSimpleClassName(final Class<?> clz) {
@@ -168,60 +160,86 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 
 	/**
 	 * 获取集合中元素的类型。
-	 * <p>
-	 * 该方法通过检查集合中的第一个元素来确定集合中元素的类型。
-	 * 如果集合为空或没有元素，则返回 null。
 	 *
-	 * @param collection 需要检查的集合
-	 * @return 集合元素的类型，如果集合为空则返回 null
+	 * <p>通过检查第一个元素的运行时类型进行判断。</p>
+	 *
+	 * @param collection 要分析的集合
+	 * @param <T> 元素类型
+	 * @return 集合元素的 {@link Class} 类型；集合为空时返回 {@code null}
 	 * @since 1.0.0
 	 */
-	public static Class<?> getCollectionElementType(final Collection<?> collection) {
+	@SuppressWarnings("unchecked")
+	public static <T> Class<T> getCollectionElementType(final Collection<T> collection) {
 		if (CollectionUtils.isEmpty(collection) || !collection.iterator().hasNext()) {
 			return null;
 		}
-		return collection.iterator().next().getClass();
+		return (Class<T>) collection.iterator().next().getClass();
 	}
 
 	/**
-	 * 获取类泛型的第一个类型参数
+	 * 获取指定类的父类中定义的第一个泛型参数类型。
+	 *
 	 * <p>
-	 * 此方法仅适用于获取父类定义了泛型参数，子类实现了该泛型参数的情况。
-	 * </p>
-	 * <p>
-	 * 例如：{@code class MyClass extends GenericParent<String>} 可以获取到 {@code String.class}
-	 * </p>
-	 * <p>
-	 * 注意：无法获取接口或方法上定义的泛型参数类型。
+	 * 本方法用于在运行时解析某个类的父类（superclass）所声明的泛型实参类型，
+	 * 仅当父类定义了参数化类型（ParameterizedType）时有效。
 	 * </p>
 	 *
-	 * @param clazz 目标类对象
+	 * <h3>使用示例：</h3>
+	 * <pre>{@code
+	 * class GenericParent<T> {}
+	 * class MyClass extends GenericParent<String> {}
+	 *
+	 * Class<?> type = getClassGenericType(MyClass.class);
+	 * // 返回 String.class
+	 * }</pre>
+	 *
+	 * <h3>注意事项：</h3>
+	 * <ul>
+	 *   <li>仅支持获取“父类”定义的泛型类型，不支持接口或方法上的泛型。</li>
+	 *   <li>当目标类未声明泛型参数、索引越界或类型擦除为非 Class 类型时，将返回 {@code null}。</li>
+	 * </ul>
+	 *
+	 * @param clazz  目标类对象，不能为空
 	 * @param <T>   泛型类型
-	 * @return 泛型类型Class对象，无法获取时返回null
+	 * @return 泛型参数对应的 {@link Class} 对象；无法确定类型时返回 {@code null}
 	 * @since 1.0.0
 	 * @see Class#getGenericSuperclass()
+	 * @see ParameterizedType#getActualTypeArguments()
 	 */
 	public static <T> Class<T> getClassGenericType(final Class<?> clazz) {
 		return getClassGenericType(clazz, 0);
 	}
 
 	/**
-	 * 获取指定索引的类泛型的类型参数
+	 * 获取指定类的父类中定义的泛型参数类型。
+	 *
 	 * <p>
-	 * 此方法仅适用于获取父类定义了泛型参数，子类实现了该泛型参数的情况。
-	 * </p>
-	 * <p>
-	 * 例如：{@code class MyClass extends GenericParent<String>} 可以获取到 {@code String.class}
-	 * </p>
-	 * <p>
-	 * 注意：无法获取接口或方法上定义的泛型参数类型。
+	 * 本方法用于在运行时解析某个类的父类（superclass）所声明的泛型实参类型，
+	 * 仅当父类定义了参数化类型（ParameterizedType）时有效。
 	 * </p>
 	 *
-	 * @param clazz 目标类对象
+	 * <h3>使用示例：</h3>
+	 * <pre>{@code
+	 * class GenericParent<T> {}
+	 * class MyClass extends GenericParent<String> {}
+	 *
+	 * Class<?> type = getClassGenericType(MyClass.class, 0);
+	 * // 返回 String.class
+	 * }</pre>
+	 *
+	 * <h3>注意事项：</h3>
+	 * <ul>
+	 *   <li>仅支持获取“父类”定义的泛型类型，不支持接口或方法上的泛型。</li>
+	 *   <li>当目标类未声明泛型参数、索引越界或类型擦除为非 Class 类型时，将返回 {@code null}。</li>
+	 * </ul>
+	 *
+	 * @param clazz  目标类对象，不能为空
+	 * @param index  泛型参数索引（从 0 开始）
 	 * @param <T>   泛型类型
-	 * @return 泛型类型Class对象，无法获取时返回null
+	 * @return 泛型参数对应的 {@link Class} 对象；无法确定类型时返回 {@code null}
 	 * @since 1.0.0
 	 * @see Class#getGenericSuperclass()
+	 * @see ParameterizedType#getActualTypeArguments()
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Class<T> getClassGenericType(final Class<?> clazz, final int index) {
@@ -240,10 +258,11 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	}
 
 	/**
-	 * 强制设置字段可访问
+	 * 尝试强制修改字段的可访问性。
 	 *
 	 * @param field 字段对象
-	 * @return 当成功修改访问权限时返回true
+	 * @return 成功设置可访问性时返回 {@code true}
+	 * @see #makeAccessible(Field)
 	 * @since 1.0.0
 	 */
 	@SuppressWarnings("deprecation")
@@ -258,16 +277,17 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	}
 
 	/**
-	 * 强制设置方法可访问
+	 * 尝试强制修改方法的可访问性。
 	 *
 	 * @param method 方法对象
-	 * @return 当成功修改访问权限时返回true
+	 * @return 成功设置可访问性时返回 {@code true}
 	 * @since 1.0.0
+	 * @see #makeAccessible(Method)
 	 */
 	@SuppressWarnings("deprecation")
 	public static boolean canMakeAccessible(final Method method) {
-		if ((!Modifier.isPublic(method.getModifiers()) ||
-			!Modifier.isPublic(method.getDeclaringClass().getModifiers())) && !method.isAccessible()) {
+		if (!Modifier.isPublic(method.getModifiers()) ||
+			!Modifier.isPublic(method.getDeclaringClass().getModifiers()) && !method.isAccessible()) {
 			method.setAccessible(true);
 			return true;
 		}

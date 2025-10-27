@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.spring.utils.lang;
+package io.github.pangju666.framework.spring.lang;
 
 /**
  * 常用的一些常量
