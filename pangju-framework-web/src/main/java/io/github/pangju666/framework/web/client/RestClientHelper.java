@@ -16,8 +16,10 @@
 
 package io.github.pangju666.framework.web.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonElement;
 import io.github.pangju666.commons.lang.pool.Constants;
+import io.github.pangju666.framework.web.pool.WebConstants;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -221,7 +223,12 @@ public class RestClientHelper {
 		Assert.notNull(restClient, "restClient 不可为null");
 
 		if (StringUtils.isNotBlank(uriString)) {
-			return new RestClientHelper(restClient, UriComponentsBuilder.fromUriString(uriString));
+			if (uriString.endsWith(WebConstants.HTTP_PATH_SEPARATOR)) {
+				return new RestClientHelper(restClient, UriComponentsBuilder.fromUriString(
+					uriString.substring(0, uriString.length() - 1)));
+			} else {
+				return new RestClientHelper(restClient, UriComponentsBuilder.fromUriString(uriString));
+			}
 		} else {
 			return new RestClientHelper(restClient, UriComponentsBuilder.newInstance());
 		}
@@ -270,7 +277,8 @@ public class RestClientHelper {
 	 */
 	public RestClientHelper path(String path) {
 		if (StringUtils.isNotBlank(path)) {
-			this.uriComponentsBuilder.path(path);
+			this.uriComponentsBuilder.path(path.startsWith(WebConstants.HTTP_PATH_SEPARATOR) ?
+				path + WebConstants.HTTP_PATH_SEPARATOR : path);
 		}
 		return this;
 	}
@@ -306,11 +314,40 @@ public class RestClientHelper {
 	}
 
 	/**
-	 * 批量添加查询参数（Map形式）
+	 * 添加查询参数到URI构建器
+	 * <p>
+	 * 该方法将查询参数Map转换为URI查询参数，支持多种参数类型的处理：
+	 * <ul>
+	 *     <li>数组类型：自动展开为多个同名参数</li>
+	 *     <li>集合类型：自动展开为多个同名参数</li>
+	 *     <li>Optional类型：仅在值存在时添加参数</li>
+	 *     <li>普通对象：直接添加为单个参数</li>
+	 * </ul>
+	 * </p>
+	 * <p>
+	 * 参数处理规则：
+	 * <ul>
+	 *     <li>如果参数Map为null或空，则不做任何处理</li>
+	 *     <li>值为null的参数将被添加为null值</li>
+	 *     <li>数组和集合会自动展开为多个同名参数（例如：id=1&id=2&id=3）</li>
+	 *     <li>Optional类型使用queryParamIfPresent方法，仅在值存在时添加</li>
+	 * </ul>
+	 * </p>
+	 * <p>
+	 * 使用示例：
+	 * <pre>{@code
+	 * Map<String, Object> params = new HashMap<>();
+	 * params.put("name", "张三");
+	 * params.put("tags", new String[]{"java", "spring"});
+	 * params.put("age", Optional.of(25));
 	 *
-	 * @param params 参数映射，例如：{@code Map.of("page", 1, "size", 10)}
-	 * @return 当前实例
-	 * @see UriComponentsBuilder#queryParam(String, Object...)
+	 * restClientHelper.queryParams(params);
+	 * // 生成的查询字符串: ?name=张三&tags=java&tags=spring&age=25
+	 * }</pre>
+	 * </p>
+	 *
+	 * @param params 查询参数Map，key为参数名，value为参数值，支持数组、集合、Optional等类型
+	 * @return 当前RestClientHelper实例，支持链式调用
 	 * @since 1.0.0
 	 */
 	public RestClientHelper queryParams(@Nullable Map<String, Object> params) {
@@ -318,6 +355,10 @@ public class RestClientHelper {
 			for (Map.Entry<String, Object> entry : params.entrySet()) {
 				if (Objects.nonNull(entry.getValue()) && entry.getValue().getClass().isArray()) {
 					this.uriComponentsBuilder.queryParam(entry.getKey(), (Object[]) entry.getValue());
+				} else if (Objects.nonNull(entry.getValue()) && entry.getValue() instanceof Collection<?> collection) {
+					this.uriComponentsBuilder.queryParam(entry.getKey(), collection);
+				} else if (Objects.nonNull(entry.getValue()) && entry.getValue() instanceof Optional<?> optional) {
+					this.uriComponentsBuilder.queryParamIfPresent(entry.getKey(), optional);
 				} else {
 					this.uriComponentsBuilder.queryParam(entry.getKey(), entry.getValue());
 				}
@@ -335,7 +376,8 @@ public class RestClientHelper {
 	 * @since 1.0.0
 	 */
 	public RestClientHelper query(@Nullable String query) {
-		this.uriComponentsBuilder.query(query);
+		this.uriComponentsBuilder.query(StringUtils.startsWith(query, "?") ?
+			StringUtils.substring(query, 1) : query);
 		return this;
 	}
 
@@ -374,18 +416,18 @@ public class RestClientHelper {
 	/**
 	 * 添加单个请求头
 	 *
-	 * @param headerName  请求头名称，例如：{@code "Authorization"}
-	 * @param headerValue 请求头值，例如：{@code "Bearer token123"}
+	 * @param key  请求头名称，例如：{@code "Authorization"}
+	 * @param value 请求头值，例如：{@code "Bearer token123"}
 	 * @return 当前实例
 	 * @throws IllegalArgumentException 当headerName为空时抛出
 	 * @see HttpHeaders#add(String, String)
 	 * @see Objects#toString(Object, String)
 	 * @since 1.0.0
 	 */
-	public RestClientHelper header(String headerName, @Nullable Object headerValue) {
-		Assert.hasText(headerName, "headerName 不可为空");
+	public RestClientHelper header(String key, @Nullable Object value) {
+		Assert.hasText(key, "key 不可为空");
 
-		this.headers.add(headerName, Objects.toString(headerValue, null));
+		this.headers.add(key, Objects.toString(value, null));
 		return this;
 	}
 
@@ -536,6 +578,8 @@ public class RestClientHelper {
 		} else {
 			if (body instanceof JsonElement jsonElement) {
 				this.body = jsonElement.toString();
+			} else if (body instanceof JsonNode node) {
+				this.body = node.toString();
 			} else {
 				this.body = body;
 			}
