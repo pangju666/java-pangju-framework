@@ -16,7 +16,6 @@
 
 package io.github.pangju666.framework.web.config
 
-import HttpExceptionFilter
 import io.github.pangju666.framework.web.filter.ContentCachingWrapperFilter
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -28,12 +27,6 @@ class BeanConfig {
 	@Bean
 	RestClient restClient(RestClient.Builder builder) {
 		return builder.build()
-	}
-
-	@Bean
-	FilterRegistrationBean<HttpExceptionFilter> httpExceptionFilterFilterRegistrationBean() {
-		return new FilterRegistrationBean<HttpExceptionFilter>(new HttpExceptionFilter(
-			"/exception/types", "/exception/list", "com.test"))
 	}
 
 	@Bean

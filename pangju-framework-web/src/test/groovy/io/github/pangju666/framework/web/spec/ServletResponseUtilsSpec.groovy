@@ -16,8 +16,11 @@
 
 package io.github.pangju666.framework.web.spec
 
+import com.google.gson.Gson
+import io.github.pangju666.commons.lang.utils.JsonUtils
 import io.github.pangju666.framework.web.TestApplication
 import io.github.pangju666.framework.web.client.RestClientHelper
+import io.github.pangju666.framework.web.model.dto.ListDTO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader
 import org.springframework.test.context.ActiveProfiles
@@ -142,5 +145,30 @@ class ServletResponseUtilsSpec extends Specification {
 
 		stopWatch.stop()
 		println stopWatch.lastTaskInfo().getTimeMillis()
+	}
+
+	public enum TestEnum {
+		TEST_1("测试枚举1"),
+		TEST_2("测试枚举2"),
+		TEST_3("测试枚举3");
+
+		private String label;
+
+		TestEnum(String label) {
+			this.label = label;
+		}
+
+		public String getLabel() {
+			return this.label;
+		}
+	}
+
+	def "test"() {
+		setup:
+		Gson gson = JsonUtils.createGsonBuilder().setPrettyPrinting().create();
+
+		List<String> list = Arrays.asList("1", "2", "3");
+		ListDTO<String> listDTO = new ListDTO<>(list);
+		println JsonUtils.toString(listDTO, gson)
 	}
 }

@@ -1,6 +1,5 @@
 package io.github.pangju666.framework.web.spec
 
-import HttpExceptionVO
 import io.github.pangju666.framework.web.TestApplication
 import io.github.pangju666.framework.web.client.RestClientHelper
 import io.github.pangju666.framework.web.model.common.Result
@@ -26,10 +25,10 @@ class HttpExceptionFilterSpec extends Specification {
 		println list
 	}
 
-	def "list"() {
+	/*def "list"() {
 		setup:
 		def list = RestClientHelper.fromUriString(restClient, "http://127.0.0.1/exception/list")
 			.toJsonEntity(new ParameterizedTypeReference<Result<List<HttpExceptionVO>>>() {}).getBody()
 		println list
-	}
+	}*/
 }

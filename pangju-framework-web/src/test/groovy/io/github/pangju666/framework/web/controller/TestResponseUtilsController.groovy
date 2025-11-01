@@ -30,14 +30,14 @@ import java.nio.charset.StandardCharsets
 @RequestMapping("/response-utils")
 @RestController
 class TestResponseUtilsController {
-	def bigFile = new File("D:\\workspace\\resource\\图片\\lADPDg7mUhel9rHMtsyy_178_182.jpg")
+	/*def bigFile = new File("D:\\workspace\\resource\\图片\\lADPDg7mUhel9rHMtsyy_178_182.jpg")
 	def smallFile = new File("D:\\workspace\\resource\\图片\\R-C (19).jpg")
-	def bytes = FileUtils.readFileToByteArray(bigFile)
+	def bytes = FileUtils.readFileToByteArray(bigFile)*/
 
-	@GetMapping("/bytes-buffer")
+	/*@GetMapping("/bytes-buffer")
 	void bufferBytes(HttpServletResponse response) {
 		ServletResponseUtils.writeBytesToResponse(bytes, response)
-	}
+	}*/
 
 	@GetMapping("/bytes")
 	void Bytes(HttpServletResponse response) {
@@ -83,7 +83,7 @@ class TestResponseUtilsController {
 		}
 	}
 
-	@GetMapping("/file-buffer")
+	/*@GetMapping("/file-buffer")
 	void fileBuffer(HttpServletResponse response) {
 		ServletResponseUtils.writeFileToResponse(bigFile, response)
 	}
@@ -91,5 +91,5 @@ class TestResponseUtilsController {
 	@GetMapping("/file")
 	void file(HttpServletResponse response) {
 		ServletResponseUtils.writeFileToResponse(bigFile, response, false)
-	}
+	}*/
 }
