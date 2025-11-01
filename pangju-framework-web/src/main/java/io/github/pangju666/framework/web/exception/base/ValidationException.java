@@ -62,7 +62,7 @@ import org.springframework.http.HttpStatus;
  * @author pangju666
  * @since 1.0.0
  */
-@HttpException(code = 0, type = HttpExceptionType.VALIDATION, log = false, status = HttpStatus.BAD_REQUEST)
+@HttpException(code = 0, type = HttpExceptionType.VALIDATION, description = "参数校验错误", log = false, status = HttpStatus.BAD_REQUEST)
 public class ValidationException extends BaseHttpException {
 	/**
 	 * 创建参数校验异常实例

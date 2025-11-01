@@ -74,7 +74,7 @@ import org.springframework.http.HttpStatus;
  * @author pangju666
  * @since 1.0.0
  */
-@HttpException(code = 0, type = HttpExceptionType.AUTHENTICATION, status = HttpStatus.UNAUTHORIZED)
+@HttpException(code = 0, type = HttpExceptionType.AUTHENTICATION, description = "认证授权错误", status = HttpStatus.UNAUTHORIZED)
 public class AuthenticationException extends BaseHttpException {
 	/**
 	 * 用户标识信息

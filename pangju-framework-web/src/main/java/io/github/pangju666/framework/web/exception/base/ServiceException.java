@@ -60,7 +60,7 @@ import io.github.pangju666.framework.web.enums.HttpExceptionType;
  * @author pangju666
  * @since 1.0.0
  */
-@HttpException(code = 0, type = HttpExceptionType.SERVICE)
+@HttpException(code = 0, type = HttpExceptionType.SERVICE, description = "业务逻辑错误")
 public class ServiceException extends BaseHttpException {
 	/**
 	 * 创建业务异常实例

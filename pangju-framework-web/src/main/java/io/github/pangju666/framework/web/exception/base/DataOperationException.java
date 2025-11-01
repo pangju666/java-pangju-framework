@@ -85,7 +85,7 @@ import java.util.Objects;
  * @see DataOperationError 数据操作错误记录
  * @since 1.0.0
  */
-@HttpException(code = 0, type = HttpExceptionType.DATA_OPERATION)
+@HttpException(code = 0, type = HttpExceptionType.DATA_OPERATION, description = "数据操作错误")
 public class DataOperationException extends BaseHttpException {
 	/**
 	 * 表示一个空的数据操作错误对象。

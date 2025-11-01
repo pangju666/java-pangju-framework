@@ -80,13 +80,13 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE_USE})
 public @interface HttpException {
 	/**
-	 * 异常配置码
+	 * 异常错误码
 	 * <p>
-	 * 与异常类型基础码组合生成最终错误码：
+	 * 与异常类型基础错误码组合生成最终错误码：
 	 * <ul>
-	 *     <li>配置码的绝对值参与计算</li>
-	 *     <li>配置码大于1000时，仅保留后三位</li>
-	 *     <li>计算公式：-(基础码 + |配置码|)</li>
+	 *     <li>错误码的绝对值参与计算</li>
+	 *     <li>错误码大于1000时，仅保留后三位</li>
+	 *     <li>计算公式：-(基础错误码 + |异常错误码|)</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -99,7 +99,7 @@ public @interface HttpException {
 	 * </ul>
 	 * </p>
 	 *
-	 * @return 异常配置码
+	 * @return 异常错误码
 	 * @since 1.0.0
 	 */
 	int code();
@@ -126,13 +126,13 @@ public @interface HttpException {
 	 *     <li>业务相关：余额不足、库存不足、订单已关闭等</li>
 	 *     <li>系统相关：服务器内部错误、服务调用超时、数据库连接失败等</li>
 	 * </ul>
-	 * 默认为空字符串。建议使用简洁明确的描述，便于理解异常的具体场景。
+	 * 建议使用简洁明确的描述，便于理解异常的具体场景。
 	 * </p>
 	 *
 	 * @return 异常的概述说明
 	 * @since 1.0.0
 	 */
-	String description() default "";
+	String description();
 
 	/**
 	 * 是否记录日志

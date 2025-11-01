@@ -56,7 +56,7 @@ import org.springframework.http.HttpStatus;
  * @author pangju666
  * @since 1.0.0
  */
-@HttpException(code = 0, type = HttpExceptionType.SERVER, status = HttpStatus.INTERNAL_SERVER_ERROR)
+@HttpException(code = 0, type = HttpExceptionType.SERVER, description = "服务器内部错误", status = HttpStatus.INTERNAL_SERVER_ERROR)
 public class ServerException extends BaseHttpException {
 	/**
 	 * 统一的服务器错误消息

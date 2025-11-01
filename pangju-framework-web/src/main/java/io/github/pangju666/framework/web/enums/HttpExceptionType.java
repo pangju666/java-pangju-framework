@@ -27,7 +27,7 @@ import io.github.pangju666.framework.web.pool.WebConstants;
  * </p>
  *
  * <p>
- * 异常类型及基础码：
+ * 异常类型及基础错误码：
  * <ul>
  *     <li>SERVICE(1000): 业务逻辑错误</li>
  *     <li>DATA_OPERATION(2000): 数据操作错误</li>
@@ -42,8 +42,8 @@ import io.github.pangju666.framework.web.pool.WebConstants;
  * <p>
  * 错误码计算规则：
  * <ul>
- *     <li>最终错误码 = -(基础码 + |配置码|)</li>
- *     <li>配置码大于1000时，仅保留后三位（如1234变为234）</li>
+ *     <li>最终错误码 = -(基础错误码 + |异常错误码|)</li>
+ *     <li>异常错误码大于1000时，仅保留后三位（如1234变为234）</li>
  *     <li>使用负数表示错误状态</li>
  * </ul>
  * </p>
@@ -69,7 +69,7 @@ import io.github.pangju666.framework.web.pool.WebConstants;
  */
 public enum HttpExceptionType {
 	/**
-	 * 服务器内部错误（基础码：5000）
+	 * 服务器内部错误（基础错误码：5000）
 	 * <p>
 	 * 用于表示系统运行时发生的内部错误，包括：
 	 * <ul>
@@ -84,7 +84,7 @@ public enum HttpExceptionType {
 	 */
 	SERVER(5000, "服务器内部错误"),
 	/**
-	 * 业务逻辑错误（基础码：1000）
+	 * 业务逻辑错误（基础错误码：1000）
 	 * <p>
 	 * 用于表示业务处理过程中的错误，包括：
 	 * <ul>
@@ -99,7 +99,7 @@ public enum HttpExceptionType {
 	 */
 	SERVICE(1000, "业务逻辑错误"),
 	/**
-	 * 数据操作错误（基础码：2000）
+	 * 数据操作错误（基础错误码：2000）
 	 * <p>
 	 * 用于表示数据操作相关的错误，包括：
 	 * <ul>
@@ -114,7 +114,7 @@ public enum HttpExceptionType {
 	 */
 	DATA_OPERATION(2000, "数据操作错误"),
 	/**
-	 * 认证授权错误（基础码：3000）
+	 * 认证授权错误（基础错误码：3000）
 	 * <p>
 	 * 用于表示用户认证和授权相关的错误，包括：
 	 * <ul>
@@ -129,7 +129,7 @@ public enum HttpExceptionType {
 	 */
 	AUTHENTICATION(3000, "认证授权错误"),
 	/**
-	 * 参数校验错误（基础码：4000）
+	 * 参数校验错误（基础错误码：4000）
 	 * <p>
 	 * 用于表示请求参数验证相关的错误，包括：
 	 * <ul>
@@ -144,7 +144,7 @@ public enum HttpExceptionType {
 	 */
 	VALIDATION(4000, "参数校验错误"),
 	/**
-	 * 自定义错误（基础码：6000）
+	 * 自定义错误（基础错误码：6000）
 	 * <p>
 	 * 用于处理特定业务场景的自定义异常，适用于：
 	 * <ul>
@@ -179,12 +179,12 @@ public enum HttpExceptionType {
 	UNKNOWN(0, "未知错误");
 
 	/**
-	 * 异常类型基础码
+	 * 异常类型基础错误码
 	 * <p>
 	 * 用于生成最终错误码的基础值，与{@link HttpException#code()}组合计算：
 	 * </p>
 	 * <p>
-	 * 计算公式：-(基础码 + |配置码|) <br>
+	 * 计算公式：-(基础错误码 + |异常错误码|) <br>
 	 * 示例：SERVICE(1000) + code(234) = -1234
 	 * </p>
 	 *
@@ -236,10 +236,10 @@ public enum HttpExceptionType {
 	/**
 	 * 计算最终错误码
 	 * <p>
-	 * 根据异常类型和配置码计算最终的错误码：
+	 * 根据异常类型的基础错误码和异常错误码计算最终的错误码：
 	 * <ul>
 	 *     <li>{@link #UNKNOWN}类型：直接返回{@link WebConstants#BASE_ERROR_CODE}</li>
-	 *     <li>其他类型：-(基础码 + (|配置码| > 1000 ? |配置码| % 1000 : |配置码|))</li>
+	 *     <li>其他类型：-(基础错误码 + (|异常错误码| > 1000 ? |异常错误码| % 1000 : |异常错误码|))</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -253,7 +253,7 @@ public enum HttpExceptionType {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param code 配置的错误码，通常来自{@link HttpException#code()}
+	 * @param code 异常错误码，通常来自{@link HttpException#code()}
 	 * @return 计算后的最终错误码（负数）
 	 * @since 1.0.0
 	 */
