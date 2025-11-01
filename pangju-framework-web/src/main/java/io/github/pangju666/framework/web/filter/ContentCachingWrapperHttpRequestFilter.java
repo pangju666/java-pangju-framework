@@ -50,14 +50,14 @@ import java.util.Set;
  * @see ContentCachingResponseWrapper
  * @since 1.0.0
  */
-public class ContentCachingWrapperFilter extends BaseHttpOncePerRequestFilter {
+public class ContentCachingWrapperHttpRequestFilter extends BaseHttpRequestFilter {
 	/**
 	 * 创建过滤器实例
 	 *
 	 * @param excludePathPatterns 排除路径模式集合，匹配的请求将不会被包装
 	 * @since 1.0.0
 	 */
-	public ContentCachingWrapperFilter(Set<String> excludePathPatterns) {
+	public ContentCachingWrapperHttpRequestFilter(Set<String> excludePathPatterns) {
 		super(excludePathPatterns);
 	}
 
@@ -81,7 +81,7 @@ public class ContentCachingWrapperFilter extends BaseHttpOncePerRequestFilter {
 	 * @since 1.0.0
 	 */
 	@Override
-	protected void handle(HttpServletRequest request, HttpServletResponse response,
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 						  FilterChain filterChain) throws ServletException, IOException {
 		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
 		ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);

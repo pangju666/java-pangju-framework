@@ -38,10 +38,9 @@ import java.util.Set;
  *
  * @author pangju666
  * @see HandlerInterceptor
- * @see Ordered
  * @since 1.0.0
  */
-public abstract class BaseHttpHandlerInterceptor implements HandlerInterceptor {
+public abstract class BaseHttpInterceptor implements HandlerInterceptor {
 	/**
 	 * 排除路径模式列表
 	 * <p>匹配这些路径的请求将被跳过拦截</p>
@@ -72,10 +71,10 @@ public abstract class BaseHttpHandlerInterceptor implements HandlerInterceptor {
 	 *
 	 * @param patterns            拦截路径模式集合，匹配这些路径的请求将被拦截
 	 * @param excludePathPatterns 排除路径模式集合，匹配这些路径的请求将被跳过拦截
-	 * @see #BaseHttpHandlerInterceptor(Set, Set, int)
+	 * @see #BaseHttpInterceptor(Set, Set, int)
 	 * @since 1.0.0
 	 */
-	protected BaseHttpHandlerInterceptor(Set<String> patterns, Set<String> excludePathPatterns) {
+	protected BaseHttpInterceptor(Set<String> patterns, Set<String> excludePathPatterns) {
 		this(excludePathPatterns, patterns, Ordered.LOWEST_PRECEDENCE);
 	}
 
@@ -87,7 +86,7 @@ public abstract class BaseHttpHandlerInterceptor implements HandlerInterceptor {
 	 * @param order               拦截器执行顺序（数值越小优先级越高）
 	 * @since 1.0.0
 	 */
-	protected BaseHttpHandlerInterceptor(Set<String> excludePathPatterns, Set<String> patterns, int order) {
+	protected BaseHttpInterceptor(Set<String> excludePathPatterns, Set<String> patterns, int order) {
 		this.order = order;
 		this.excludePathPatterns = Objects.isNull(excludePathPatterns) ? Collections.emptyList() :
 			List.copyOf(excludePathPatterns);

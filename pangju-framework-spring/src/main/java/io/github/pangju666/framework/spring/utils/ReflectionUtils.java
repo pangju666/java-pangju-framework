@@ -18,10 +18,8 @@ package io.github.pangju666.framework.spring.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.*;
-import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -157,24 +155,6 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	 */
 	public static String getSimpleClassName(final Class<?> clz) {
 		return StringUtils.substringAfterLast(clz.getName(), ".");
-	}
-
-	/**
-	 * 获取集合中元素的类型。
-	 *
-	 * <p>通过检查第一个元素的运行时类型进行判断。</p>
-	 *
-	 * @param collection 要分析的集合
-	 * @param <T> 元素类型
-	 * @return 集合元素的 {@link Class} 类型；集合为空时返回 {@code null}
-	 * @since 1.0.0
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> Class<T> getCollectionElementType(final Collection<T> collection) {
-		if (CollectionUtils.isEmpty(collection) || !collection.iterator().hasNext()) {
-			return null;
-		}
-		return (Class<T>) collection.iterator().next().getClass();
 	}
 
 	/**

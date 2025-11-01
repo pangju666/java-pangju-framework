@@ -16,7 +16,7 @@
 
 package io.github.pangju666.framework.web.config
 
-import io.github.pangju666.framework.web.filter.ContentCachingWrapperFilter
+import io.github.pangju666.framework.web.filter.ContentCachingWrapperHttpRequestFilter
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
@@ -30,7 +30,7 @@ class BeanConfig {
 	}
 
 	@Bean
-	FilterRegistrationBean<ContentCachingWrapperFilter> contentCachingWrapperFilterRegistrationBean() {
-		return new FilterRegistrationBean<ContentCachingWrapperFilter>(new ContentCachingWrapperFilter(Collections.emptySet()))
+	FilterRegistrationBean<ContentCachingWrapperHttpRequestFilter> contentCachingWrapperFilterRegistrationBean() {
+		return new FilterRegistrationBean<ContentCachingWrapperHttpRequestFilter>(new ContentCachingWrapperHttpRequestFilter(Collections.emptySet()))
 	}
 }

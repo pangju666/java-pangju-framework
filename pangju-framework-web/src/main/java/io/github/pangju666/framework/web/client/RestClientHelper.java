@@ -329,7 +329,7 @@ public class RestClientHelper {
 	 * <ul>
 	 *     <li>如果参数Map为null或空，则不做任何处理</li>
 	 *     <li>值为null的参数将被添加为null值</li>
-	 *     <li>数组和集合会自动展开为多个同名参数（例如：id=1&id=2&id=3）</li>
+	 *     <li>数组和集合会自动展开为多个同名参数（例如：id=1&amp;id=2&amp;id=3）</li>
 	 *     <li>Optional类型使用queryParamIfPresent方法，仅在值存在时添加</li>
 	 * </ul>
 	 * </p>
