@@ -18,15 +18,7 @@ package io.github.pangju666.framework.web.model.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
-import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException;
-import io.github.pangju666.framework.web.model.error.HttpRemoteServiceError;
-import io.github.pangju666.framework.web.model.error.HttpRemoteServiceErrorBuilder;
 import io.github.pangju666.framework.web.pool.WebConstants;
-import org.slf4j.Logger;
-import org.slf4j.event.Level;
-
-import java.net.URI;
-import java.util.Optional;
 
 /**
  * 统一响应结果封装类
@@ -48,11 +40,6 @@ import java.util.Optional;
  * // 失败响应
  * Result<Void> error = Result.fail("操作失败");
  *
- * // 获取数据（可能抛出异常）
- * User user = result.getDataIfSuccess("用户服务", "获取用户", uri);
- *
- * // 安全获取数据（不抛出异常）
- * Optional<User> userOpt = result.geOptionalData("用户服务", "获取用户", uri, logger);
  * }</pre>
  * </p>
  *
@@ -65,17 +52,6 @@ import java.util.Optional;
  */
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 public record Result<T>(int code, String message, T data) {
-	/**
-	 * 私有构造方法
-	 *
-	 * @param code    状态码
-	 * @param message 消息
-	 * @param data    数据
-	 * @since 1.0.0
-	 */
-	public Result {
-	}
-
 	/**
 	 * 创建成功响应（无数据）
 	 * <p>
@@ -144,93 +120,6 @@ public record Result<T>(int code, String message, T data) {
 	 */
 	public static Result<Void> fail(int code, String message) {
 		return new Result<>(code == WebConstants.SUCCESS_CODE ? WebConstants.BASE_ERROR_CODE : code, message, null);
-	}
-
-	/**
-	 * 验证并获取响应数据
-	 * <p>
-	 * 如果响应成功则返回数据，否则抛出远程服务异常。
-	 * 适用于必须获取数据的场景，失败时通过异常中断执行。
-	 * </p>
-	 *
-	 * @param service 服务名称，用于构建错误信息
-	 * @param api     接口名称，用于构建错误信息
-	 * @param uri     请求URI，用于构建错误信息
-	 * @return 响应数据
-	 * @throws HttpRemoteServiceException 当响应状态码不为成功时抛出
-	 * @since 1.0.0
-	 */
-	public T validateData(final String service, final String api, final URI uri) {
-		if (this.code == WebConstants.SUCCESS_CODE) {
-			return this.data;
-		}
-
-		HttpRemoteServiceError httpRemoteServiceError = new HttpRemoteServiceErrorBuilder(service, api, uri)
-			.code(this.code)
-			.message(this.message)
-			.build();
-		throw new HttpRemoteServiceException(httpRemoteServiceError);
-	}
-
-	/**
-	 * 安全获取响应数据
-	 * <p>
-	 * 如果响应成功则返回Optional包装的数据，失败则记录警告日志并返回空Optional。
-	 * 适用于数据获取失败可降级处理的场景。
-	 * </p>
-	 *
-	 * @param service 服务名称，用于构建错误信息
-	 * @param api     接口名称，用于构建错误信息
-	 * @param uri     请求URI，用于构建错误信息
-	 * @param logger  日志记录器，用于记录失败信息
-	 * @return Optional包装的响应数据，失败时返回空Optional
-	 * @since 1.0.0
-	 */
-	public Optional<T> geOptionalData(final String service, final String api, final URI uri, final Logger logger) {
-		if (this.code == WebConstants.SUCCESS_CODE) {
-			return Optional.ofNullable(this.data);
-		}
-
-		HttpRemoteServiceError httpRemoteServiceError = new HttpRemoteServiceErrorBuilder(service, api, uri)
-			.code(this.code)
-			.message(this.message)
-			.build();
-		HttpRemoteServiceException httpRemoteServiceException = new HttpRemoteServiceException(httpRemoteServiceError);
-		httpRemoteServiceException.log(logger, Level.WARN);
-		return Optional.empty();
-	}
-
-	/**
-	 * 获取响应状态码
-	 *
-	 * @return 状态码，0表示成功，其他值表示失败
-	 * @since 1.0.0
-	 */
-	@Override
-	public int code() {
-		return code;
-	}
-
-	/**
-	 * 获取响应消息
-	 *
-	 * @return 响应消息文本
-	 * @since 1.0.0
-	 */
-	@Override
-	public String message() {
-		return message;
-	}
-
-	/**
-	 * 获取响应数据
-	 *
-	 * @return 响应数据对象，可能为null
-	 * @since 1.0.0
-	 */
-	@Override
-	public T data() {
-		return data;
 	}
 
 	/**
