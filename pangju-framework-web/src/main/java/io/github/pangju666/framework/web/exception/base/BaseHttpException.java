@@ -67,7 +67,7 @@ import org.springframework.http.HttpStatus;
  * <pre>{@code
  * // 自定义异常类
  * @HttpException(
- *     code = 0001,  //实际为6001
+ *     code = 0001,  //实际为-6001
  *     type = HttpExceptionType.CUSTOM,
  *     description = "业务处理失败"
  * )

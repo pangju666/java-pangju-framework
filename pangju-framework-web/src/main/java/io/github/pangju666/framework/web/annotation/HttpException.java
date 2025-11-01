@@ -26,37 +26,53 @@ import java.lang.annotation.*;
 /**
  * HTTP异常配置注解
  * <p>
- * 该注解用于配置异常的HTTP响应行为，只能标注在{@link BaseHttpException}的子类上。
- * 通过此注解可以统一配置异常的错误码、类型、概述、日志记录行为和HTTP状态码。
+ * 用于配置{@link BaseHttpException}子类的HTTP响应行为，包括错误码、异常类型、描述信息、
+ * 日志记录行为和HTTP状态码等。配合{@link HttpExceptionType}使用，实现统一的异常管理。
  * </p>
  *
  * <p>
- * 错误码生成规则：
+ * 错误码计算规则：
  * <ul>
- *     <li>最终错误码 = 异常类型基础码 + |注解配置码|（配置码的绝对值）</li>
- *     <li>异常类型基础码来自{@link HttpExceptionType}对应的基础错误码</li>
- *     <li>注解配置码通过{@link #code()}方法配置，使用其绝对值参与计算</li>
- *     <li>当配置码绝对值超过1000时，舍去千位及以上数值（如1234变为234）</li>
- *     <li>使用绝对值确保最终错误码始终为正数</li>
+ *     <li>最终错误码 = -(基础码 + |配置码|)</li>
+ *     <li>基础码来自{@link HttpExceptionType}枚举值</li>
+ *     <li>配置码大于1000时，仅保留后三位（如1234变为234）</li>
+ *     <li>使用负数表示错误状态</li>
  * </ul>
  * </p>
  *
  * <p>
  * 使用示例：
  * <pre>{@code
- * // 假设SERVICE类型基础码为2000
+ * // 定义业务异常
  * @HttpException(
- *     code = 1234,        // 配置码为1234，舍去千位后变为234
- *     type = HttpExceptionType.SERVICE,  // 使用SERVICE类型
- *     description = "用户未找到异常"
+ *     code = 234,
+ *     type = HttpExceptionType.SERVICE,
+ *     description = "用户余额不足",
+ *     status = HttpStatus.BAD_REQUEST
  * )
- * public class UserNotFoundException extends BaseHttpException {
- *     // 最终错误码为：2234（2000 + 234）
+ * public class InsufficientBalanceException extends ServiceException {
+ *     // 最终错误码：-1234（SERVICE基础码1000 + 配置码234）
+ *     public InsufficientBalanceException(String userId) {
+ *         super("余额不足，无法完成操作", "用户ID: " + userId);
+ *     }
+ * }
+ *
+ * // 定义验证异常（不记录日志）
+ * @HttpException(
+ *     code = 56,
+ *     type = HttpExceptionType.VALIDATION,
+ *     description = "参数格式错误",
+ *     log = false
+ * )
+ * public class InvalidParameterException extends ValidationException {
+ *     // 最终错误码：-4056（VALIDATION基础码4000 + 配置码56）
  * }
  * }</pre>
  * </p>
  *
  * @author pangju666
+ * @see BaseHttpException
+ * @see HttpExceptionType
  * @since 1.0.0
  */
 @Documented
@@ -66,14 +82,21 @@ public @interface HttpException {
 	/**
 	 * 异常配置码
 	 * <p>
-	 * 用于配置异常的具体错误码，此配置码的绝对值会与异常类型的基础码相加，
-	 * 得到最终的错误码。例如：
+	 * 与异常类型基础码组合生成最终错误码：
 	 * <ul>
-	 *     <li>异常类型为SERVICE(基础码2000)，配置码为1，最终错误码为2001</li>
-	 *     <li>异常类型为DATA_OPERATION(基础码3000)，配置码为1234，最终错误码为3234（3000+234）</li>
+	 *     <li>配置码的绝对值参与计算</li>
+	 *     <li>配置码大于1000时，仅保留后三位</li>
+	 *     <li>计算公式：-(基础码 + |配置码|)</li>
 	 * </ul>
-	 * 配置码可以为负数，但计算时将使用其绝对值。
-	 * 当配置码绝对值超过1000时，会舍去千位及以上数值，只保留百位以下数值。
+	 * </p>
+	 *
+	 * <p>
+	 * 示例：
+	 * <ul>
+	 *     <li>SERVICE(1000) + code(1) = -1001</li>
+	 *     <li>DATA_OPERATION(2000) + code(1234) = -2234（保留234）</li>
+	 *     <li>VALIDATION(4000) + code(-56) = -4056（取绝对值）</li>
+	 * </ul>
 	 * </p>
 	 *
 	 * @return 异常配置码
@@ -84,11 +107,11 @@ public @interface HttpException {
 	/**
 	 * 异常类型
 	 * <p>
-	 * 用于分类异常，默认为{@link HttpExceptionType#CUSTOM}。
+	 * 用于分类异常，提供对应的基础错误码。<br />
 	 * 可选值参见{@link HttpExceptionType}枚举。
 	 * </p>
 	 *
-	 * @return 异常类型
+	 * @return 异常类型，默认为{@link HttpExceptionType#CUSTOM}
 	 * @since 1.0.0
 	 */
 	HttpExceptionType type() default HttpExceptionType.CUSTOM;
@@ -114,25 +137,45 @@ public @interface HttpException {
 	/**
 	 * 是否记录日志
 	 * <p>
-	 * 控制是否记录该异常的日志信息，默认为true。
-	 * 对于一些预期内的业务异常，可以设置为false以减少日志量。
+	 * 控制是否记录异常日志。对于预期内的业务异常（如参数验证失败），
+	 * 可设置为false以减少日志量。
 	 * </p>
 	 *
-	 * @return 是否记录日志
+	 * @return 是否记录日志，默认为true
 	 * @since 1.0.0
 	 */
 	boolean log() default true;
 
-	Level logLevel() default Level.ERROR;
+	/**
+	 * 日志级别
+	 * <p>
+	 * 设置异常的日志记录级别。建议根据异常严重程度选择：
+	 * <ul>
+	 *     <li>ERROR：系统错误、数据异常等严重问题</li>
+	 *     <li>WARN：业务规则违反、权限不足等警告信息</li>
+	 *     <li>INFO：一般性操作失败信息</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @return 日志级别，默认为{@link Level#ERROR}
+	 * @since 1.0.0
+	 */
+	Level level() default Level.ERROR;
 
 	/**
 	 * HTTP响应状态码
 	 * <p>
-	 * 指定抛出此异常时返回的HTTP状态码，默认为{@link HttpStatus#OK}。
-	 * 建议根据实际的错误场景选择合适的HTTP状态码。
+	 * 指定抛出异常时返回的HTTP状态码。建议根据错误类型选择：
+	 * <ul>
+	 *     <li>400 BAD_REQUEST：参数验证失败、业务规则违反</li>
+	 *     <li>401 UNAUTHORIZED：未登录或认证失败</li>
+	 *     <li>403 FORBIDDEN：权限不足</li>
+	 *     <li>404 NOT_FOUND：资源不存在</li>
+	 *     <li>500 INTERNAL_SERVER_ERROR：服务器内部错误</li>
+	 * </ul>
 	 * </p>
 	 *
-	 * @return HTTP状态码
+	 * @return HTTP状态码，默认为{@link HttpStatus#OK}
 	 * @since 1.0.0
 	 */
 	HttpStatus status() default HttpStatus.OK;

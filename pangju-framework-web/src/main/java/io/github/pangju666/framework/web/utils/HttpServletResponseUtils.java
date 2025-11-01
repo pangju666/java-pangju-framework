@@ -1048,7 +1048,7 @@ public class HttpServletResponseUtils {
 		if (Objects.nonNull(annotation)) {
 			Result<Void> result = Result.fail(annotation.type().computeCode(annotation.code()), httpException.getMessage());
 			if (annotation.log()) {
-				httpException.log(LOGGER, Level.ERROR);
+				httpException.log(LOGGER, annotation.level());
 			}
 			writeBytesToResponse(result.toString().getBytes(), response,
 				MediaType.APPLICATION_JSON_VALUE, annotation.status().value(), buffer);

@@ -22,46 +22,49 @@ import io.github.pangju666.framework.web.pool.WebConstants;
 /**
  * HTTP异常类型枚举
  * <p>
- * 定义了系统中所有HTTP异常的分类类型，用于对异常进行分类和管理。
- * 每种异常类型都包含基础错误码和描述信息，用于生成最终的异常错误码。
+ * 定义系统中所有HTTP异常的分类类型，每种类型包含基础错误码和描述信息。
+ * 配合{@link HttpException}注解使用，用于生成统一的异常错误码。
  * </p>
  *
  * <p>
- * 基础错误码说明：
+ * 异常类型及基础码：
  * <ul>
- *     <li>SERVICE(1000): 业务逻辑错误基础码</li>
- *     <li>DATA_OPERATION(2000): 数据操作错误基础码</li>
- *     <li>AUTHENTICATION(3000): 认证授权错误基础码</li>
- *     <li>VALIDATION(4000): 参数校验错误基础码</li>
- *     <li>SERVER(5000): 服务器内部错误基础码</li>
- *     <li>CUSTOM(6000): 自定义错误基础码</li>
+ *     <li>SERVICE(1000): 业务逻辑错误</li>
+ *     <li>DATA_OPERATION(2000): 数据操作错误</li>
+ *     <li>AUTHENTICATION(3000): 认证授权错误</li>
+ *     <li>VALIDATION(4000): 参数校验错误</li>
+ *     <li>SERVER(5000): 服务器内部错误</li>
+ *     <li>CUSTOM(6000): 自定义错误</li>
+ *     <li>UNKNOWN(0): 未知错误（框架内部使用）</li>
  * </ul>
  * </p>
  *
  * <p>
- * 错误码生成规则：
+ * 错误码计算规则：
  * <ul>
- *     <li>最终错误码 = 异常类型基础码 + |{@link HttpException#code()}|</li>
- *     <li>当注解配置码超过1000时，舍去千位及以上数值</li>
- *     <li>使用绝对值确保最终错误码始终为正数</li>
+ *     <li>最终错误码 = -(基础码 + |配置码|)</li>
+ *     <li>配置码大于1000时，仅保留后三位（如1234变为234）</li>
+ *     <li>使用负数表示错误状态</li>
  * </ul>
  * </p>
  *
  * <p>
  * 使用示例：
  * <pre>{@code
+ * // 定义异常类
  * @HttpException(
- *     code = 0,
- *     type = HttpExceptionType.SERVER,
- *     description = "系统内部错误"
+ *     code = 234,
+ *     type = HttpExceptionType.SERVICE,
+ *     description = "用户余额不足"
  * )
- * public class ServerException extends BaseHttpException {
- *     // 异常实现
+ * public class InsufficientBalanceException extends ServiceException {
+ *     // 最终错误码：-1234（-1000 + 234）
  * }
  * }</pre>
  * </p>
  *
  * @author pangju666
+ * @see HttpException
  * @since 1.0.0
  */
 public enum HttpExceptionType {
@@ -178,20 +181,11 @@ public enum HttpExceptionType {
 	/**
 	 * 异常类型基础码
 	 * <p>
-	 * 用于生成最终异常错误码的基础值，与{@link HttpException}注解的code值组合：
-	 * <ul>
-	 *     <li>SERVER(5000): 服务器内部错误的基础码</li>
-	 *     <li>SERVICE(1000): 业务逻辑错误的基础码</li>
-	 *     <li>DATA(2000): 数据错误的基础码</li>
-	 *     <li>AUTHENTICATION(3000): 认证授权错误的基础码</li>
-	 *     <li>VALIDATION(4000): 参数校验错误的基础码</li>
-	 *     <li>CUSTOM(6000): 自定义错误的基础码</li>
-	 * </ul>
+	 * 用于生成最终错误码的基础值，与{@link HttpException#code()}组合计算：
 	 * </p>
-	 *
 	 * <p>
-	 * 最终错误码计算规则：异常类型基础码 + |注解配置码|
-	 * 例如：SERVICE类型(1000) + 注解code值234 = 最终错误码1234
+	 * 计算公式：-(基础码 + |配置码|) <br>
+	 * 示例：SERVICE(1000) + code(234) = -1234
 	 * </p>
 	 *
 	 * @since 1.0.0
@@ -242,31 +236,25 @@ public enum HttpExceptionType {
 	/**
 	 * 计算最终错误码
 	 * <p>
-	 * 根据异常类型和配置的code值计算最终的错误码：
+	 * 根据异常类型和配置码计算最终的错误码：
 	 * <ul>
-	 *     <li>当类型为{@link #UNKNOWN}时，直接返回{@link WebConstants#BASE_ERROR_CODE}，不进行计算</li>
-	 *     <li>其他类型的计算规则：
-	 *         <ul>
-	 *             <li>首先取配置码的绝对值</li>
-	 *             <li>如果绝对值大于1000，则只保留后三位</li>
-	 *             <li>将处理后的值与基础码相加得到最终错误码</li>
-	 *         </ul>
-	 *     </li>
+	 *     <li>{@link #UNKNOWN}类型：直接返回{@link WebConstants#BASE_ERROR_CODE}</li>
+	 *     <li>其他类型：-(基础码 + (|配置码| > 1000 ? |配置码| % 1000 : |配置码|))</li>
 	 * </ul>
 	 * </p>
 	 *
 	 * <p>
-	 * 示例：
+	 * 计算示例：
 	 * <ul>
-	 *     <li>UNKNOWN类型：始终返回{@link WebConstants#BASE_ERROR_CODE}</li>
-	 *     <li>SERVICE(1000) + code(234) = 1234</li>
-	 *     <li>DATA(2000) + code(1234) = 2234（保留234）</li>
-	 *     <li>VALIDATION(4000) + code(-56) = 4056（取绝对值）</li>
+	 *     <li>UNKNOWN: 返回{@link WebConstants#BASE_ERROR_CODE}</li>
+	 *     <li>SERVICE(1000) + code(234) = -1234</li>
+	 *     <li>DATA_OPERATION(2000) + code(1234) = -2234（保留后三位234）</li>
+	 *     <li>VALIDATION(4000) + code(-56) = -4056（取绝对值56）</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param code 配置的错误码，通常来自{@link HttpException#code()}注解配置
-	 * @return 计算后的最终错误码
+	 * @param code 配置的错误码，通常来自{@link HttpException#code()}
+	 * @return 计算后的最终错误码（负数）
 	 * @since 1.0.0
 	 */
 	public int computeCode(int code) {
@@ -274,6 +262,6 @@ public enum HttpExceptionType {
 			return WebConstants.BASE_ERROR_CODE;
 		}
 		int absCode = Math.abs(code);
-		return baseCode + (absCode > 1000 ? absCode % 1000 : absCode);
+		return -(baseCode + (absCode > 1000 ? absCode % 1000 : absCode));
 	}
 }
