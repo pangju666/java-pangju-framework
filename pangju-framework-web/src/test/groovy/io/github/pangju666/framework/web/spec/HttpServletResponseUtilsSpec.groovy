@@ -31,7 +31,7 @@ import spock.lang.Specification
 
 @ActiveProfiles("test")
 @ContextConfiguration(classes = TestApplication.class, loader = SpringBootContextLoader.class)
-class ServletResponseUtilsSpec extends Specification {
+class HttpServletResponseUtilsSpec extends Specification {
 	@Autowired
 	RestClient restClient
 

@@ -19,7 +19,7 @@ package io.github.pangju666.framework.web.controller
 import io.github.pangju666.commons.io.utils.FileUtils
 import io.github.pangju666.commons.io.utils.IOUtils
 import io.github.pangju666.framework.web.model.common.Result
-import io.github.pangju666.framework.web.utils.ServletResponseUtils
+import io.github.pangju666.framework.web.utils.HttpServletResponseUtils
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -69,7 +69,7 @@ class TestResponseUtilsController {
 
 	@GetMapping("/result-buffer")
 	void bufferResult(HttpServletResponse response) {
-		ServletResponseUtils.writeBytesToResponse(Result.ok(null).toString().getBytes(StandardCharsets.UTF_8), response)
+		HttpServletResponseUtils.writeBytesToResponse(Result.ok(null).toString().getBytes(StandardCharsets.UTF_8), response)
 	}
 
 	@GetMapping("/result")

@@ -114,7 +114,7 @@ import java.util.*;
  * @see com.google.gson.JsonElement
  * @see org.springframework.web.bind.ServletRequestUtils
  */
-public class ServletRequestUtils extends org.springframework.web.bind.ServletRequestUtils {
+public class HttpServletRequestUtils extends org.springframework.web.bind.ServletRequestUtils {
 	/**
 	 * 移动设备的用户代理标识字符串数组
 	 * <p>
@@ -126,7 +126,7 @@ public class ServletRequestUtils extends org.springframework.web.bind.ServletReq
 	 */
 	protected static final String[] MOBILE_AGENTS = {"Android", "iPhone", "iPod", "iPad", "Windows Phone", "MQQBrowser"};
 
-	protected ServletRequestUtils() {
+	protected HttpServletRequestUtils() {
 	}
 
 	/**

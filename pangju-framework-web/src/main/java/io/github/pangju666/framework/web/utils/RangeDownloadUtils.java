@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * HTTP 范围下载工具类
+ * HTTP 分片下载工具类
  * <p>
  * 提供支持 HTTP Range 请求的文件和字节数组下载功能：
  * <ul>
@@ -192,7 +192,7 @@ public class RangeDownloadUtils {
 		if (StringUtils.isBlank(rangeHeader)) {
 			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 			response.setContentLengthLong(bytes.length);
-			ServletResponseUtils.writeBytesToResponse(bytes, response, true);
+			HttpServletResponseUtils.writeBytesToResponse(bytes, response, true);
 		} else {
 			List<Range> ranges = getRanges(bytes.length, rangeHeader);
 
@@ -207,7 +207,7 @@ public class RangeDownloadUtils {
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
 				response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 				response.setContentLengthLong(bytes.length);
-				ServletResponseUtils.writeBytesToResponse(bytes, response, true);
+				HttpServletResponseUtils.writeBytesToResponse(bytes, response, true);
 				return;
 			}
 
@@ -245,7 +245,7 @@ public class RangeDownloadUtils {
 		if (StringUtils.isBlank(rangeHeader)) {
 			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 			response.setContentLengthLong(file.length());
-			ServletResponseUtils.writeFileToResponse(file, response, null, null, true);
+			HttpServletResponseUtils.writeFileToResponse(file, response, null, null, true);
 		} else {
 			long fileLength = file.length();
 			List<Range> ranges = getRanges(fileLength, rangeHeader);
@@ -261,7 +261,7 @@ public class RangeDownloadUtils {
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
 				response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 				response.setContentLengthLong(fileLength);
-				ServletResponseUtils.writeFileToResponse(file, response, null, null, true);
+				HttpServletResponseUtils.writeFileToResponse(file, response, null, null, true);
 				return;
 			}
 

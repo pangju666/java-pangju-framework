@@ -108,16 +108,16 @@ import java.util.Objects;
  * @see org.springframework.http.MediaType
  * @since 1.0.0
  */
-public class ServletResponseUtils {
+public class HttpServletResponseUtils {
 	/**
 	 * 类日志记录器实例
 	 * <p>
 	 * 用于记录工具类内部操作日志，主要记录异常和错误信息。
 	 * </p>
 	 */
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ServletResponseUtils.class);
+	protected static final Logger LOGGER = LoggerFactory.getLogger(HttpServletResponseUtils.class);
 
-	protected ServletResponseUtils() {
+	protected HttpServletResponseUtils() {
 	}
 
 	/**
