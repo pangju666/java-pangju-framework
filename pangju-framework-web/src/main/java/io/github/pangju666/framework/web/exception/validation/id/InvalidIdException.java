@@ -35,7 +35,7 @@ import org.springframework.http.HttpStatus;
  * <p>
  * 特点：
  * <ul>
- *     <li>错误码：4230（{@link HttpExceptionType#VALIDATION} + 230）</li>
+ *     <li>错误码：-4230（{@link HttpExceptionType#VALIDATION} + 230）</li>
  *     <li>HTTP状态码：400（{@link HttpStatus#BAD_REQUEST}）</li>
  *     <li>不记录日志</li>
  * </ul>

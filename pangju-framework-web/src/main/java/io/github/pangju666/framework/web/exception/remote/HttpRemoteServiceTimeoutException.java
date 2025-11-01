@@ -40,7 +40,7 @@ import java.util.Objects;
  * <p>
  * 特点：
  * <ul>
- *     <li>错误码：1110（{@link HttpExceptionType#SERVICE} + 110）</li>
+ *     <li>错误码：-1110（{@link HttpExceptionType#SERVICE} + 110）</li>
  *     <li>简化的日志记录格式，仅包含关键信息</li>
  *     <li>继承自{@link HttpRemoteServiceException}，复用HTTP错误处理逻辑</li>
  *     <li>专注于超时场景的异常处理</li>
@@ -65,7 +65,7 @@ import java.util.Objects;
  * @author pangju666
  * @since 1.0.0
  */
-@HttpException(code = 110, description = "远程服务超时错误", type = HttpExceptionType.SERVICE)
+@HttpException(code = 110, description = "Http远程服务超时错误", type = HttpExceptionType.SERVICE)
 public class HttpRemoteServiceTimeoutException extends HttpRemoteServiceException {
 	/**
 	 * 默认错误消息

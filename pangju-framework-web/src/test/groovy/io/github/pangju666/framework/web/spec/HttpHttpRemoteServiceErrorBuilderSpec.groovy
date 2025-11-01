@@ -19,6 +19,7 @@ package io.github.pangju666.framework.web.spec
 import com.google.gson.JsonObject
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException
+import io.github.pangju666.framework.web.model.error.HttpRemoteServiceError
 import io.github.pangju666.framework.web.model.error.HttpRemoteServiceErrorBuilder
 import org.apache.commons.lang3.ArrayUtils
 import org.springframework.http.HttpHeaders
@@ -49,7 +50,8 @@ class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
 		def uri = new URI("http://test.com/api")
 
 		when: "创建带URI的构建器实例"
-		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口", uri)
+		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
+			.uri(uri)
 
 		then: "所有属性应被正确初始化"
 		builder.build().with {
@@ -171,5 +173,17 @@ class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
 
 		then: "应抛出参数异常"
 		thrown(IllegalArgumentException)
+	}
+
+	def "ada"() {
+		setup:
+		HttpRemoteServiceError error = new HttpRemoteServiceError(
+			"用户服务",                    // 服务名称
+			"获取用户信息",                // 接口名称
+			new URI("http://api.example.com/users"), // 请求URI
+			"USER-404",                   // 错误码
+			"用户不存在",                   // 错误消息
+			HttpStatus.NOT_FOUND          // HTTP状态码
+		);
 	}
 }

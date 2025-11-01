@@ -35,7 +35,7 @@ import org.springframework.http.HttpStatus;
  * <p>
  * 特点：
  * <ul>
- *     <li>基础错误码：4000（{@link HttpExceptionType#VALIDATION}）</li>
+ *     <li>基础错误码：-4000（{@link HttpExceptionType#VALIDATION}）</li>
  *     <li>HTTP状态码：400（{@link HttpStatus#BAD_REQUEST}）</li>
  *     <li>不记录日志</li>
  *     <li>直接使用错误消息作为原因</li>

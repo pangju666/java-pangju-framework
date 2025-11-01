@@ -38,9 +38,9 @@ import org.springframework.http.HttpStatus;
  * <p>
  * 特点：
  * <ul>
- *     <li>基础错误码：3000（{@link HttpExceptionType#AUTHENTICATION}）</li>
+ *     <li>基础错误码：-3000（{@link HttpExceptionType#AUTHENTICATION}）</li>
  *     <li>HTTP状态码：401（{@link HttpStatus#UNAUTHORIZED}）</li>
- *     <li>记录日志</li>
+ *     <li>不记录日志</li>
  *     <li>支持多种类型的用户标识</li>
  * </ul>
  * </p>
@@ -143,7 +143,7 @@ public class AuthenticationException extends BaseHttpException {
 	 */
 	@Override
 	public void log(Logger logger, Level level) {
-		String message = String.format("认证错误，用户标识：%s，原因：%s",
+		String message = String.format("认证授权错误，用户标识：%s，原因：%s",
 			valueToString(this.userIdentifier, "未知"),
 			StringUtils.defaultIfBlank(this.reason, "未知"));
 		logger.atLevel(level)

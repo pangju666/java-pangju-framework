@@ -38,7 +38,7 @@ import java.util.Objects;
  * <p>
  * 特点：
  * <ul>
- *     <li>错误码：3200（{@link HttpExceptionType#AUTHENTICATION} + 200）</li>
+ *     <li>错误码：-3200（{@link HttpExceptionType#AUTHENTICATION} + 200）</li>
  *     <li>HTTP状态码：403（{@link HttpStatus#FORBIDDEN}）</li>
  *     <li>不记录日志</li>
  *     <li>支持多种角色检查方式</li>
@@ -94,8 +94,8 @@ public class NoRoleException extends AuthenticationException {
 	 * @since 1.0.0
 	 */
 	public NoRoleException(String... roles) {
-		super(roles.length == 0 ? "缺少相应角色" : (roles.length == 1 ? "缺少" + roles[0] + "角色" :
-			"至少需要" + StringUtils.join(roles, "、") + "中任一角色"), null, null);
+		super(roles.length == 0 ? "缺少相应角色" : (roles.length == 1 ? "缺少 " + roles[0] + " 角色" :
+			"至少需要 " + StringUtils.join(roles, "、") + " 中任一角色"), null, null);
 	}
 
 	/**

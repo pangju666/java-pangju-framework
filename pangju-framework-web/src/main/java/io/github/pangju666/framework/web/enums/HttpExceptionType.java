@@ -114,7 +114,7 @@ public enum HttpExceptionType {
 	 */
 	DATA_OPERATION(2000, "数据操作错误"),
 	/**
-	 * 认证错误（基础码：3000）
+	 * 认证授权错误（基础码：3000）
 	 * <p>
 	 * 用于表示用户认证和授权相关的错误，包括：
 	 * <ul>
@@ -127,7 +127,7 @@ public enum HttpExceptionType {
 	 *
 	 * @since 1.0.0
 	 */
-	AUTHENTICATION(3000, "认证错误"),
+	AUTHENTICATION(3000, "认证授权错误"),
 	/**
 	 * 参数校验错误（基础码：4000）
 	 * <p>

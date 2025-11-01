@@ -34,7 +34,7 @@ import io.github.pangju666.framework.web.enums.HttpExceptionType;
  * <p>
  * 特点：
  * <ul>
- *     <li>基础错误码：1000（{@link HttpExceptionType#SERVICE}）</li>
+ *     <li>基础错误码：-1000（{@link HttpExceptionType#SERVICE}）</li>
  *     <li>HTTP状态码：200（成功但有业务异常）</li>
  *     <li>记录日志</li>
  *     <li>支持异常链追踪</li>

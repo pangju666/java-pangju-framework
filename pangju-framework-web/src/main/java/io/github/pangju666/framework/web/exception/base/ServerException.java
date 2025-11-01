@@ -28,14 +28,13 @@ import org.springframework.http.HttpStatus;
  *     <li>系统运行时异常：空指针、类型转换等</li>
  *     <li>资源访问失败：文件IO、网络连接等</li>
  *     <li>系统配置错误：配置缺失、配置无效等</li>
- *     <li>第三方服务异常：RPC调用超时、服务不可用等</li>
  * </ul>
  * </p>
  *
  * <p>
  * 特点：
  * <ul>
- *     <li>基础错误码：5000（{@link HttpExceptionType#SERVER}）</li>
+ *     <li>基础错误码：-5000（{@link HttpExceptionType#SERVER}）</li>
  *     <li>HTTP状态码：500（{@link HttpStatus#INTERNAL_SERVER_ERROR}）</li>
  *     <li>统一错误消息：{@link #SERVER_ERROR_MESSAGE}</li>
  *     <li>记录日志</li>

@@ -39,7 +39,7 @@ import java.util.Objects;
  * <p>
  * 核心特性：
  * <ul>
- *     <li>错误码：2000（{@link HttpExceptionType#DATA_OPERATION}）</li>
+ *     <li>错误码：-2000（{@link HttpExceptionType#DATA_OPERATION}）</li>
  *     <li>结构化日志记录，便于问题追踪</li>
  *     <li>支持无错误数据和有错误数据两种构造方式</li>
  *     <li>可包含原始异常，保留完整异常链</li>
@@ -119,7 +119,7 @@ public class DataOperationException extends BaseHttpException {
 	protected final DataOperationError error;
 
 	/**
-	 * 创建一个数据操作异常。
+	 * 创建一个带有原因异常的数据操作异常。
 	 *
 	 * @param operation 发生异常的操作名称
 	 * @param message   异常消息
@@ -202,7 +202,7 @@ public class DataOperationException extends BaseHttpException {
 	 * <p>
 	 * 日志格式：
 	 * <pre>
-	 * 数据操作错误，来源：[source]，操作：[operation]，数据描述：[description]，数据值：[data]，原因：[reason]
+	 * 数据操作错误，来源：[error.source]，操作：[operation]，数据描述：[error.description]，数据值：[error.data]，原因：[reason]
 	 * </pre>
 	 * 所有字段为空时默认显示"未知"
 	 * </p>
@@ -214,9 +214,6 @@ public class DataOperationException extends BaseHttpException {
 	 */
 	@Override
 	public void log(Logger logger, Level level) {
-		if (this.error == EMPTY_ERROR) {
-		}
-
 		String message = String.format("数据操作错误，来源：%s，操作：%s，数据描述：%s，数据值：%s，原因：%s",
 			StringUtils.defaultIfBlank(this.error.source(), "未知"),
 			StringUtils.defaultIfBlank(this.operation, "未知"),

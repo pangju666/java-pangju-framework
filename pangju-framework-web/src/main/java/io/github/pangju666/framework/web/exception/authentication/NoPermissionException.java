@@ -38,7 +38,7 @@ import java.util.Objects;
  * <p>
  * 特点：
  * <ul>
- *     <li>错误码：3300（{@link HttpExceptionType#AUTHENTICATION} + 300）</li>
+ *     <li>错误码：-3300（{@link HttpExceptionType#AUTHENTICATION} + 300）</li>
  *     <li>HTTP状态码：403（{@link HttpStatus#FORBIDDEN}）</li>
  *     <li>不记录日志</li>
  *     <li>支持多种权限检查方式</li>
@@ -94,8 +94,8 @@ public class NoPermissionException extends AuthenticationException {
 	 * @since 1.0.0
 	 */
 	public NoPermissionException(String... permissions) {
-		super(permissions.length == 0 ? "缺少相应权限" : (permissions.length == 1 ? "缺少" + permissions[0] + "权限" :
-			"至少需要" + StringUtils.join(permissions, "、") + "中任一权限"), null, null);
+		super(permissions.length == 0 ? "缺少相应权限" : (permissions.length == 1 ? "缺少 " + permissions[0] + " 权限" :
+			"至少需要 " + StringUtils.join(permissions, "、") + " 中任一权限"), null, null);
 	}
 
 	/**

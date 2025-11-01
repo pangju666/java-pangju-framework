@@ -28,8 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.Assert;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.text.MessageFormat;
@@ -79,17 +79,15 @@ public class HttpRemoteServiceErrorBuilder {
 	}
 
 	/**
-	 * 创建构建器实例，并指定URI
+	 * 设置请求URI
 	 *
-	 * @param service 远程服务名称
-	 * @param api     API接口名称或路径
-	 * @param uri     请求URI
+	 * @param uriString 请求URI链接
+	 * @return 当前构建器实例
 	 * @since 1.0.0
 	 */
-	public HttpRemoteServiceErrorBuilder(String service, String api, URI uri) {
-		this.service = service;
-		this.api = api;
-		this.uri = uri;
+	public HttpRemoteServiceErrorBuilder uri(String uriString) {
+		this.uri = UriComponentsBuilder.fromUriString(uriString).build().toUri();
+		return this;
 	}
 
 	/**
@@ -181,13 +179,28 @@ public class HttpRemoteServiceErrorBuilder {
 	}
 
 	/**
-	 * 根据{@link RestClientException}构建远程服务异常
+	 * 根据{@link HttpServerErrorException.GatewayTimeout}构建远程服务超时异常
+	 *
+	 * @param exception              原始异常
+	 * @return 构建的远程服务超时异常
+	 * @throws IllegalArgumentException 当exception参数为null时抛出
+	 * @throws ServerException          当响应体JSON解析失败时抛出
+	 * @since 1.0.0
+	 */
+	public HttpRemoteServiceTimeoutException toTimeoutException(HttpServerErrorException.GatewayTimeout exception) {
+		Assert.notNull(exception, "exception 不可为null");
+
+		httpStatus(HttpStatus.valueOf(exception.getStatusCode().value()));
+		return new HttpRemoteServiceTimeoutException(this.build());
+	}
+
+	/**
+	 * 根据{@link RestClientResponseException}构建远程服务异常
 	 * <p>
-	 * 处理不同类型的RestClient异常，并转换为对应的业务异常：
+	 * 处理不同类型的RestClientResponseException异常，并转换为对应的业务异常：
 	 * <ul>
 	 *     <li>网关超时异常转换为{@link HttpRemoteServiceTimeoutException}</li>
-	 *     <li>响应异常会解析响应体中的错误信息</li>
-	 *     <li>其他异常转换为标准的{@link HttpRemoteServiceException}</li>
+	 *     <li>其他异常会解析响应体中的错误信息，并转换为标准的{@link HttpRemoteServiceException}</li>
 	 * </ul>
 	 * </p>
 	 *
@@ -200,7 +213,7 @@ public class HttpRemoteServiceErrorBuilder {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param exception              原始RestClient异常
+	 * @param exception              原始异常
 	 * @param errorCodeMemberName    错误码字段名
 	 * @param errorMessageMemberName 错误消息字段名
 	 * @return 构建的远程服务异常
@@ -208,7 +221,7 @@ public class HttpRemoteServiceErrorBuilder {
 	 * @throws ServerException          当响应体JSON解析失败时抛出
 	 * @since 1.0.0
 	 */
-	public HttpRemoteServiceException buildException(RestClientException exception, String errorCodeMemberName,
+	public HttpRemoteServiceException toException(RestClientResponseException exception, String errorCodeMemberName,
 													 String errorMessageMemberName) {
 		Assert.notNull(exception, "exception 不可为null");
 
@@ -217,27 +230,25 @@ public class HttpRemoteServiceErrorBuilder {
 			return new HttpRemoteServiceTimeoutException(this.build());
 		}
 
-		if (exception instanceof RestClientResponseException responseException) {
-			try {
-				this.httpStatus(HttpStatus.valueOf(responseException.getStatusCode().value()));
-				JsonObject response = JsonUtils.parseString(responseException.getResponseBodyAsString()).getAsJsonObject();
+		try {
+			this.httpStatus(HttpStatus.valueOf(exception.getStatusCode().value()));
+			JsonObject response = JsonUtils.parseString(exception.getResponseBodyAsString()).getAsJsonObject();
 
-				if (StringUtils.isNotBlank(errorMessageMemberName)) {
-					this.message(response.getAsJsonPrimitive(errorMessageMemberName).getAsString());
-				}
-
-				if (StringUtils.isNotBlank(errorCodeMemberName)) {
-					JsonPrimitive code = response.getAsJsonPrimitive(errorCodeMemberName);
-					if (code.isString()) {
-						this.code(code.getAsString());
-					} else if (code.isBoolean()) {
-						this.code(BooleanUtils.toStringTrueFalse(code.getAsBoolean()));
-					} else if (code.isNumber()) {
-						this.code(String.valueOf(code.getAsInt()));
-					}
-				}
-			} catch (JsonParseException | IllegalStateException ignored) {
+			if (StringUtils.isNotBlank(errorMessageMemberName) && response.has(errorMessageMemberName)) {
+				this.message(response.getAsJsonPrimitive(errorMessageMemberName).getAsString());
 			}
+
+			if (StringUtils.isNotBlank(errorCodeMemberName) && response.has(errorCodeMemberName)) {
+				JsonPrimitive code = response.getAsJsonPrimitive(errorCodeMemberName);
+				if (code.isString()) {
+					this.code(code.getAsString());
+				} else if (code.isBoolean()) {
+					this.code(BooleanUtils.toStringTrueFalse(code.getAsBoolean()));
+				} else if (code.isNumber()) {
+					this.code(String.valueOf(code.getAsInt()));
+				}
+			}
+		} catch (JsonParseException | IllegalStateException ignored) {
 		}
 
 		return new HttpRemoteServiceException(this.build());

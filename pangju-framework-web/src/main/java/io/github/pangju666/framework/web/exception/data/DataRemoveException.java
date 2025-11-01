@@ -36,7 +36,7 @@ import io.github.pangju666.framework.web.model.error.DataOperationError;
  * <p>
  * 核心特性：
  * <ul>
- *     <li>错误码：2500（{@link HttpExceptionType#DATA_OPERATION} + 500）</li>
+ *     <li>错误码：-2500（{@link HttpExceptionType#DATA_OPERATION} + 500）</li>
  *     <li>提供结构化日志记录，便于问题追踪</li>
  *     <li>固定操作类型："删除"</li>
  *     <li>保留完整异常链，可包含原始异常</li>
@@ -96,7 +96,8 @@ public class DataRemoveException extends DataOperationException {
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String reason) {
-		super(ERROR_MESSAGE, OPERATION, reason);
+		super(OPERATION, ERROR_MESSAGE, reason);
+		;
 	}
 
 	/**
@@ -110,7 +111,7 @@ public class DataRemoveException extends DataOperationException {
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String reason, Throwable cause) {
-		super(ERROR_MESSAGE, OPERATION, reason, cause);
+		super(OPERATION, ERROR_MESSAGE, reason, cause);
 	}
 
 	/**
@@ -124,7 +125,7 @@ public class DataRemoveException extends DataOperationException {
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String message, String reason) {
-		super(message, OPERATION, reason);
+		super(OPERATION, message, reason);
 	}
 
 	/**
@@ -139,7 +140,7 @@ public class DataRemoveException extends DataOperationException {
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String message, String reason, Throwable cause) {
-		super(message, OPERATION, reason, cause);
+		super(OPERATION, message, reason, cause);
 	}
 
 	/**
@@ -153,7 +154,7 @@ public class DataRemoveException extends DataOperationException {
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String message, DataOperationError error) {
-		super(message, OPERATION, error);
+		super(OPERATION, message, error);
 	}
 
 	/**
@@ -168,6 +169,6 @@ public class DataRemoveException extends DataOperationException {
 	 * @since 1.0.0
 	 */
 	public DataRemoveException(String message, DataOperationError error, Throwable cause) {
-		super(message, OPERATION, error, cause);
+		super(OPERATION, message, error, cause);
 	}
 }

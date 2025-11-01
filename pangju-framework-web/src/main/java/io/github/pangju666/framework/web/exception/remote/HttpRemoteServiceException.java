@@ -40,7 +40,7 @@ import java.util.Objects;
  * <p>
  * 特点：
  * <ul>
- *     <li>错误码：1100（{@link HttpExceptionType#SERVICE} + 100）</li>
+ *     <li>错误码：-1100（{@link HttpExceptionType#SERVICE} + 100）</li>
  *     <li>支持HTTP协议特定的错误信息记录</li>
  *     <li>提供结构化的日志输出格式</li>
  *     <li>支持完整的HTTP请求上下文追踪</li>
@@ -52,12 +52,12 @@ import java.util.Objects;
  * <pre>{@code
  * // 创建HTTP错误信息对象
  * HttpRemoteServiceError error = new HttpRemoteServiceError(
- *     "用户服务",                    // 服务名称
- *     "获取用户信息",                // 接口名称
- *     "http://api.example.com/users", // 请求URI
- *     HttpStatus.NOT_FOUND,          // HTTP状态码
- *     "USER-404",                   // 错误码
- *     "用户不存在"                   // 错误消息
+ * 		"用户服务",                    // 服务名称
+ * 		"获取用户信息",                // 接口名称
+ * 		new URI("http://api.example.com/users"), // 请求URI
+ * 		"USER-404",                   // 错误码
+ * 		"用户不存在",                   // 错误消息
+ * 		HttpStatus.NOT_FOUND          // HTTP状态码
  * );
  *
  * // 抛出HTTP远程服务异常
@@ -68,7 +68,7 @@ import java.util.Objects;
  * @author pangju666
  * @since 1.0.0
  */
-@HttpException(code = 100, description = "http远程服务错误", type = HttpExceptionType.SERVICE)
+@HttpException(code = 100, description = "Http远程服务错误", type = HttpExceptionType.SERVICE)
 public class HttpRemoteServiceException extends ServiceException {
 	/**
 	 * 默认错误消息

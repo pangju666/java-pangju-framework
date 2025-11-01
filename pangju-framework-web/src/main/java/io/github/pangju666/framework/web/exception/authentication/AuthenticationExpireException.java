@@ -35,7 +35,7 @@ import org.springframework.http.HttpStatus;
  * <p>
  * 特点：
  * <ul>
- *     <li>错误码：3100（{@link HttpExceptionType#AUTHENTICATION} + 100）</li>
+ *     <li>错误码：-3100（{@link HttpExceptionType#AUTHENTICATION} + 100）</li>
  *     <li>HTTP状态码：401（{@link HttpStatus#UNAUTHORIZED}）</li>
  *     <li>不记录日志</li>
  *     <li>仅需提供错误消息</li>
