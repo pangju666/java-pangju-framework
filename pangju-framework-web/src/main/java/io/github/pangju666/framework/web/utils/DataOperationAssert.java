@@ -24,11 +24,11 @@ import io.github.pangju666.framework.web.model.error.DataOperationError;
  * <p>
  * 提供一组用于数据操作断言的实用方法，用于简化数据操作异常的处理：
  * <ul>
- *     <li>查询断言：判断查询相关条件，失败时抛出 {@link DataQueryException}</li>
- *     <li>创建断言：判断创建相关条件，失败时抛出 {@link DataCreateException}</li>
- *     <li>更新断言：判断更新相关条件，失败时抛出 {@link DataUpdateException}</li>
- *     <li>保存断言：判断保存相关条件，失败时抛出 {@link DataSaveException}</li>
- *     <li>删除断言：判断删除相关条件，失败时抛出 {@link DataRemoveException}</li>
+ *     <li>查询断言：判断查询操作是否成功，失败时抛出 {@link DataQueryException}</li>
+ *     <li>创建断言：判断创建操作是否成功，失败时抛出 {@link DataCreateException}</li>
+ *     <li>更新断言：判断更新操作是否成功，失败时抛出 {@link DataUpdateException}</li>
+ *     <li>保存断言：判断保存操作是否成功，失败时抛出 {@link DataSaveException}</li>
+ *     <li>删除断言：判断删除操作是否成功，失败时抛出 {@link DataRemoveException}</li>
  * </ul>
  * </p>
  *
@@ -60,12 +60,6 @@ import io.github.pangju666.framework.web.model.error.DataOperationError;
  * </p>
  *
  * @author pangju666
- * @see io.github.pangju666.framework.web.exception.data.DataQueryException 数据查询异常
- * @see io.github.pangju666.framework.web.exception.data.DataCreateException 数据创建异常
- * @see io.github.pangju666.framework.web.exception.data.DataUpdateException 数据更新异常
- * @see io.github.pangju666.framework.web.exception.data.DataSaveException 数据保存异常
- * @see io.github.pangju666.framework.web.exception.data.DataRemoveException 数据删除异常
- * @see io.github.pangju666.framework.web.model.error.DataOperationError 数据操作错误记录
  * @since 1.0.0
  */
 public class DataOperationAssert {
