@@ -14,38 +14,38 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.entity.uuid;
+package io.github.pangju666.framework.data.mybatisplus.model.entity.auto;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import io.github.pangju666.framework.data.mybatisplus.model.entity.base.LogicBasicEntity;
+import io.github.pangju666.framework.data.mybatisplus.model.entity.base.LogicStatusBasicEntity;
 
 /**
- * UUID和逻辑删除基础实体类
+ * 自增ID和逻辑删除状态基础实体类
  * <p>
- * 基于{@link LogicBasicEntity}，使用UUID作为主键ID。
- * 适用于需要UUID主键和完整逻辑删除功能的实体类。
+ * 基于{@link LogicStatusBasicEntity}，使用自增ID作为主键ID。
+ * 适用于需要自增主键和状态标记逻辑删除功能的实体类。
  * </p>
  *
  * @author pangju666
  * @since 1.0.0
  */
-public abstract class UUIdLogicBasicEntity extends LogicBasicEntity<String> implements UUId {
+public abstract class AutoIdLogicStatusBasicEntity extends LogicStatusBasicEntity<Long> implements AutoId {
 	/**
-	 * UUID主键ID
+	 * 自增主键ID
 	 *
 	 * @since 1.0.0
 	 */
-	@TableId(type = IdType.ASSIGN_UUID)
-	protected String id;
+	@TableId(type = IdType.AUTO)
+	protected Long id;
 
 	@Override
-	public String getId() {
+	public Long getId() {
 		return id;
 	}
 
 	@Override
-	public void setId(String id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 }
