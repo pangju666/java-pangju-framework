@@ -17,7 +17,7 @@
 package io.github.pangju666.framework.web.controller
 
 
-import io.github.pangju666.framework.web.utils.RangeDownloadUtils
+import io.github.pangju666.framework.web.servlet.utils.RangeDownloadUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.web.bind.annotation.GetMapping

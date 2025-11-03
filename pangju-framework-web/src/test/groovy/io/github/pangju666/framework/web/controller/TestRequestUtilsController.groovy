@@ -17,7 +17,7 @@
 package io.github.pangju666.framework.web.controller
 
 import com.google.gson.reflect.TypeToken
-import io.github.pangju666.framework.web.utils.HttpRequestUtils
+import io.github.pangju666.framework.web.servlet.utils.HttpRequestUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
 import org.springframework.http.ResponseEntity

@@ -14,13 +14,14 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.utils;
+package io.github.pangju666.framework.web.servlet.utils;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.reflect.TypeToken;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.utils.IpUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;

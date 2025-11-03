@@ -19,7 +19,7 @@ package io.github.pangju666.framework.web.spec
 import com.google.gson.Gson
 import io.github.pangju666.commons.lang.utils.JsonUtils
 import io.github.pangju666.framework.web.TestApplication
-import io.github.pangju666.framework.web.client.RestRequest
+import io.github.pangju666.framework.web.client.builder.RestRequestBuilder
 import io.github.pangju666.framework.web.model.dto.ListDTO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader
@@ -41,7 +41,7 @@ class HttpServletResponseUtilsSpec extends Specification {
 		stopWatch.start()
 
 		def url = "http://127.0.0.1/response-utils/bytes"
-		def result = RestRequest.fromUriString(restClient, url)
+		def result = RestRequestBuilder.fromUriString(restClient, url)
 			.toBytesEntity()
 			.getBody()
 
@@ -55,7 +55,7 @@ class HttpServletResponseUtilsSpec extends Specification {
 		stopWatch.start()
 
 		def url = "http://127.0.0.1/response-utils/bytes-buffer"
-		def result = RestRequest.fromUriString(restClient, url)
+		def result = RestRequestBuilder.fromUriString(restClient, url)
 			.toBytesEntity()
 			.getBody()
 
@@ -69,7 +69,7 @@ class HttpServletResponseUtilsSpec extends Specification {
 		stopWatch.start()
 
 		def url = "http://127.0.0.1/response-utils/inputStream"
-		RestRequest.fromUriString(restClient, url)
+		RestRequestBuilder.fromUriString(restClient, url)
 			.toBytesEntity()
 			.getBody()
 
@@ -83,7 +83,7 @@ class HttpServletResponseUtilsSpec extends Specification {
 		stopWatch.start()
 
 		def url = "http://127.0.0.1/response-utils/inputStream-buffer"
-		RestRequest.fromUriString(restClient, url)
+		RestRequestBuilder.fromUriString(restClient, url)
 			.toBytesEntity()
 			.getBody()
 
@@ -97,7 +97,7 @@ class HttpServletResponseUtilsSpec extends Specification {
 		stopWatch.start()
 
 		def url = "http://127.0.0.1/response-utils/result"
-		RestRequest.fromUriString(restClient, url)
+		RestRequestBuilder.fromUriString(restClient, url)
 			.toBytesEntity()
 			.getBody()
 
@@ -111,7 +111,7 @@ class HttpServletResponseUtilsSpec extends Specification {
 		stopWatch.start()
 
 		def url = "http://127.0.0.1/response-utils/result-buffer"
-		RestRequest.fromUriString(restClient, url)
+		RestRequestBuilder.fromUriString(restClient, url)
 			.toBytesEntity()
 			.getBody()
 
@@ -125,7 +125,7 @@ class HttpServletResponseUtilsSpec extends Specification {
 		stopWatch.start()
 
 		def url = "http://127.0.0.1/response-utils/file"
-		RestRequest.fromUriString(restClient, url)
+		RestRequestBuilder.fromUriString(restClient, url)
 			.toBytesEntity()
 			.getBody()
 
@@ -139,7 +139,7 @@ class HttpServletResponseUtilsSpec extends Specification {
 		stopWatch.start()
 
 		def url = "http://127.0.0.1/response-utils/file-buffer"
-		RestRequest.fromUriString(restClient, url)
+		RestRequestBuilder.fromUriString(restClient, url)
 			.toBytesEntity()
 			.getBody()
 

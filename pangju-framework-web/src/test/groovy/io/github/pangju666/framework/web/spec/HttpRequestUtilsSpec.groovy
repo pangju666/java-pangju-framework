@@ -17,7 +17,7 @@
 package io.github.pangju666.framework.web.spec
 
 import io.github.pangju666.framework.web.TestApplication
-import io.github.pangju666.framework.web.client.RestRequest
+import io.github.pangju666.framework.web.client.builder.RestRequestBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader
 import org.springframework.core.io.ClassPathResource
@@ -36,7 +36,7 @@ class HttpRequestUtilsSpec extends Specification {
 	def "getRequestUrl"() {
 		setup:
 		def url = "http://127.0.0.1:8080/test/request/headers"
-		println RestRequest.fromUriString(restClient, url)
+		println RestRequestBuilder.fromUriString(restClient, url)
 			.method(HttpMethod.POST)
 			.formData("test", "test")
 			.formPart("file", new ClassPathResource("images/test.jpg"))
@@ -47,7 +47,7 @@ class HttpRequestUtilsSpec extends Specification {
 	def "getRequestBody"() {
 		setup:
 		def url = "http://127.0.0.1:8080/test/request/body"
-		println RestRequest.fromUriString(restClient, url)
+		println RestRequestBuilder.fromUriString(restClient, url)
 			.method(HttpMethod.POST)
 			.jsonBody(Collections.singletonMap("test", "value"))
 			.toStringEntity()

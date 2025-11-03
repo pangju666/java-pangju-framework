@@ -1,10 +1,10 @@
-package io.github.pangju666.framework.web.utils;
+package io.github.pangju666.framework.web.servlet.utils;
 
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.lang.utils.RegExUtils;
-import io.github.pangju666.framework.web.builder.HttpResponseBuilder;
 import io.github.pangju666.framework.web.model.common.Range;
+import io.github.pangju666.framework.web.servlet.builder.HttpResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.ArrayUtils;

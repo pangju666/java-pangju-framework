@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.filter;
+package io.github.pangju666.framework.web.servlet.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
