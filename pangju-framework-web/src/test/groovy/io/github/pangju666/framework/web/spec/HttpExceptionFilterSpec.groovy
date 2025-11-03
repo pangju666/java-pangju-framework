@@ -1,7 +1,7 @@
 package io.github.pangju666.framework.web.spec
 
 import io.github.pangju666.framework.web.TestApplication
-import io.github.pangju666.framework.web.helper.RestClientHelper
+import io.github.pangju666.framework.web.client.RestRequest
 import io.github.pangju666.framework.web.model.common.Result
 import io.github.pangju666.framework.web.model.vo.EnumVO
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,7 +20,7 @@ class HttpExceptionFilterSpec extends Specification {
 
 	def "types"() {
 		setup:
-		def list = RestClientHelper.fromUriString(restClient, "http://127.0.0.1/exception/types")
+		def list = RestRequest.fromUriString(restClient, "http://127.0.0.1/exception/types")
 			.toJsonEntity(new ParameterizedTypeReference<Result<List<EnumVO>>>() {}).getBody()
 		println list
 	}

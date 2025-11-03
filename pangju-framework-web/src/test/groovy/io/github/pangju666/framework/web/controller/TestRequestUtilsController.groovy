@@ -17,7 +17,7 @@
 package io.github.pangju666.framework.web.controller
 
 import com.google.gson.reflect.TypeToken
-import io.github.pangju666.framework.web.utils.HttpServletRequestUtils
+import io.github.pangju666.framework.web.utils.HttpRequestUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.Part
 import org.springframework.http.ResponseEntity
@@ -34,7 +34,7 @@ class TestRequestUtilsController {
 	ResponseEntity<Map<String, Object>> testGet(HttpServletRequest request,
 												@RequestPart("test") String param,
 												@RequestPart("file") MultipartFile multipartFile) {
-		def partMap = HttpServletRequestUtils.getRequestParts(request)
+		def partMap = HttpRequestUtils.getRequestParts(request)
 		Map<String, Object> map = new HashMap<>(partMap.size())
 		for (final def entry in map.entrySet()) {
 			Part part = entry.getValue() as Part
@@ -49,7 +49,7 @@ class TestRequestUtilsController {
 
 	@PostMapping("/body")
 	ResponseEntity<Map<String, Object>> testGet(HttpServletRequest request) {
-		return ResponseEntity.ok(HttpServletRequestUtils.getJsonRequestBody(request, new TypeToken<Map<String, Object>>() {
+		return ResponseEntity.ok(HttpRequestUtils.getJsonRequestBody(request, new TypeToken<Map<String, Object>>() {
 		}))
 	}
 }

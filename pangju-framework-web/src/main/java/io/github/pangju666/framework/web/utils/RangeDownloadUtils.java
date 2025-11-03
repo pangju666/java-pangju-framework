@@ -3,7 +3,7 @@ package io.github.pangju666.framework.web.utils;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.lang.utils.RegExUtils;
-import io.github.pangju666.framework.web.helper.HttpServletResponseHelper;
+import io.github.pangju666.framework.web.builder.HttpResponseBuilder;
 import io.github.pangju666.framework.web.model.common.Range;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -191,7 +191,7 @@ public class RangeDownloadUtils {
 
 		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
 		if (StringUtils.isBlank(rangeHeader)) {
-			HttpServletResponseHelper.fromResponse(response).write(bytes);
+			HttpResponseBuilder.fromResponse(response).write(bytes);
 		} else {
 			List<Range> ranges = getRanges(bytes.length, rangeHeader);
 
@@ -204,7 +204,7 @@ public class RangeDownloadUtils {
 
 			// 返回完整内容
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
-				HttpServletResponseHelper.fromResponse(response).write(bytes);
+				HttpResponseBuilder.fromResponse(response).write(bytes);
 				return;
 			}
 
@@ -240,7 +240,7 @@ public class RangeDownloadUtils {
 
 		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
 		if (StringUtils.isBlank(rangeHeader)) {
-			HttpServletResponseHelper.fromResponse(response).writeFile(file);
+			HttpResponseBuilder.fromResponse(response).writeFile(file);
 		} else {
 			long fileLength = file.length();
 			List<Range> ranges = getRanges(fileLength, rangeHeader);
@@ -254,7 +254,7 @@ public class RangeDownloadUtils {
 
 			// 返回完整内容
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
-				HttpServletResponseHelper.fromResponse(response).writeFile(file);
+				HttpResponseBuilder.fromResponse(response).writeFile(file);
 				return;
 			}
 

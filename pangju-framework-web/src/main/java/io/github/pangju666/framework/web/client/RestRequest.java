@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.helper;
+package io.github.pangju666.framework.web.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonElement;
@@ -57,7 +57,7 @@ import java.util.*;
  * <p>使用示例</p>
  * <pre>{@code
  *     // 使用RestClient原生方法获取返回值
- *     Result result = RestClientHelper.fromUriString(restClient, "https://api.example.com")
+ *     Result result = RestRequest.fromUriString(restClient, "https://api.example.com")
  *     .path("/api/test/{id}") // 可选，可以多次调用添加多个路径
  *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
  *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
@@ -69,8 +69,8 @@ import java.util.*;
  *     .accept(MediaType.APPLICATION_JSON)
  *     .toEntity(Result.class);
  *
- *     // 使用RestClientHelper封装的方法获取返回值
- *     Result result = RestClientHelper.fromUriString(restClient, "https://api.example.com")
+ *     // 使用RestRequest封装的方法获取返回值
+ *     Result result = RestRequest.fromUriString(restClient, "https://api.example.com")
  *     .path("/api/test/{id}") // 可选，可以多次调用添加多个路径
  *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
  *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
@@ -79,8 +79,8 @@ import java.util.*;
  *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
  *     .toJsonEntity(Result.class);
  *
- * 	   // 使用RestClientHelper封装的方法获取返回值
- *     Result result = RestClientHelper.fromUriString(restClient, "https://api.example.com")
+ * 	   // 使用RestRequest封装的方法获取返回值
+ *     Result result = RestRequest.fromUriString(restClient, "https://api.example.com")
  *     .path("/api/test/{id}") // 可选，可以多次调用添加多个路径
  *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
  *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
@@ -89,8 +89,8 @@ import java.util.*;
  *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
  *     .toEntity(Result.class, MediaType.APPLICATION_JSON);
  *
- *     // 使用RestClientHelper封装的方法获取无响应体结果
- *     RestClientHelper.fromUriString(restClient, "https://api.example.com")
+ *     // 使用RestRequest封装的方法获取无响应体结果
+ *     RestRequest.fromUriString(restClient, "https://api.example.com")
  *     .path("/api/test/{id}") // 可选，可以多次调用添加多个路径
  *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
  *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
@@ -99,8 +99,8 @@ import java.util.*;
  *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
  *     .toBodilessEntity();
  *
- *     // 使用RestClientHelper封装的方法返回字节数组
- *     byte[] bytes = RestClientHelper.fromUriString(restClient, "https://api.example.com")
+ *     // 使用RestRequest封装的方法返回字节数组
+ *     byte[] bytes = RestRequest.fromUriString(restClient, "https://api.example.com")
  *     .path("/api/download/{id}") // 可选，可以多次调用添加多个路径
  *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
  *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
@@ -109,8 +109,8 @@ import java.util.*;
  *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
  *     .toBytesEntity();
  *
- * 	   // 使用RestClientHelper封装的方法返回输入流
- *     InputStream inputStream = RestClientHelper.fromUriString(restClient, "https://api.example.com")
+ * 	   // 使用RestRequest封装的方法返回输入流
+ *     InputStream inputStream = RestRequest.fromUriString(restClient, "https://api.example.com")
  *     .path("/api/download/{id}") // 可选，可以多次调用添加多个路径
  *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
  *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
@@ -120,8 +120,8 @@ import java.util.*;
  *     .toResourceEntity()
  *     .getInputStream();
  *
- *     // 使用RestClientHelper封装的方法上传文件
- *     RestClientHelper.fromUriString(restClient, "https://api.example.com")
+ *     // 使用RestRequest封装的方法上传文件
+ *     RestRequest.fromUriString(restClient, "https://api.example.com")
  *     .path("/api/upload/{id}") // 可选，可以多次调用添加多个路径
  *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
  *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
@@ -134,7 +134,7 @@ import java.util.*;
  * @see RestClient
  * @since 1.0.0
  */
-public class RestClientHelper {
+public class RestRequest {
 	/**
 	 * 表单媒体类型集合，包含Spring支持的表单数据类型
 	 *
@@ -205,51 +205,51 @@ public class RestClientHelper {
 	 * @param uriComponentsBuilder URI构建器
 	 * @since 1.0.0
 	 */
-	protected RestClientHelper(RestClient restClient, UriComponentsBuilder uriComponentsBuilder) {
+	protected RestRequest(RestClient restClient, UriComponentsBuilder uriComponentsBuilder) {
 		this.restClient = restClient;
 		this.uriComponentsBuilder = uriComponentsBuilder;
 	}
 
 	/**
-	 * 从URI字符串创建RestClientHelper实例
+	 * 从URI字符串创建RestRequest实例
 	 *
 	 * @param restClient RestClient实例
 	 * @param uriString  URI字符串（可选），例如：{@code "https://api.example.com/users"}
-	 * @return 新的RestClientHelper实例
+	 * @return 新的RestRequest实例
 	 * @throws IllegalArgumentException 当restClient为null时抛出
 	 * @since 1.0.0
 	 */
-	public static RestClientHelper fromUriString(final RestClient restClient, final String uriString) {
+	public static RestRequest fromUriString(final RestClient restClient, final String uriString) {
 		Assert.notNull(restClient, "restClient 不可为null");
 
 		if (StringUtils.isNotBlank(uriString)) {
 			if (uriString.endsWith(WebConstants.HTTP_PATH_SEPARATOR)) {
-				return new RestClientHelper(restClient, UriComponentsBuilder.fromUriString(
+				return new RestRequest(restClient, UriComponentsBuilder.fromUriString(
 					uriString.substring(0, uriString.length() - 1)));
 			} else {
-				return new RestClientHelper(restClient, UriComponentsBuilder.fromUriString(uriString));
+				return new RestRequest(restClient, UriComponentsBuilder.fromUriString(uriString));
 			}
 		} else {
-			return new RestClientHelper(restClient, UriComponentsBuilder.newInstance());
+			return new RestRequest(restClient, UriComponentsBuilder.newInstance());
 		}
 	}
 
 	/**
-	 * 从URI对象创建RestClientHelper实例
+	 * 从URI对象创建RestRequest实例
 	 *
 	 * @param restClient RestClient实例
 	 * @param uri        URI对象（可选），例如：{@code new URI("https://api.example.com/users")}
-	 * @return 新的RestClientHelper实例
+	 * @return 新的RestRequest实例
 	 * @throws IllegalArgumentException 当restClient为null时抛出
 	 * @since 1.0.0
 	 */
-	public static RestClientHelper fromUri(final RestClient restClient, final URI uri) {
+	public static RestRequest fromUri(final RestClient restClient, final URI uri) {
 		Assert.notNull(restClient, "restClient 不可为null");
 
 		if (Objects.nonNull(uri)) {
-			return new RestClientHelper(restClient, UriComponentsBuilder.fromUri(uri));
+			return new RestRequest(restClient, UriComponentsBuilder.fromUri(uri));
 		} else {
-			return new RestClientHelper(restClient, UriComponentsBuilder.newInstance());
+			return new RestRequest(restClient, UriComponentsBuilder.newInstance());
 		}
 	}
 
@@ -260,7 +260,7 @@ public class RestClientHelper {
 	 * @return 当前实例
 	 * @since 1.0.0
 	 */
-	public RestClientHelper method(HttpMethod method) {
+	public RestRequest method(HttpMethod method) {
 		if (Objects.nonNull(method)) {
 			this.method = method;
 		}
@@ -275,7 +275,7 @@ public class RestClientHelper {
 	 * @see UriComponentsBuilder#path(String)
 	 * @since 1.0.0
 	 */
-	public RestClientHelper path(String path) {
+	public RestRequest path(String path) {
 		if (StringUtils.isNotBlank(path)) {
 			this.uriComponentsBuilder.path(path.startsWith(WebConstants.HTTP_PATH_SEPARATOR) ?
 				path + WebConstants.HTTP_PATH_SEPARATOR : path);
@@ -293,7 +293,7 @@ public class RestClientHelper {
 	 * @see UriComponentsBuilder#queryParam(String, Object...)
 	 * @since 1.0.0
 	 */
-	public RestClientHelper queryParam(String name, @Nullable Object... values) {
+	public RestRequest queryParam(String name, @Nullable Object... values) {
 		Assert.hasText(name, "name 不可为空");
 
 		this.uriComponentsBuilder.queryParam(name, values);
@@ -308,7 +308,7 @@ public class RestClientHelper {
 	 * @see UriComponentsBuilder#queryParams(MultiValueMap)
 	 * @since 1.0.0
 	 */
-	public RestClientHelper queryParams(@Nullable MultiValueMap<String, String> params) {
+	public RestRequest queryParams(@Nullable MultiValueMap<String, String> params) {
 		this.uriComponentsBuilder.queryParams(params);
 		return this;
 	}
@@ -341,16 +341,16 @@ public class RestClientHelper {
 	 * params.put("tags", new String[]{"java", "spring"});
 	 * params.put("age", Optional.of(25));
 	 *
-	 * restClientHelper.queryParams(params);
+	 * RestRequest.queryParams(params);
 	 * // 生成的查询字符串: ?name=张三&tags=java&tags=spring&age=25
 	 * }</pre>
 	 * </p>
 	 *
 	 * @param params 查询参数Map，key为参数名，value为参数值，支持数组、集合、Optional等类型
-	 * @return 当前RestClientHelper实例，支持链式调用
+	 * @return 当前RestRequest实例，支持链式调用
 	 * @since 1.0.0
 	 */
-	public RestClientHelper queryParams(@Nullable Map<String, Object> params) {
+	public RestRequest queryParams(@Nullable Map<String, Object> params) {
 		if (!CollectionUtils.isEmpty(params)) {
 			for (Map.Entry<String, Object> entry : params.entrySet()) {
 				if (Objects.nonNull(entry.getValue()) && entry.getValue().getClass().isArray()) {
@@ -375,7 +375,7 @@ public class RestClientHelper {
 	 * @see UriComponentsBuilder#query(String)
 	 * @since 1.0.0
 	 */
-	public RestClientHelper query(@Nullable String query) {
+	public RestRequest query(@Nullable String query) {
 		this.uriComponentsBuilder.query(StringUtils.startsWith(query, "?") ?
 			StringUtils.substring(query, 1) : query);
 		return this;
@@ -390,7 +390,7 @@ public class RestClientHelper {
 	 * @throws IllegalArgumentException 当name为空时抛出
 	 * @since 1.0.0
 	 */
-	public RestClientHelper uriVariable(String name, @Nullable Object value) {
+	public RestRequest uriVariable(String name, @Nullable Object value) {
 		Assert.hasText(name, "name 不可为空");
 
 		if (Objects.nonNull(value)) {
@@ -406,7 +406,7 @@ public class RestClientHelper {
 	 * @return 当前实例
 	 * @since 1.0.0
 	 */
-	public RestClientHelper uriVariables(@Nullable Map<String, Object> uriVariables) {
+	public RestRequest uriVariables(@Nullable Map<String, Object> uriVariables) {
 		if (!CollectionUtils.isEmpty(uriVariables)) {
 			this.uriVariables.putAll(uriVariables);
 		}
@@ -424,7 +424,7 @@ public class RestClientHelper {
 	 * @see Objects#toString(Object, String)
 	 * @since 1.0.0
 	 */
-	public RestClientHelper header(String key, @Nullable Object value) {
+	public RestRequest header(String key, @Nullable Object value) {
 		Assert.hasText(key, "key 不可为空");
 
 		this.headers.add(key, Objects.toString(value, null));
@@ -441,7 +441,7 @@ public class RestClientHelper {
 	 * @see Objects#toString(Object, String)
 	 * @since 1.0.0
 	 */
-	public RestClientHelper header(String key, @Nullable List<?> values) {
+	public RestRequest header(String key, @Nullable List<?> values) {
 		if (!CollectionUtils.isEmpty(values)) {
 			if (values.size() == 1) {
 				this.headers.add(key, Objects.toString(values.get(0), null));
@@ -464,7 +464,7 @@ public class RestClientHelper {
 	 * @see Objects#toString(Object, String)
 	 * @since 1.0.0
 	 */
-	public RestClientHelper headers(@Nullable MultiValueMap<String, Object> headers) {
+	public RestRequest headers(@Nullable MultiValueMap<String, Object> headers) {
 		if (!CollectionUtils.isEmpty(headers)) {
 			for (Map.Entry<String, List<Object>> entry : headers.entrySet()) {
 				header(entry.getKey(), entry.getValue());
@@ -482,7 +482,7 @@ public class RestClientHelper {
 	 * @see Objects#toString(Object, String)
 	 * @since 1.0.0
 	 */
-	public RestClientHelper headers(@Nullable Map<String, Object> headers) {
+	public RestRequest headers(@Nullable Map<String, Object> headers) {
 		if (!CollectionUtils.isEmpty(headers)) {
 			for (Map.Entry<String, Object> entry : headers.entrySet()) {
 				this.headers.add(entry.getKey(), Objects.toString(entry.getValue(), null));
@@ -501,7 +501,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.FormHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper formPart(String name, @Nullable Resource value) {
+	public RestRequest formPart(String name, @Nullable Resource value) {
 		Assert.hasText(name, "name 不可为空");
 
 		this.contentType = MediaType.MULTIPART_FORM_DATA;
@@ -519,7 +519,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.FormHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper formData(String name, @Nullable Object value) {
+	public RestRequest formData(String name, @Nullable Object value) {
 		Assert.hasText(name, "name 不可为空");
 
 		this.contentType = MediaType.MULTIPART_FORM_DATA;
@@ -535,7 +535,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.FormHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper formData(@Nullable MultiValueMap<String, Object> formData) {
+	public RestRequest formData(@Nullable MultiValueMap<String, Object> formData) {
 		this.contentType = MediaType.MULTIPART_FORM_DATA;
 		if (!CollectionUtils.isEmpty(formData)) {
 			this.formData.addAll(formData);
@@ -556,7 +556,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.json.GsonHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper jsonBody(@Nullable Object body) {
+	public RestRequest jsonBody(@Nullable Object body) {
 		return jsonBody(body, true);
 	}
 
@@ -571,7 +571,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.json.GsonHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper jsonBody(@Nullable Object body, boolean emptyIfNull) {
+	public RestRequest jsonBody(@Nullable Object body, boolean emptyIfNull) {
 		this.contentType = MediaType.APPLICATION_JSON;
 		if (Objects.isNull(body)) {
 			this.body = emptyIfNull ? Constants.EMPTY_JSON_OBJECT_STR : null;
@@ -598,7 +598,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.StringHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper textBody(@Nullable String body) {
+	public RestRequest textBody(@Nullable String body) {
 		return textBody(body, true);
 	}
 
@@ -611,7 +611,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.StringHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper textBody(@Nullable String body, boolean emptyIfNull) {
+	public RestRequest textBody(@Nullable String body, boolean emptyIfNull) {
 		this.contentType = MediaType.TEXT_PLAIN;
 		this.body = ObjectUtils.defaultIfNull(body, emptyIfNull ? StringUtils.EMPTY : null);
 		return this;
@@ -628,7 +628,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.ByteArrayHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper bytesBody(@Nullable byte[] body) {
+	public RestRequest bytesBody(@Nullable byte[] body) {
 		return bytesBody(body, true);
 	}
 
@@ -641,7 +641,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.ByteArrayHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper bytesBody(@Nullable byte[] body, boolean emptyIfNull) {
+	public RestRequest bytesBody(@Nullable byte[] body, boolean emptyIfNull) {
 		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
 		this.body = ObjectUtils.defaultIfNull(body, emptyIfNull ? ArrayUtils.EMPTY_BYTE_ARRAY : null);
 		return this;
@@ -655,7 +655,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.ResourceHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper resourceBody(@Nullable Resource body) {
+	public RestRequest resourceBody(@Nullable Resource body) {
 		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
 		this.body = body;
 		return this;
@@ -671,7 +671,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.ResourceHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper resourceBody(@Nullable Resource body, MediaType mediaType) {
+	public RestRequest resourceBody(@Nullable Resource body, MediaType mediaType) {
 		Assert.notNull(mediaType, "mediaType 不可为null");
 
 		this.contentType = mediaType;
@@ -689,7 +689,7 @@ public class RestClientHelper {
 	 * @see org.springframework.http.converter.HttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestClientHelper body(@Nullable Object body, MediaType mediaType) {
+	public RestRequest body(@Nullable Object body, MediaType mediaType) {
 		Assert.notNull(mediaType, "mediaType 不可为null");
 
 		this.contentType = mediaType;

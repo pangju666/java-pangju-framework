@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.helper;
+package io.github.pangju666.framework.web.builder;
 
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
@@ -45,7 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
- * HTTP响应辅助类
+ * Http响应构建器
  * <p>
  * 提供了一套便捷的方法用于简化HttpServletResponse的操作，支持链式调用。
  * 主要功能包括：
@@ -64,7 +64,7 @@ import java.util.Objects;
  * @author pangju666
  * @since 1.0.0
  */
-public class HttpServletResponseHelper {
+public class HttpResponseBuilder {
 	/**
 	 * 类日志记录器实例
 	 * <p>
@@ -73,7 +73,7 @@ public class HttpServletResponseHelper {
 	 *
 	 * @since 1.0.0
 	 */
-	private static final Logger LOGGER = LoggerFactory.getLogger(HttpServletResponseHelper.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseBuilder.class);
 	/**
 	 * HTTP响应对象
 	 * <p>
@@ -108,7 +108,7 @@ public class HttpServletResponseHelper {
 	 * @throws IllegalArgumentException 如果response参数为null
 	 * @since 1.0.0
 	 */
-	protected HttpServletResponseHelper(final HttpServletResponse response) {
+	protected HttpResponseBuilder(final HttpServletResponse response) {
 		Assert.notNull(response, "response 不可为null");
 
 		this.response = response;
@@ -117,9 +117,9 @@ public class HttpServletResponseHelper {
 	}
 
 	/**
-	 * 从HttpServletResponse对象创建HttpServletResponseHelper实例的工厂方法
+	 * 从HttpServletResponse对象创建HttpResponseBuilder实例的工厂方法
 	 * <p>
-	 * 这是一个静态工厂方法,提供了更语义化的方式来创建HttpServletResponseHelper实例。
+	 * 这是一个静态工厂方法,提供了更语义化的方式来创建HttpResponseBuilder实例。
 	 * 相比直接使用构造函数,使用此方法可以使代码更加清晰易读。
 	 * </p>
 	 * <p>
@@ -132,13 +132,13 @@ public class HttpServletResponseHelper {
 	 * </p>
 	 *
 	 * @param response HTTP响应对象,不能为null
-	 * @return HttpServletResponseHelper实例
+	 * @return HttpResponseBuilder实例
 	 * @throws IllegalArgumentException 如果response参数为null
-	 * @see #HttpServletResponseHelper(HttpServletResponse)
+	 * @see #HttpResponseBuilder(HttpServletResponse)
 	 * @since 1.0.0
 	 */
-	public static HttpServletResponseHelper fromResponse(final HttpServletResponse response) {
-		return new HttpServletResponseHelper(response);
+	public static HttpResponseBuilder fromResponse(final HttpServletResponse response) {
+		return new HttpResponseBuilder(response);
 	}
 
 	/**
@@ -148,10 +148,10 @@ public class HttpServletResponseHelper {
 	 * </p>
 	 *
 	 * @param contentType 内容类型（MIME类型），如"application/json"、"text/html"等
-	 * @return 当前HttpServletResponseHelper实例，支持链式调用
+	 * @return 当前HttpResponseBuilder实例，支持链式调用
 	 * @since 1.0.0
 	 */
-	public HttpServletResponseHelper contentType(final String contentType) {
+	public HttpResponseBuilder contentType(final String contentType) {
 		if (StringUtils.isNotBlank(contentType)) {
 			response.setContentType(contentType);
 		}
@@ -167,10 +167,10 @@ public class HttpServletResponseHelper {
 	 * </p>
 	 *
 	 * @param status HTTP状态码枚举对象
-	 * @return 当前HttpServletResponseHelper实例，支持链式调用
+	 * @return 当前HttpResponseBuilder实例，支持链式调用
 	 * @since 1.0.0
 	 */
-	public HttpServletResponseHelper status(final HttpStatus status) {
+	public HttpResponseBuilder status(final HttpStatus status) {
 		if (Objects.nonNull(status)) {
 			response.setStatus(status.value());
 		}
@@ -186,10 +186,10 @@ public class HttpServletResponseHelper {
 	 * </p>
 	 *
 	 * @param status HTTP状态码整数值，必须>=100
-	 * @return 当前HttpServletResponseHelper实例，支持链式调用
+	 * @return 当前HttpResponseBuilder实例，支持链式调用
 	 * @since 1.0.0
 	 */
-	public HttpServletResponseHelper status(final int status) {
+	public HttpResponseBuilder status(final int status) {
 		if (status >= 100) {
 			response.setStatus(status);
 		}
@@ -205,10 +205,10 @@ public class HttpServletResponseHelper {
 	 * </p>
 	 *
 	 * @param buffer 是否启用缓冲，true为启用，false为禁用
-	 * @return 当前HttpServletResponseHelper实例，支持链式调用
+	 * @return 当前HttpResponseBuilder实例，支持链式调用
 	 * @since 1.0.0
 	 */
-	public HttpServletResponseHelper buffer(final boolean buffer) {
+	public HttpResponseBuilder buffer(final boolean buffer) {
 		this.buffer = buffer;
 
 		return this;
@@ -224,7 +224,7 @@ public class HttpServletResponseHelper {
 	 * @param filename 下载文件名，可以为null
 	 * @since 1.0.0
 	 */
-	public HttpServletResponseHelper setAttachmentHeader(@Nullable final String filename) {
+	public HttpResponseBuilder setAttachmentHeader(@Nullable final String filename) {
 		setAttachmentHeader(filename, StandardCharsets.UTF_8);
 
 		return this;
@@ -242,7 +242,7 @@ public class HttpServletResponseHelper {
 	 * @param charsets 字符集，可以为null（默认使用UTF-8）
 	 * @since 1.0.0
 	 */
-	public HttpServletResponseHelper setAttachmentHeader(@Nullable final String filename, @Nullable final Charset charsets) {
+	public HttpResponseBuilder setAttachmentHeader(@Nullable final String filename, @Nullable final Charset charsets) {
 		if (StringUtils.isNotBlank(filename)) {
 			response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" +
 				URLEncoder.encode(filename, ObjectUtils.defaultIfNull(charsets, StandardCharsets.UTF_8)));

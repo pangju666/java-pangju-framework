@@ -17,7 +17,7 @@
 package io.github.pangju666.framework.web.spec
 
 import io.github.pangju666.framework.web.TestApplication
-import io.github.pangju666.framework.web.helper.RestClientHelper
+import io.github.pangju666.framework.web.client.RestRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader
 import org.springframework.core.io.ClassPathResource
@@ -29,14 +29,14 @@ import spock.lang.Specification
 
 @ActiveProfiles("test")
 @ContextConfiguration(classes = TestApplication.class, loader = SpringBootContextLoader.class)
-class HttpServletRequestUtilsSpec extends Specification {
+class HttpRequestUtilsSpec extends Specification {
 	@Autowired
 	RestClient restClient
 
 	def "getRequestUrl"() {
 		setup:
 		def url = "http://127.0.0.1:8080/test/request/headers"
-		println RestClientHelper.fromUriString(restClient, url)
+		println RestRequest.fromUriString(restClient, url)
 			.method(HttpMethod.POST)
 			.formData("test", "test")
 			.formPart("file", new ClassPathResource("images/test.jpg"))
@@ -47,7 +47,7 @@ class HttpServletRequestUtilsSpec extends Specification {
 	def "getRequestBody"() {
 		setup:
 		def url = "http://127.0.0.1:8080/test/request/body"
-		println RestClientHelper.fromUriString(restClient, url)
+		println RestRequest.fromUriString(restClient, url)
 			.method(HttpMethod.POST)
 			.jsonBody(Collections.singletonMap("test", "value"))
 			.toStringEntity()
