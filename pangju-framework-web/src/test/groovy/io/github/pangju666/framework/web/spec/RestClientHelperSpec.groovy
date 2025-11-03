@@ -2,7 +2,7 @@ package io.github.pangju666.framework.web.spec
 
 import io.github.pangju666.commons.lang.utils.JsonUtils
 import io.github.pangju666.framework.web.TestApplication
-import io.github.pangju666.framework.web.client.RestClientHelper
+import io.github.pangju666.framework.web.helper.RestClientHelper
 import io.github.pangju666.framework.web.model.common.Result
 import io.github.pangju666.framework.web.model.dto.TestDTO
 import org.apache.commons.codec.binary.Base64

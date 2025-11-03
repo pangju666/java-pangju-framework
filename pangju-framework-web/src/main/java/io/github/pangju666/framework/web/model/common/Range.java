@@ -16,7 +16,6 @@
 
 package io.github.pangju666.framework.web.model.common;
 
-import io.github.pangju666.framework.web.utils.HttpServletResponseUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -31,7 +30,9 @@ import org.springframework.util.Assert;
  * <ul>
  *     <li><code>bytes=0-499</code> - 请求前500字节</li>
  *     <li><code>bytes=500-999</code> - 请求第500-999字节</li>
+ *     <li><code>bytes=0-499, 1000-1499</code> - 请求多个区间（多范围）</li>
  *     <li><code>bytes=500-</code> - 请求第500字节到结尾</li>
+ *     <li><code>bytes=-500</code> - 请求最后 500 个字节</li>
  * </ul>
  * </p>
  *
@@ -41,7 +42,6 @@ import org.springframework.util.Assert;
  * </p>
  *
  * @author pangju666
- * @see HttpServletResponseUtils
  * @since 1.0.0
  */
 public final class Range {

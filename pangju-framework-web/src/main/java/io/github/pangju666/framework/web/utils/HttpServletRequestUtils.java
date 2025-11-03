@@ -81,11 +81,11 @@ import java.util.*;
  * String clientIp = RequestUtils.getIpAddress(request);
  *
  * // 3. 获取请求参数和头信息
- * MultiValueMap<String, String> params = RequestUtils.getRequestParameters(request);
- * HttpHeaders headers = RequestUtils.getHttpHeaders(request);
+ * MultiValueMap<String, String> params = RequestUtils.getParameters(request);
+ * HttpHeaders headers = RequestUtils.getHeaders(request);
  *
  * // 4. 处理文件上传
- * Map<String, Part> fileParts = RequestUtils.getRequestParts(request);
+ * Map<String, Part> fileParts = RequestUtils.getParts(request);
  * for (Part part : fileParts.values()) {
  *     String filename = part.getSubmittedFileName();
  *     // 处理文件
@@ -205,7 +205,7 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	}
 
 	/**
-	 * 获取请求的真实IP地址
+	 * 获取请求的IP地址
 	 * <p>
 	 * 依次从以下请求头中获取IP地址：
 	 * <ol>
@@ -222,7 +222,7 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	 * <p>代码修改自<a href="https://github.com/yangzongzhuan/RuoYi/blob/master/ruoyi-common/src/main/java/com/ruoyi/common/utils/ServletUtils.java">RuoYi Common ServletUtils</a></p>
 	 *
 	 * @param request HTTP请求对象，不能为null
-	 * @return 客户端真实IP地址
+	 * @return 客户端请求IP地址
 	 * @throws IllegalArgumentException 如果request参数为null
 	 * @since 1.0.0
 	 */
@@ -252,7 +252,7 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	}
 
 	/**
-	 * 获取请求中的所有URL参数
+	 * 获取所有的请求参数
 	 * <p>
 	 * 将请求中的参数Map转换为Spring的MultiValueMap结构，保持参数值的顺序。
 	 * 对于单值参数直接存储；对于多值参数保留为列表。
@@ -264,7 +264,7 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	 * @throws IllegalArgumentException 当request为null时抛出
 	 * @since 1.0.0
 	 */
-	public static MultiValueMap<String, String> getRequestParameters(final HttpServletRequest request) {
+	public static MultiValueMap<String, String> getParameters(final HttpServletRequest request) {
 		Assert.notNull(request, "request 不可为null");
 
 		Map<String, String[]> parameterMap = request.getParameterMap();
@@ -281,9 +281,9 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	}
 
 	/**
-	 * 获取请求中的所有HTTP头信息
+	 * 获取所有的请求头信息
 	 * <p>
-	 * 将请求中的所有头信息提取到Spring的HttpHeaders对象中。
+	 * 将所有请求头信息转换为Spring的`HttpHeaders`结构。
 	 * 对于单值头部直接存储；对于多值头部保留为列表。
 	 * 返回的HttpHeaders是只读的。
 	 * </p>
@@ -293,7 +293,7 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	 * @throws IllegalArgumentException 当request为null时抛出
 	 * @since 1.0.0
 	 */
-	public static HttpHeaders getHttpHeaders(final HttpServletRequest request) {
+	public static HttpHeaders getHeaders(final HttpServletRequest request) {
 		Assert.notNull(request, "request 不可为null");
 
 		Enumeration<String> headerNames = request.getHeaderNames();
@@ -318,9 +318,9 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	}
 
 	/**
-	 * 获取请求中的文件上传部分
+	 * 获取请求参数中的文件信息
 	 * <p>
-	 * 从multipart请求中提取所有包含文件的部分。该方法只返回那些具有提交文件名
+	 * 从form-data请求参数中提取所有包含文件的部分。该方法只返回那些具有提交文件名
 	 * 的部分（即实际上传的文件），过滤掉表单字段等不包含文件的部分。
 	 * 返回的Map是不可修改的，以防止意外修改。
 	 * </p>
@@ -332,7 +332,7 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	 * @throws IOException 读取请求内容失败时抛出
 	 * @since 1.0.0
 	 */
-	public static Map<String, Part> getRequestParts(final HttpServletRequest request) throws ServletException, IOException {
+	public static Map<String, Part> getParts(final HttpServletRequest request) throws ServletException, IOException {
 		Assert.notNull(request, "request 不可为null");
 
 		Collection<Part> parts = request.getParts();
@@ -346,7 +346,7 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	}
 
 	/**
-	 * 获取HTTP原始请求体
+	 * 获取原始请求体
 	 * <p>
 	 * 从HTTP请求中读取完整的请求体内容，并以字节数组形式返回。处理逻辑如下：
 	 * <ul>
@@ -385,7 +385,7 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	}
 
 	/**
-	 * 获取HTTP请求体的字符串表示
+	 * 获取原始请求体并根据字符集转换为字符串
 	 * <p>
 	 * 将请求体内容读取并转换为字符串，字符集判断逻辑如下：
 	 * <ul>
@@ -503,9 +503,9 @@ public class HttpServletRequestUtils extends org.springframework.web.bind.Servle
 	}
 
 	/**
-	 * 判断请求是否为JSON类型
+	 * 判断请求体是否为JSON类型
 	 * <p>
-	 * 通过检查Content-Type头部值，确定请求是否为JSON格式。
+	 * 通过检查Content-Type头部值，确定请求体是否为JSON格式。
 	 * 此方法支持带字符集参数的JSON类型，如"application/json;charset=UTF-8"。
 	 * </p>
 	 *

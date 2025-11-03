@@ -19,8 +19,9 @@ package io.github.pangju666.framework.web.controller
 import io.github.pangju666.commons.io.utils.FileUtils
 import io.github.pangju666.commons.io.utils.IOUtils
 import io.github.pangju666.framework.web.model.common.Result
-import io.github.pangju666.framework.web.utils.HttpServletResponseUtils
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.core.io.ClassPathResource
+import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -92,4 +93,18 @@ class TestResponseUtilsController {
 	void file(HttpServletResponse response) {
 		ServletResponseUtils.writeFileToResponse(bigFile, response, false)
 	}*/
+
+	@GetMapping("/test")
+	void test(HttpServletResponse response) {
+		new ClassPathResource("images/test.jpg").getInputStream().withCloseable { it ->
+			{
+				try (OutputStream outputStream = response.getOutputStream()) {
+					response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" +
+						URLEncoder.encode("test.jpg", StandardCharsets.UTF_8));
+					response.setContentType("application/vnd.ms-ims")
+					it.transferTo(outputStream)
+				}
+			}
+		}
+	}
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.client;
+package io.github.pangju666.framework.web.helper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonElement;

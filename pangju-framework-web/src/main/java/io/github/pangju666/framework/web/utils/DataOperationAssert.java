@@ -22,7 +22,7 @@ import io.github.pangju666.framework.web.model.error.DataOperationError;
 /**
  * 数据操作断言工具类
  * <p>
- * 提供一组用于数据操作断言的实用方法，用于简化数据操作异常的处理：
+ * 提供一组用于数据操作断言的实用方法，用于简化数据操作异常的使用：
  * <ul>
  *     <li>查询断言：判断查询操作是否成功，失败时抛出 {@link DataQueryException}</li>
  *     <li>创建断言：判断创建操作是否成功，失败时抛出 {@link DataCreateException}</li>

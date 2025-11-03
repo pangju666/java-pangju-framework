@@ -1,7 +1,7 @@
 package io.github.pangju666.framework.web.spec
 
 import io.github.pangju666.framework.web.TestApplication
-import io.github.pangju666.framework.web.client.RestClientHelper
+import io.github.pangju666.framework.web.helper.RestClientHelper
 import io.github.pangju666.framework.web.model.common.Result
 import io.github.pangju666.framework.web.model.vo.EnumVO
 import org.springframework.beans.factory.annotation.Autowired

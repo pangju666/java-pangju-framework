@@ -128,7 +128,7 @@ public class IpUtils {
 	 * <p>示例：</p>
 	 * <pre>{@code
 	 * try {
-	 *     InetAddress address = IpUtils.getLocalInetAddress();
+	 *     InetAddress address = IpUtils.getLocalHostInetAddress();
 	 *     if (address != null) {
 	 *         System.out.println("本机IP地址: " + address.getHostAddress());
 	 *     } else {
@@ -143,7 +143,7 @@ public class IpUtils {
 	 * @throws SocketException 当获取网络接口信息出错时抛出
 	 * @since 1.0.0
 	 */
-	public static InetAddress getLocalInetAddress() throws SocketException {
+	public static InetAddress getLocalHostInetAddress() throws SocketException {
 		Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 		while (networkInterfaces.hasMoreElements()) {
 			NetworkInterface networkInterface = networkInterfaces.nextElement();
@@ -179,7 +179,7 @@ public class IpUtils {
 	 */
 	public static String getLocalHostAddress() {
 		try {
-			InetAddress inetAddress = getLocalInetAddress();
+			InetAddress inetAddress = getLocalHostInetAddress();
 			if (Objects.nonNull(inetAddress)) {
 				return inetAddress.getHostAddress();
 			}
@@ -384,7 +384,7 @@ public class IpUtils {
 	}
 
 	/**
-	 * 处理多级反向代理的IP获取
+	 * 获取多级反向代理的IP
 	 * <p>
 	 * 当使用多级反向代理时，HTTP请求头中的IP地址可能包含多个IP，以逗号分隔。
 	 * 此方法从这些IP中提取第一个非未知（非"unknown"）的IP地址作为客户端的真实IP。

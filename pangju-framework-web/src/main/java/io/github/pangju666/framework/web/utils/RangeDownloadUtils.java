@@ -3,6 +3,7 @@ package io.github.pangju666.framework.web.utils;
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.commons.lang.utils.RegExUtils;
+import io.github.pangju666.framework.web.helper.HttpServletResponseHelper;
 import io.github.pangju666.framework.web.model.common.Range;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -184,15 +185,13 @@ public class RangeDownloadUtils {
 	 * @throws IllegalArgumentException 如果参数为空
 	 * @since 1.0.0
 	 */
-	public static void downloadBytes(final byte[] bytes, final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+	public static void download(final byte[] bytes, final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 		Assert.notNull(request, "request 不可为null");
 		Assert.notNull(response, "response 不可为null");
 
 		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
 		if (StringUtils.isBlank(rangeHeader)) {
-			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-			response.setContentLengthLong(bytes.length);
-			HttpServletResponseUtils.writeBytesToResponse(bytes, response, true);
+			HttpServletResponseHelper.fromResponse(response).write(bytes);
 		} else {
 			List<Range> ranges = getRanges(bytes.length, rangeHeader);
 
@@ -205,9 +204,7 @@ public class RangeDownloadUtils {
 
 			// 返回完整内容
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
-				response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-				response.setContentLengthLong(bytes.length);
-				HttpServletResponseUtils.writeBytesToResponse(bytes, response, true);
+				HttpServletResponseHelper.fromResponse(response).write(bytes);
 				return;
 			}
 
@@ -237,15 +234,13 @@ public class RangeDownloadUtils {
 	 * @throws IllegalArgumentException 如果参数为空
 	 * @since 1.0.0
 	 */
-	public static void downloadFile(final File file, final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+	public static void download(final File file, final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 		Assert.notNull(request, "request 不可为null");
 		Assert.notNull(response, "response 不可为null");
 
 		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
 		if (StringUtils.isBlank(rangeHeader)) {
-			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-			response.setContentLengthLong(file.length());
-			HttpServletResponseUtils.writeFileToResponse(file, response, null, null, true);
+			HttpServletResponseHelper.fromResponse(response).writeFile(file);
 		} else {
 			long fileLength = file.length();
 			List<Range> ranges = getRanges(fileLength, rangeHeader);
@@ -259,9 +254,7 @@ public class RangeDownloadUtils {
 
 			// 返回完整内容
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
-				response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-				response.setContentLengthLong(fileLength);
-				HttpServletResponseUtils.writeFileToResponse(file, response, null, null, true);
+				HttpServletResponseHelper.fromResponse(response).writeFile(file);
 				return;
 			}
 
