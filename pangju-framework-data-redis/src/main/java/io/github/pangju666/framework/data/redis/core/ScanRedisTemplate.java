@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.redis.bean;
+package io.github.pangju666.framework.data.redis.core;
 
 import io.github.pangju666.framework.data.redis.model.ZSetValue;
 import io.github.pangju666.framework.data.redis.utils.RedisUtils;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.pangju666.framework.data.redis.bean;
+package io.github.pangju666.framework.data.redis.core;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
