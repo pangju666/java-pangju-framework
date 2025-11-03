@@ -1,21 +1,17 @@
-package io.github.pangju666.framework.data.mybatisplus;
+package io.github.pangju666.framework.data.mybatisplus
 
-import com.google.gson.reflect.TypeToken;
-import io.github.pangju666.commons.lang.utils.JsonUtils;
-import io.github.pangju666.framework.data.mybatisplus.entity.TestEntity;
-import io.github.pangju666.framework.data.mybatisplus.repository.TestRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import com.google.gson.reflect.TypeToken
+import io.github.pangju666.commons.lang.utils.JsonUtils
+import io.github.pangju666.framework.data.mybatisplus.entity.TestEntity
+import io.github.pangju666.framework.data.mybatisplus.repository.TestRepository
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.transaction.annotation.Transactional
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*
 
 @SpringBootTest
 public class BaseRepositoryTest {

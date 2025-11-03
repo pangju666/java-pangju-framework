@@ -4,11 +4,11 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>io.github.pangju666</groupId>
-		<artifactId>pangju-framework-parent</artifactId>
+		<groupId>io.github.pangju666.framework</groupId>
+		<artifactId>framework-parent</artifactId>
 		<version>1.0.0</version>
 	</parent>
-	<artifactId>pangju-framework-all</artifactId>
+	<artifactId>framework-all</artifactId>
 	<description>框架集成模块</description>
 
 	<licenses>
@@ -20,28 +20,28 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>io.github.pangju666</groupId>
-			<artifactId>pangju-framework-web</artifactId>
+			<groupId>io.github.pangju666.framework</groupId>
+			<artifactId>framework-web</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.github.pangju666</groupId>
-			<artifactId>pangju-framework-spring</artifactId>
+			<groupId>io.github.pangju666.framework</groupId>
+			<artifactId>framework-spring</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.github.pangju666</groupId>
-			<artifactId>pangju-framework-data-mybatis-plus</artifactId>
+			<groupId>io.github.pangju666.framework</groupId>
+			<artifactId>framework-data-mybatis-plus</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.github.pangju666</groupId>
-			<artifactId>pangju-framework-data-mongodb</artifactId>
+			<groupId>io.github.pangju666.framework</groupId>
+			<artifactId>framework-data-mongodb</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.github.pangju666</groupId>
-			<artifactId>pangju-framework-data-redis</artifactId>
+			<groupId>io.github.pangju666.framework</groupId>
+			<artifactId>framework-data-redis</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
