@@ -137,7 +137,7 @@ public class HttpResponseBuilder {
 	 * @see #HttpResponseBuilder(HttpServletResponse)
 	 * @since 1.0.0
 	 */
-	public static HttpResponseBuilder fromResponse(final HttpServletResponse response) {
+	public static HttpResponseBuilder from(final HttpServletResponse response) {
 		return new HttpResponseBuilder(response);
 	}
 
@@ -224,8 +224,8 @@ public class HttpResponseBuilder {
 	 * @param filename 下载文件名，可以为null
 	 * @since 1.0.0
 	 */
-	public HttpResponseBuilder setAttachmentHeader(@Nullable final String filename) {
-		setAttachmentHeader(filename, StandardCharsets.UTF_8);
+	public HttpResponseBuilder contentDisposition(@Nullable final String filename) {
+		contentDisposition(filename, StandardCharsets.UTF_8);
 
 		return this;
 	}
@@ -242,7 +242,7 @@ public class HttpResponseBuilder {
 	 * @param charsets 字符集，可以为null（默认使用UTF-8）
 	 * @since 1.0.0
 	 */
-	public HttpResponseBuilder setAttachmentHeader(@Nullable final String filename, @Nullable final Charset charsets) {
+	public HttpResponseBuilder contentDisposition(@Nullable final String filename, @Nullable final Charset charsets) {
 		if (StringUtils.isNotBlank(filename)) {
 			response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" +
 				URLEncoder.encode(filename, ObjectUtils.defaultIfNull(charsets, StandardCharsets.UTF_8)));
@@ -344,7 +344,7 @@ public class HttpResponseBuilder {
 	 */
 	public void writeFile(final File file) throws IOException {
 		response.setContentType(FileUtils.getMimeType(file));
-		setAttachmentHeader(file.getName());
+		contentDisposition(file.getName());
 		try (InputStream inputStream = buffer ? FileUtils.openUnsynchronizedBufferedInputStream(file) : FileUtils.openInputStream(file)) {
 			write(inputStream);
 		}
@@ -369,7 +369,7 @@ public class HttpResponseBuilder {
 	public void writeFile(final File file, @Nullable final String downloadFilename) throws IOException {
 		response.setContentType(FileUtils.getMimeType(file));
 		response.setContentLength((int) file.length());
-		setAttachmentHeader(StringUtils.defaultIfBlank(downloadFilename, file.getName()));
+		contentDisposition(StringUtils.defaultIfBlank(downloadFilename, file.getName()));
 		try (InputStream inputStream = buffer ? FileUtils.openUnsynchronizedBufferedInputStream(file) : FileUtils.openInputStream(file)) {
 			write(inputStream);
 		}
