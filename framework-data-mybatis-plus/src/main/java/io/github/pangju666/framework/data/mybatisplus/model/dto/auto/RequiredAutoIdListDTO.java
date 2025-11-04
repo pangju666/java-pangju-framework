@@ -17,6 +17,7 @@
 package io.github.pangju666.framework.data.mybatisplus.model.dto.auto;
 
 import io.github.pangju666.framework.data.mybatisplus.annotation.validation.AutoIds;
+import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
@@ -31,7 +32,6 @@ import java.util.List;
  * @author pangju666
  * @since 1.0.0
  */
-public record AutoIdRequiredListDTO(@UniqueElements(message = "存在重复的id")
-									@AutoIds(notEmpty = true)
-									List<Long> ids) {
+public record RequiredAutoIdListDTO(
+	@NotEmpty(message = "列表不允许为空") @UniqueElements(message = "存在重复的id") @AutoIds List<Long> ids) {
 }

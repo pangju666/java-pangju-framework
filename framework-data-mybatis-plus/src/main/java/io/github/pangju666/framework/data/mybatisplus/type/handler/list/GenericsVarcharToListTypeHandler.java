@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 泛型VARCHAR转List类型处理器
@@ -176,6 +177,6 @@ public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandle
 		}
 		return Arrays.stream(result.split(delimiter))
 			.map(converter::convert)
-			.toList();
+			.collect(Collectors.toList());
 	}
 }

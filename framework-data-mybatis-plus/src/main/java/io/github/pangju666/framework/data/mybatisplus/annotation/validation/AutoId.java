@@ -38,6 +38,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * </ul>
  * </p>
  *
+ * <p>
+ * 支持的类型是 {@code Long}。{@code null}视为有效。
+ * </p>
+ *
  * @author pangju666
  * @since 1.0.0
  */

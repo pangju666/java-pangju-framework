@@ -14,38 +14,36 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.entity.auto;
+package io.github.pangju666.framework.data.mybatisplus.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import io.github.pangju666.framework.data.mybatisplus.model.entity.base.VersionBasicEntity;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.Version;
 
 /**
- * 自增ID乐观锁基础实体类
+ * 乐观锁基础实体类
  * <p>
- * 基于{@link VersionBasicEntity}，使用自增ID作为主键ID。
- * 适用于需要自增主键和乐观锁功能的实体类。
+ * 在{@link BaseEntity}基础上增加了版本号字段，
+ * 用于支持乐观锁功能。
  * </p>
  *
  * @author pangju666
  * @since 1.0.0
  */
-public abstract class AutoIdVersionBasicEntity extends VersionBasicEntity implements AutoId {
+public abstract class VersionBaseEntity extends BaseEntity {
 	/**
-	 * 自增主键ID
+	 * 版本号，用于乐观锁控制
 	 *
 	 * @since 1.0.0
 	 */
-	@TableId(type = IdType.AUTO)
-	protected Long id;
+	@TableField("version")
+	@Version
+	private Integer version;
 
-	@Override
-	public Long getId() {
-		return id;
+	public Integer getVersion() {
+		return version;
 	}
 
-	@Override
-	public void setId(Long id) {
-		this.id = id;
+	public void setVersion(Integer version) {
+		this.version = version;
 	}
 }

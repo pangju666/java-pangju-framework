@@ -16,7 +16,7 @@
 
 package io.github.pangju666.framework.data.mybatisplus.model.dto.uuid;
 
-import io.github.pangju666.framework.data.mybatisplus.annotation.validation.UUIds;
+import io.github.pangju666.commons.validation.annotation.UUIDS;
 import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
@@ -31,6 +31,5 @@ import java.util.List;
  * @author pangju666
  * @since 1.0.0
  */
-public record UUIdListDTO(@UniqueElements(message = "存在重复的id")
-						  @UUIds List<String> ids) {
+public record UUIDListDTO(@UniqueElements(message = "存在重复的id") @UUIDS List<String> ids) {
 }

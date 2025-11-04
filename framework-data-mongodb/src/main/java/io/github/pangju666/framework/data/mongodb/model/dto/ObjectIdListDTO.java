@@ -14,24 +14,22 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.dto.uuid;
+package io.github.pangju666.framework.data.mongodb.model.dto;
 
-import io.github.pangju666.framework.data.mybatisplus.annotation.validation.UUIds;
+import io.github.pangju666.commons.validation.annotation.ObjectId;
 import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
 /**
- * 必填UUID列表数据传输对象
+ * ObjectId列表数据传输对象
  * <p>
- * 用于传输UUID类型的ID列表，支持ID的唯一性校验。
- * 列表不允许为空，且列表中的元素必须符合UUID格式。
+ * 用于传输ObjectId类型的ID列表，支持ID的唯一性校验。
+ * 列表允许为空，但列表中的元素必须符合ObjectId格式。
  * </p>
  *
  * @author pangju666
  * @since 1.0.0
  */
-public record UUIdRequiredListDTO(@UniqueElements(message = "存在重复的id")
-								  @UUIds(notEmpty = true)
-								  List<String> ids) {
+public record ObjectIdListDTO(@UniqueElements(message = "存在重复的id") @ObjectId List<String> ids) {
 }

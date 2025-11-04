@@ -1,5 +1,6 @@
 package io.github.pangju666.framework.data.mongodb.model
 
+import io.github.pangju666.framework.data.mongodb.model.document.BaseDocument
 import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "test")

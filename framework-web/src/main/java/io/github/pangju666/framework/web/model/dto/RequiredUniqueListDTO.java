@@ -39,6 +39,6 @@ import java.util.List;
  * @since 1.0.0
  */
 public record RequiredUniqueListDTO<T>(
-	@NotEmpty(message = "集合不能为空") @UniqueElements(message = "集合中存在重复的值")
+	@NotEmpty(message = "列表不能为空") @UniqueElements(message = "列表中存在重复的值")
 	@Valid List<T> list) {
 }

@@ -14,37 +14,38 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.entity.base;
+package io.github.pangju666.framework.data.mybatisplus.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.Version;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+
+import java.util.Date;
 
 /**
- * 乐观锁和逻辑删除状态基础实体类
+ * 逻辑删除时间基础实体类
  * <p>
- * 结合了{@link VersionBasicEntity}和{@link LogicStatusBasicEntity}的功能，
- * 同时支持乐观锁和状态标记的逻辑删除功能。
+ * 在{@link BaseEntity}基础上增加了删除时间字段，
+ * 用于支持仅使用时间戳的逻辑删除功能。
  * </p>
  *
- * @param <ID> 删除状态的类型参数
  * @author pangju666
  * @since 1.0.0
  */
-public abstract class VersionLogicStatusBasicEntity<ID> extends LogicStatusBasicEntity<ID> {
+public abstract class LogicTimeBaseEntity extends BaseEntity {
 	/**
-	 * 版本号，用于乐观锁控制
+	 * 删除时间，null表示未删除，删除时设置为当前时间戳
 	 *
 	 * @since 1.0.0
 	 */
-	@TableField("version")
-	@Version
-	private Integer version;
+	@TableField("delete_time")
+	@TableLogic(value = "null", delval = "CURRENT_TIMESTAMP")
+	protected Date deleteTime;
 
-	public Integer getVersion() {
-		return version;
+	public Date getDeleteTime() {
+		return deleteTime;
 	}
 
-	public void setVersion(Integer version) {
-		this.version = version;
+	public void setDeleteTime(Date deleteTime) {
+		this.deleteTime = deleteTime;
 	}
 }

@@ -1,8 +1,7 @@
 package io.github.pangju666.framework.data.mongodb
 
-
-import io.github.pangju666.framework.data.mongodb.model.BaseDocument
 import io.github.pangju666.framework.data.mongodb.model.TestDocument
+import io.github.pangju666.framework.data.mongodb.model.document.BaseDocument
 import io.github.pangju666.framework.data.mongodb.repository.TestRepository
 import io.github.pangju666.framework.data.mongodb.utils.QueryUtils
 import org.apache.commons.collections4.CollectionUtils

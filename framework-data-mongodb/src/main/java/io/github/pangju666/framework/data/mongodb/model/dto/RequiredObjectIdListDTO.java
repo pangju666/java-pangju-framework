@@ -14,24 +14,24 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.dto.snowflake;
+package io.github.pangju666.framework.data.mongodb.model.dto;
 
-import io.github.pangju666.framework.data.mybatisplus.annotation.validation.SnowflakeIds;
+import io.github.pangju666.commons.validation.annotation.ObjectIds;
+import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
 /**
- * 必填雪花ID列表数据传输对象
+ * 必填ObjectId列表数据传输对象
  * <p>
- * 用于传输雪花算法生成的ID列表，支持ID的唯一性校验。
- * 列表不允许为空，且列表中的元素必须符合雪花ID格式。
+ * 用于传输ObjectId类型的ID列表，支持ID的唯一性校验。
+ * 列表不允许为空，且列表中的元素必须符合ObjectId格式。
  * </p>
  *
  * @author pangju666
  * @since 1.0.0
  */
-public record SnowflakeIdRequiredListDTO(@UniqueElements(message = "存在重复的id")
-										 @SnowflakeIds(notEmpty = true)
-										 List<Long> ids) {
+public record RequiredObjectIdListDTO(
+	@NotEmpty(message = "列表不允许为空") @UniqueElements(message = "存在重复的id") @ObjectIds List<String> ids) {
 }

@@ -17,6 +17,7 @@
 package io.github.pangju666.framework.web.model.dto;
 
 import io.github.pangju666.commons.validation.annotation.NotBlankElements;
+import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
@@ -36,6 +37,7 @@ import java.util.List;
  * @author pangju666
  * @since 1.0.0
  */
-public record RequiredUniqueStringListDTO(@NotBlankElements(notEmpty = true, message = "集合可能为空或存在空白的值")
+public record RequiredUniqueStringListDTO(
+	@NotEmpty(message = "列表不允许为空") @NotBlankElements(message = "列表存在空白值")
 										  @UniqueElements(message = "存在重复的字符串") List<String> values) {
 }

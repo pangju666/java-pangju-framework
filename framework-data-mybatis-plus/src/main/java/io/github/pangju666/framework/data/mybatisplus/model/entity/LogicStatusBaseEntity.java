@@ -14,36 +14,37 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.entity.base;
+package io.github.pangju666.framework.data.mybatisplus.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.Version;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 
 /**
- * 乐观锁基础实体类
+ * 逻辑删除状态基础实体类
  * <p>
- * 在{@link BasicEntity}基础上增加了版本号字段，
- * 用于支持乐观锁功能。
+ * 在{@link BaseEntity}基础上增加了删除状态字段，
+ * 用于支持仅使用状态标记的逻辑删除功能。
  * </p>
  *
+ * @param <ID> ID的类型参数
  * @author pangju666
  * @since 1.0.0
  */
-public abstract class VersionBasicEntity extends BasicEntity {
+public abstract class LogicStatusBaseEntity<ID> extends BaseEntity {
 	/**
-	 * 版本号，用于乐观锁控制
+	 * 删除状态，0表示未删除，删除时设置为表数据行ID
 	 *
 	 * @since 1.0.0
 	 */
-	@TableField("version")
-	@Version
-	private Integer version;
+	@TableField("delete_status")
+	@TableLogic(value = "0", delval = "id")
+	protected ID deleteStatus;
 
-	public Integer getVersion() {
-		return version;
+	public ID getDeleteStatus() {
+		return deleteStatus;
 	}
 
-	public void setVersion(Integer version) {
-		this.version = version;
+	public void setDeleteStatus(ID deleteStatus) {
+		this.deleteStatus = deleteStatus;
 	}
 }

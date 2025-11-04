@@ -14,38 +14,36 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.entity.uuid;
+package io.github.pangju666.framework.data.mybatisplus.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import io.github.pangju666.framework.data.mybatisplus.model.entity.base.BasicEntity;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.Version;
 
 /**
- * UUID基础实体类
+ * 乐观锁和逻辑删除时间基础实体类
  * <p>
- * 基于{@link BasicEntity}，使用UUID作为主键ID。
- * 适用于需要UUID主键的基础实体类。
+ * 结合了{@link VersionBaseEntity}和{@link LogicTimeBaseEntity}的功能，
+ * 同时支持乐观锁和时间戳的逻辑删除功能。
  * </p>
  *
  * @author pangju666
  * @since 1.0.0
  */
-public abstract class UUIdBasicEntity extends BasicEntity implements UUId {
+public abstract class VersionLogicTimeBaseEntity extends LogicTimeBaseEntity {
 	/**
-	 * UUID主键ID
+	 * 版本号，用于乐观锁控制
 	 *
 	 * @since 1.0.0
 	 */
-	@TableId(type = IdType.ASSIGN_UUID)
-	protected String id;
+	@TableField("version")
+	@Version
+	private Integer version;
 
-	@Override
-	public String getId() {
-		return id;
+	public Integer getVersion() {
+		return version;
 	}
 
-	@Override
-	public void setId(String id) {
-		this.id = id;
+	public void setVersion(Integer version) {
+		this.version = version;
 	}
 }

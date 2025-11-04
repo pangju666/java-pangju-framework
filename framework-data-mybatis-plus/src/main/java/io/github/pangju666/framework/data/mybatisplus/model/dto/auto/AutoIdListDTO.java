@@ -31,6 +31,5 @@ import java.util.List;
  * @author pangju666
  * @since 1.0.0
  */
-public record AutoIdListDTO(@UniqueElements(message = "存在重复的id")
-							@AutoIds List<Long> ids) {
+public record AutoIdListDTO(@UniqueElements(message = "存在重复的id") @AutoIds List<Long> ids) {
 }

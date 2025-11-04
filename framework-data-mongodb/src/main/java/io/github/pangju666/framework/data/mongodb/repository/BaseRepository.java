@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -1296,13 +1297,13 @@ public abstract class BaseRepository<ID, T> {
 				.parallelStream()
 				.filter(Objects::nonNull)
 				.map(validaEntity -> mongoOperations.save(validaEntity, this.collectionName))
-				.toList();
+				.collect(Collectors.toList());
 		} else {
 			return CollectionUtils.emptyIfNull(entities)
 				.stream()
 				.filter(Objects::nonNull)
 				.map(validaEntity -> mongoOperations.save(validaEntity, this.collectionName))
-				.toList();
+				.collect(Collectors.toList());
 		}
 	}
 

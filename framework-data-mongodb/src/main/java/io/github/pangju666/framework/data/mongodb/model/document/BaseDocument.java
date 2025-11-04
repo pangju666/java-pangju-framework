@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mongodb.model;
+package io.github.pangju666.framework.data.mongodb.model.document;
 
 import io.github.pangju666.framework.data.mongodb.pool.MongoConstants;
 import org.apache.commons.collections4.CollectionUtils;
@@ -25,10 +25,7 @@ import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -80,7 +77,7 @@ public abstract class BaseDocument implements Serializable {
 		return collection.stream()
 			.map(BaseDocument::getId)
 			.filter(StringUtils::isNotBlank)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -123,6 +120,23 @@ public abstract class BaseDocument implements Serializable {
 			.map(BaseDocument::getId)
 			.filter(StringUtils::isNotBlank)
 			.distinct()
-			.toList();
+			.collect(Collectors.toList());
+	}
+
+	public static Map<String, ? extends BaseDocument> mapByField(final Collection<? extends BaseDocument> collection) {
+		if (CollectionUtils.isEmpty(collection)) {
+			return Collections.emptyMap();
+		}
+		return collection.stream()
+			.collect(Collectors.toMap(BaseDocument::getId, item -> item));
+	}
+
+	public static <E extends BaseDocument> Map<String, List<E>> groupByField(final Collection<E> collection) {
+		if (CollectionUtils.isEmpty(collection)) {
+			return Collections.emptyMap();
+		}
+		return collection.stream()
+			.collect(Collectors.groupingBy(BaseDocument::getId, Collectors.mapping(
+				item -> item, Collectors.toList())));
 	}
 }

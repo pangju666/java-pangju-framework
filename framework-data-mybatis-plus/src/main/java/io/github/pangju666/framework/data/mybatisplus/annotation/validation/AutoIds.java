@@ -36,8 +36,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     <li>允许为null</li>
  *     <li>集合中的元素不允许为null</li>
  *     <li>集合中的每个元素必须大于等于1</li>
- *     <li>可通过notEmpty参数控制是否允许空集合</li>
  * </ul>
+ * </p>
+ *
+ * <p>
+ * 支持的类型是 {@code Collection<Long>}。{@code null}或空集合视为有效。
  * </p>
  *
  * @author pangju666
@@ -53,16 +56,4 @@ public @interface AutoIds {
 	Class<?>[] groups() default {};
 
 	Class<? extends Payload>[] payload() default {};
-
-	/**
-	 * 是否不允许为空集合
-	 * <p>
-	 * 当设置为true时，集合不能为空（size > 0）
-	 * 当设置为false时，允许空集合（size >= 0）
-	 * </p>
-	 *
-	 * @return true表示不允许为空集合，false表示允许空集合
-	 * @since 1.0.0
-	 */
-	boolean notEmpty() default false;
 }

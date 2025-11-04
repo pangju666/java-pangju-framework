@@ -538,13 +538,13 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 				.parallelStream()
 				.map(super::listByIds)
 				.flatMap(List::stream)
-				.toList();
+				.collect(Collectors.toList());
 		} else {
 			return ListUtils.partition(validIdList, batchSize)
 				.stream()
 				.map(super::listByIds)
 				.flatMap(List::stream)
-				.toList();
+				.collect(Collectors.toList());
 		}
 	}
 
@@ -775,13 +775,13 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 				.parallelStream()
 				.map(part -> queryChainWrapper.in(column, part).list())
 				.flatMap(List::stream)
-				.toList();
+				.collect(Collectors.toList());
 		} else {
 			return ListUtils.partition(validList, batchSize)
 				.stream()
 				.map(part -> queryChainWrapper.in(column, part).list())
 				.flatMap(List::stream)
-				.toList();
+				.collect(Collectors.toList());
 		}
 	}
 

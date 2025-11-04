@@ -14,20 +14,24 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.entity.base;
+package io.github.pangju666.framework.data.mybatisplus.model.dto.uuid;
+
+import io.github.pangju666.commons.validation.annotation.UUIDS;
+import jakarta.validation.constraints.NotEmpty;
+import org.hibernate.validator.constraints.UniqueElements;
+
+import java.util.List;
 
 /**
- * ID接口
+ * 必填UUID列表数据传输对象
  * <p>
- * 定义实体类ID的getter和setter方法。
+ * 用于传输UUID类型的ID列表，支持ID的唯一性校验。
+ * 列表不允许为空，且列表中的元素必须符合UUID格式。
  * </p>
  *
- * @param <ID> ID的类型参数
  * @author pangju666
  * @since 1.0.0
  */
-public interface Id<ID> {
-	ID getId();
-
-	void setId(ID id);
+public record RequiredUUIDListDTO(
+	@NotEmpty(message = "列表不允许为空") @UniqueElements(message = "存在重复的id") @UUIDS List<String> ids) {
 }
