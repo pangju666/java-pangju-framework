@@ -74,12 +74,11 @@ public class HttpRemoteServiceException extends ServiceException {
 	 * 默认错误消息
 	 * <p>
 	 * 当未指定自定义错误消息时使用的标准错误提示。
-	 * 声明为protected以允许子类复用此消息。
 	 * </p>
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final String REMOTE_ERROR_MESSAGE = "远程服务请求失败";
+	protected static final String DEFAULT_REMOTE_ERROR_MESSAGE = "远程服务请求失败";
 
 	/**
 	 * 远程服务错误信息
@@ -107,7 +106,7 @@ public class HttpRemoteServiceException extends ServiceException {
 	 * @since 1.0.0
 	 */
 	public HttpRemoteServiceException(HttpRemoteServiceError error) {
-		super(REMOTE_ERROR_MESSAGE);
+		super(DEFAULT_REMOTE_ERROR_MESSAGE);
 		this.error = error;
 	}
 

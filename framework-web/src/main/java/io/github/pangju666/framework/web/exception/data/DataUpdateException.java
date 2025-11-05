@@ -75,7 +75,7 @@ public class DataUpdateException extends DataOperationException {
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final String ERROR_MESSAGE = "数据更新错误";
+	protected static final String DEFAULT_ERROR_MESSAGE = "数据更新错误";
 	/**
 	 * 操作类型常量
 	 * <p>
@@ -89,20 +89,20 @@ public class DataUpdateException extends DataOperationException {
 	/**
 	 * 创建数据更新异常实例
 	 * <p>
-	 * 使用{@link #ERROR_MESSAGE 默认错误消息}和指定的错误原因构造异常。
+	 * 使用{@link #DEFAULT_ERROR_MESSAGE 默认错误消息}和指定的错误原因构造异常。
 	 * </p>
 	 *
 	 * @param reason 错误原因，描述更新失败的具体原因
 	 * @since 1.0.0
 	 */
 	public DataUpdateException(String reason) {
-		super(OPERATION, ERROR_MESSAGE, reason);
+		super(OPERATION, DEFAULT_ERROR_MESSAGE, reason);
 	}
 
 	/**
 	 * 创建带有原因异常的数据更新异常实例
 	 * <p>
-	 * 使用{@link #ERROR_MESSAGE 默认错误消息}、指定的错误原因及原始异常构造异常。
+	 * 使用{@link #DEFAULT_ERROR_MESSAGE 默认错误消息}、指定的错误原因及原始异常构造异常。
 	 * </p>
 	 *
 	 * @param reason 错误原因，描述更新失败的具体原因
@@ -110,7 +110,7 @@ public class DataUpdateException extends DataOperationException {
 	 * @since 1.0.0
 	 */
 	public DataUpdateException(String reason, Throwable cause) {
-		super(OPERATION, ERROR_MESSAGE, reason, cause);
+		super(OPERATION, DEFAULT_ERROR_MESSAGE, reason, cause);
 	}
 
 	/**

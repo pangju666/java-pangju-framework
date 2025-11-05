@@ -75,7 +75,7 @@ public class DataSaveException extends DataOperationException {
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final String ERROR_MESSAGE = "数据保存错误";
+	protected static final String DEFAULT_ERROR_MESSAGE = "数据保存错误";
 	/**
 	 * 操作类型常量
 	 * <p>
@@ -89,20 +89,20 @@ public class DataSaveException extends DataOperationException {
 	/**
 	 * 创建数据保存异常实例
 	 * <p>
-	 * 使用{@link #ERROR_MESSAGE 默认错误消息}和指定的错误原因构造异常。
+	 * 使用{@link #DEFAULT_ERROR_MESSAGE 默认错误消息}和指定的错误原因构造异常。
 	 * </p>
 	 *
 	 * @param reason 错误原因，描述保存失败的具体原因
 	 * @since 1.0.0
 	 */
 	public DataSaveException(String reason) {
-		super(OPERATION, ERROR_MESSAGE, reason);
+		super(OPERATION, DEFAULT_ERROR_MESSAGE, reason);
 	}
 
 	/**
 	 * 创建带有原因异常的数据保存异常实例
 	 * <p>
-	 * 使用{@link #ERROR_MESSAGE 默认错误消息}、指定的错误原因及原始异常构造异常。
+	 * 使用{@link #DEFAULT_ERROR_MESSAGE 默认错误消息}、指定的错误原因及原始异常构造异常。
 	 * </p>
 	 *
 	 * @param reason 错误原因，描述保存失败的具体原因
@@ -110,7 +110,7 @@ public class DataSaveException extends DataOperationException {
 	 * @since 1.0.0
 	 */
 	public DataSaveException(String reason, Throwable cause) {
-		super(OPERATION, ERROR_MESSAGE, reason, cause);
+		super(OPERATION, DEFAULT_ERROR_MESSAGE, reason, cause);
 	}
 
 	/**

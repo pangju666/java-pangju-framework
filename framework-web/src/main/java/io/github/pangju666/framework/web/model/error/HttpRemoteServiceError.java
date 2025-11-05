@@ -17,6 +17,7 @@
 package io.github.pangju666.framework.web.model.error;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 import java.net.URI;
 
@@ -39,13 +40,14 @@ import java.net.URI;
 public record HttpRemoteServiceError(String service,
 									 String api,
 									 URI uri,
-									 String message,
 									 String code,
-									 HttpStatus httpStatus) {
+									 String message,
+									 HttpStatusCode httpStatus) {
 	/**
 	 * 创建基础错误信息实例
 	 * <p>
-	 * 仅包含服务标识信息，其他错误相关字段（消息、错误码、HTTP状态码）均为null。
+	 * 仅包含服务标识信息，其他错误相关字段（消息、错误码）均为null。
+	 * 默认HTTP状态码为 {@link HttpStatus#OK}。
 	 * 适用于需要先创建基础信息，后续再补充错误详情的场景。
 	 * </p>
 	 *
@@ -55,20 +57,43 @@ public record HttpRemoteServiceError(String service,
 	 * @since 1.0.0
 	 */
 	public HttpRemoteServiceError(String service, String api, URI uri) {
-		this(service, api, uri, null, null, null);
+		this(service, api, uri, null, null, HttpStatus.OK);
 	}
 
 	/**
-	 * 创建一个新的错误信息实例，仅更改错误消息
+	 * 创建包含错误消息的错误信息实例
 	 * <p>
-	 * 此方法用于在保持其他属性不变的情况下，创建一个具有新错误消息的实例。
+	 * 在基础服务标识信息的基础上，补充错误消息字段，错误代码为空，
+	 * 默认HTTP状态码为 {@link HttpStatus#OK}。
+	 * 适用于仅需要记录错误消息、不涉及业务错误码的场景。
 	 * </p>
 	 *
-	 * @param message 新的错误消息
-	 * @return 新的错误信息实例
+	 * @param service 远程服务名称
+	 * @param api     API接口名称或路径
+	 * @param uri     完整的请求URI
+	 * @param message 错误消息
 	 * @since 1.0.0
 	 */
-	public HttpRemoteServiceError clone(String message) {
-		return new HttpRemoteServiceError(service, api, uri, message, code, httpStatus);
+	public HttpRemoteServiceError(String service, String api, URI uri, String message) {
+		this(service, api, uri, null, message, HttpStatus.OK);
+	}
+
+	/**
+	 * 创建包含错误码与错误消息的错误信息实例
+	 * <p>
+	 * 同时记录业务错误代码与错误消息，默认HTTP状态码为
+	 * {@link HttpStatus#OK}。
+	 * 适用于远程服务返回明确的业务错误码与消息的场景。
+	 * </p>
+	 *
+	 * @param service 远程服务名称
+	 * @param api     API接口名称或路径
+	 * @param uri     完整的请求URI
+	 * @param code    业务错误代码
+	 * @param message 错误消息
+	 * @since 1.0.0
+	 */
+	public HttpRemoteServiceError(String service, String api, URI uri, String code, String message) {
+		this(service, api, uri, code, message, HttpStatus.OK);
 	}
 }

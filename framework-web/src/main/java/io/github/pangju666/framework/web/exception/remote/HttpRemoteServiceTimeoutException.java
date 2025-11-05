@@ -71,12 +71,11 @@ public class HttpRemoteServiceTimeoutException extends HttpRemoteServiceExceptio
 	 * 默认错误消息
 	 * <p>
 	 * 当未指定自定义错误消息时使用的标准超时错误提示。
-	 * 声明为protected以允许子类复用此消息。
 	 * </p>
 	 *
 	 * @since 1.0.0
 	 */
-	protected static final String REMOTE_TIMEOUT_ERROR_MESSAGE = "远程服务请求超时";
+	protected static final String DEFAULT_REMOTE_TIMEOUT_ERROR_MESSAGE = "远程服务请求超时";
 
 	/**
 	 * 创建HTTP远程服务超时异常实例（使用默认错误消息）
@@ -85,7 +84,7 @@ public class HttpRemoteServiceTimeoutException extends HttpRemoteServiceExceptio
 	 * @since 1.0.0
 	 */
 	public HttpRemoteServiceTimeoutException(HttpRemoteServiceError error) {
-		super(REMOTE_TIMEOUT_ERROR_MESSAGE, error);
+		super(DEFAULT_REMOTE_TIMEOUT_ERROR_MESSAGE, error);
 	}
 
 	/**
