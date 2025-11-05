@@ -51,11 +51,9 @@ import java.util.Objects;
  * 使用示例：
  * <pre>{@code
  * // 创建HTTP超时错误信息
- * HttpRemoteServiceError error = new HttpRemoteServiceError(
- *     "订单服务",                      // 服务名称
- *     "创建订单",                      // 接口名称
- *     "http://api.example.com/orders", // 请求URI
- * );
+ * HttpRemoteServiceError error = new HttpRemoteServiceError.Builder("订单服务","创建订单")
+ * 	.url("http://api.example.com/orders")
+ * 	.build();
  *
  * // 抛出HTTP远程服务超时异常
  * throw new HttpRemoteServiceTimeoutException("订单服务响应超时", error);
@@ -121,9 +119,9 @@ public class HttpRemoteServiceTimeoutException extends HttpRemoteServiceExceptio
 	@Override
 	public void log(Logger logger, Level level) {
 		String message = String.format("http远程服务请求超时，服务：%s，功能：%s，链接：%s",
-			StringUtils.defaultIfBlank(this.error.service(), "未知"),
-			StringUtils.defaultIfBlank(this.error.api(), "未知"),
-			Objects.toString(this.error.uri(), "未知"));
+			StringUtils.defaultIfBlank(this.error.getService(), "未知"),
+			StringUtils.defaultIfBlank(this.error.getApi(), "未知"),
+			Objects.toString(this.error.getUrl(), "未知"));
 		logger.atLevel(level)
 			.setCause(this)
 			.log(message);

@@ -46,95 +46,94 @@ import java.util.*;
 import java.util.function.Predicate;
 
 /**
- * RestClient辅助类
+ * RestClient 辅助构建器
  * <p>
- * 提供流式API风格的HTTP请求构建器，简化RestClient的使用。支持以下功能：
+ * 提供流式 API 的 HTTP 请求构建与执行能力，基于 {@link RestClient} 和
+ * {@link UriComponentsBuilder} 封装常见配置：URI 构建、请求头管理、请求体设置、
+ * 响应转换与可选的 JSON 错误处理集成。
+ * </p>
+ *
+ * <p>
+ * 功能特性：
  * <ul>
- *     <li>URI构建：支持路径、查询参数、URI变量的设置</li>
- *     <li>请求头管理：支持单个或批量添加请求头</li>
- *     <li>请求体处理：支持JSON、表单数据、文本、二进制、{@link Resource 资源}格式</li>
- *     <li>响应处理：支持多种响应类型的转换（JSON、{@link Resource 资源}、二进制、文本）</li>
+ *   <li>URI 构建：支持路径、查询参数、URI 变量</li>
+ *   <li>请求头管理：支持单个或批量添加（数组/集合自动展开）</li>
+ *   <li>请求体设置：支持 JSON、表单、文本、字节、{@link Resource 资源}</li>
+ *   <li>响应转换：支持 {@code Resource}、字节、字符串、JSON、Bean 等类型</li>
+ *   <li>错误处理：可集成 {@link JsonResponseErrorHandler} 进行统一异常转换</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * 异常行为：
+ * <ul>
+ *   <li>未配置错误处理器时：失败由 {@link RestClient} 抛出 {@link org.springframework.web.client.RestClientResponseException}</li>
+ *   <li>配置 {@link JsonResponseErrorHandler} 时：业务失败抛出
+ *       {@link io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException}；
+ *       网关超时抛出
+ *       {@link io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException}</li>
  * </ul>
  * </p>
  *
  * <p>使用示例</p>
  * <pre>{@code
- *     // 使用RestClient原生方法获取返回值
- *     Result result = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
- *     .path("/api/test/{id}") // 可选，可以多次调用添加多个路径
- *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
- *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
- *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
- *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
- *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
- *     .buildRequestBodySpec() // 返回 RestClient.RequestBodySpec
- *     .retrieve()
- *     .accept(MediaType.APPLICATION_JSON)
- *     .toEntity(Result.class);
- *
- *     // 使用RestRequestBuilder封装的方法获取返回值
- *     Result result = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
- *     .path("/api/test/{id}") // 可选，可以多次调用添加多个路径
- *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
- *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
- *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
- *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
- *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
+ * // 示例一：GET 并按 JSON 解析
+ * Result result = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
+ *     .path("/api/test/{id}")
+ *     .queryParam("param", 123)
+ *     .uriVariable("id", 1)
  *     .toJson(Result.class);
  *
- * 	   // 使用RestRequestBuilder封装的方法获取返回值
- *     Result result = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
- *     .path("/api/test/{id}") // 可选，可以多次调用添加多个路径
- *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
- *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
- *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
- *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
- *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
+ * // 示例二：POST JSON 并按 Bean 解析
+ * Result result2 = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
+ *     .path("/api/test/{id}")
+ *     .method(HttpMethod.POST)
+ *     .header("Authorization", "Bearer token")
+ *     .uriVariable("id", 1)
+ *     .jsonBody(new User("admin", "password"))
  *     .toBean(Result.class, MediaType.APPLICATION_JSON);
  *
- *     // 使用RestRequestBuilder封装的方法获取无响应体结果
- *     RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
- *     .path("/api/test/{id}") // 可选，可以多次调用添加多个路径
- *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
- *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
- *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
- *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
- *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
+ * // 示例三：上传文件（multipart）并忽略响应体
+ * RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
+ *     .path("/api/upload/{id}")
+ *     .method(HttpMethod.POST)
+ *     .uriVariable("id", 1)
+ *     .formData("file", new FileSystemResource(new File("xxxx")))
  *     .toBodiless();
  *
- *     // 使用RestRequestBuilder封装的方法返回字节数组
- *     byte[] bytes = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
- *     .path("/api/download/{id}") // 可选，可以多次调用添加多个路径
- *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
- *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
- *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
- *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
- *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
- *     .toBytes();
+ * // 示例四：集成 JSON 错误处理器（按业务码判定成功）
+ * Result result3 = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
+ *     .path("/api/test/{id}")
+ *     .method(HttpMethod.POST)
+ *     .withJsonErrorHandler("SUCCESS")
+ *     .errorService("用户服务")
+ *     .errorApi("创建用户")
+ *     .jsonBody(new User("admin", "password"))
+ *     .toJson(Result.class);
+ * }
+ * </pre>
  *
- * 	   // 使用RestRequestBuilder封装的方法返回输入流
- *     InputStream inputStream = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
- *     .path("/api/download/{id}") // 可选，可以多次调用添加多个路径
- *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
- *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
- *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
- *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
- *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
- *     .toResourceEntity()
- *     .getInputStream();
+ * <p>
+ * 线程安全与复用：
+ * <ul>
+ *   <li>本构建器为可变对象，非线程安全；建议一次请求一次实例。</li>
+ *   <li>链式调用会累积状态（路径、查询参数、头、体等），请避免跨请求复用。</li>
+ * </ul>
+ * </p>
  *
- *     // 使用RestRequestBuilder封装的方法上传文件
- *     RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
- *     .path("/api/upload/{id}") // 可选，可以多次调用添加多个路径
- *     .method(HttpMethod.POST) // 可选，默认为HttpMethod.GET
- *     .header("Authorization", "Bearer token") // 可选，可以多次调用添加多个请求头
- *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
- *     .formData("file", new FileSystemResource(new File("xxxx"))) // 可选，可以多次调用添加多个表单参数
- *     .toBodilessEntity();
- * }</pre>
+ * <p>
+ * 默认行为与边界：
+ * <ul>
+ *   <li>多次调用 {@code path(...)} 会按调用顺序追加路径段。</li>
+ *   <li>数组/集合类型的查询参数与请求头会自动展开为多个条目；{@code null} 跳过。</li>
+ *   <li>响应转换方法会在检索前设置合适的 {@code Accept} 头（例如 JSON）。</li>
+ *   <li>URI 模板变量需与路径模板占位名称一致，未提供的占位符会导致构建失败。</li>
+ * </ul>
+ * </p>
  *
  * @author pangju666
  * @see RestClient
+ * @see JsonResponseErrorHandler
  * @since 1.0.0
  */
 public class RestRequestBuilder {
@@ -318,7 +317,7 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 设置错误信息中的 API 接口名称或路径
+	 * 设置错误信息中的 API 接口名称
 	 * <p>仅在已配置JSON响应错误处理器时有效，未配置将被忽略。</p>
 	 *
 	 * @param api API 接口名称或路径
@@ -334,18 +333,18 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 设置自定义异常消息
+	 * 设置异常消息
 	 * <p>当抛出远程服务异常时优先使用该消息。</p>
 	 * <p>仅在已配置JSON响应错误处理器时有效，未配置将被忽略。</p>
 	 *
-	 * @param customExceptionMessage 自定义异常消息
+	 * @param exceptionMessage 自定义异常消息
 	 * @return 当前实例
 	 * @see #withJsonErrorHandler
 	 * @since 1.0.0
 	 */
-	public RestRequestBuilder customExceptionMessage(String customExceptionMessage) {
+	public RestRequestBuilder exceptionMessage(String exceptionMessage) {
 		if (Objects.nonNull(this.errorHandler)) {
-			this.errorHandler.setCustomExceptionMessage(customExceptionMessage);
+			this.errorHandler.setCustomExceptionMessage(exceptionMessage);
 		}
 		return this;
 	}
@@ -399,7 +398,16 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 添加请求路径
+	 * 添加请求路径（规范化前导斜杠，支持多次追加）
+	 * <p>
+	 * 行为说明：
+	 * <ul>
+	 *   <li>当传入的 {@code path} 不以 {@code '/'} 开头时，自动在前面补一个 {@code '/'}</li>
+	 *   <li>多次调用会按顺序追加路径段，不会清空已设置的路径</li>
+	 *   <li>支持包含模板占位符（例如：{@code "/api/users/{id}"}），可与 {@link #uriVariable(String, Object)} 配合使用</li>
+	 *   <li>传入空白字符串（仅空格/空）时不做任何处理</li>
+	 * </ul>
+	 * </p>
 	 *
 	 * @param path 请求路径，例如：{@code "/api/users"}
 	 * @return 当前实例
@@ -408,17 +416,21 @@ public class RestRequestBuilder {
 	 */
 	public RestRequestBuilder path(String path) {
 		if (StringUtils.isNotBlank(path)) {
-			this.uriComponentsBuilder.path(path.startsWith(WebConstants.HTTP_PATH_SEPARATOR) ?
-				path + WebConstants.HTTP_PATH_SEPARATOR : path);
+			this.uriComponentsBuilder.path(path.startsWith(WebConstants.HTTP_PATH_SEPARATOR) ? path :
+				WebConstants.HTTP_PATH_SEPARATOR + path);
 		}
 		return this;
 	}
 
 	/**
-	 * 添加单个查询参数
+	 * 添加单个查询参数（支持多值）
+	 * <p>
+	 * 传入多个 {@code values} 时按顺序添加；若某个值为 {@code null}，将按
+	 * {@link UriComponentsBuilder#queryParam(String, Object...)} 的默认规则处理（通常生成无值参数）。
+	 * </p>
 	 *
 	 * @param name   参数名，例如：{@code "page"}
-	 * @param values 参数值数组，例如：{@code 1, 2, 3}
+	 * @param values 参数值序列，例如：{@code 1, 2, 3}
 	 * @return 当前实例
 	 * @throws IllegalArgumentException 当name为空时抛出
 	 * @see UriComponentsBuilder#queryParam(String, Object...)
@@ -432,7 +444,11 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 批量添加查询参数
+	 * 批量添加查询参数（MultiValueMap 合并）
+	 * <p>
+	 * 将提供的查询参数映射合并到当前 URI 构建器中；当 {@code params} 为 {@code null}
+	 * 或空时不做任何处理。
+	 * </p>
 	 *
 	 * @param params 参数映射，例如：{@code new LinkedMultiValueMap<>()}
 	 * @return 当前实例
@@ -445,40 +461,20 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 添加查询参数到URI构建器
+	 * 批量添加查询参数（Map，支持数组/集合/Optional）
 	 * <p>
-	 * 该方法将查询参数Map转换为URI查询参数，支持多种参数类型的处理：
+	 * 行为说明：
 	 * <ul>
-	 *     <li>数组类型：自动展开为多个同名参数</li>
-	 *     <li>集合类型：自动展开为多个同名参数</li>
-	 *     <li>Optional类型：仅在值存在时添加参数</li>
-	 *     <li>普通对象：直接添加为单个参数</li>
+	 *   <li>数组：自动展开为多个同名参数</li>
+	 *   <li>集合：自动展开为多个同名参数</li>
+	 *   <li>Optional：使用 {@link UriComponentsBuilder#queryParamIfPresent(String, Optional)}，仅在值存在时添加</li>
+	 *   <li>其他类型：按单值添加；当值为 {@code null} 时传递至 {@code queryParam}，由框架按默认规则处理（通常生成无值参数）</li>
 	 * </ul>
-	 * </p>
-	 * <p>
-	 * 参数处理规则：
-	 * <ul>
-	 *     <li>如果参数Map为null或空，则不做任何处理</li>
-	 *     <li>值为null的参数将被添加为null值</li>
-	 *     <li>数组和集合会自动展开为多个同名参数（例如：id=1&amp;id=2&amp;id=3）</li>
-	 *     <li>Optional类型使用queryParamIfPresent方法，仅在值存在时添加</li>
-	 * </ul>
-	 * </p>
-	 * <p>
-	 * 使用示例：
-	 * <pre>{@code
-	 * Map<String, Object> params = new HashMap<>();
-	 * params.put("name", "张三");
-	 * params.put("tags", new String[]{"java", "spring"});
-	 * params.put("age", Optional.of(25));
-	 *
-	 * RestRequestBuilder.queryParams(params);
-	 * // 生成的查询字符串: ?name=张三&tags=java&tags=spring&age=25
-	 * }</pre>
+	 * 当 {@code params} 为 {@code null} 或空时，不做任何处理。
 	 * </p>
 	 *
-	 * @param params 查询参数Map，key为参数名，value为参数值，支持数组、集合、Optional等类型
-	 * @return 当前RestRequestBuilder实例，支持链式调用
+	 * @param params 查询参数映射，key 为参数名，value 支持数组、集合、Optional、普通对象
+	 * @return 当前实例
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder queryParams(@Nullable Map<String, Object> params) {
@@ -499,7 +495,7 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 设置原始查询字符串
+	 * 设置原始查询字符串（自动去除前导 '?'})
 	 *
 	 * @param query 查询字符串，例如：{@code "page=1&size=10&sort=name,asc"}
 	 * @return 当前实例
@@ -513,10 +509,10 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 添加单个URI变量
+	 * 添加单个 URI 模板变量（{@code null} 跳过）
 	 *
 	 * @param name  变量名，例如：{@code "id"}
-	 * @param value 变量值，例如：{@code 123}
+	 * @param value 变量值，例如：{@code 123}；当为 {@code null} 时不添加
 	 * @return 当前实例
 	 * @throws IllegalArgumentException 当name为空时抛出
 	 * @since 1.0.0
@@ -531,9 +527,9 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 批量添加URI变量
+	 * 批量添加 URI 模板变量（{@code null}/空不处理）
 	 *
-	 * @param uriVariables URI变量映射，例如：{@code Map.of("id", 123, "name", "test")}
+	 * @param uriVariables URI 变量映射，例如：{@code Map.of("id", 123, "name", "test")}
 	 * @return 当前实例
 	 * @since 1.0.0
 	 */
@@ -807,12 +803,12 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 将请求结果转换为Resource响应实体，指定可接受的媒体类型
+	 * 将请求结果转换为Resource响应实体，可以指定可接受的媒体类型
 	 *
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.APPLICATION_OCTET_STREAM}
 	 * @return Resource响应实体
-	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
-	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws RestClientResponseException                                                          当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @see org.springframework.core.io.Resource
 	 * @see org.springframework.http.converter.ResourceHttpMessageConverter
@@ -824,12 +820,12 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 将请求结果转换为字节数组响应实体，指定可接受的媒体类型
+	 * 将请求结果转换为字节数组响应实体，可以指定可接受的媒体类型
 	 *
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.APPLICATION_OCTET_STREAM}
 	 * @return 字节数组响应实体
-	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
-	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws RestClientResponseException                                                          当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @see org.springframework.http.converter.ByteArrayHttpMessageConverter
 	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
@@ -840,12 +836,12 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 将请求结果转换为字符串响应实体，指定可接受的媒体类型
+	 * 将请求结果转换为字符串响应实体，可以指定可接受的媒体类型
 	 *
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON}
 	 * @return 字符串响应实体
-	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
-	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws RestClientResponseException                                                          当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @see org.springframework.http.converter.StringHttpMessageConverter
 	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
@@ -864,10 +860,10 @@ public class RestRequestBuilder {
 	 * @param bodyType 响应体类型，例如：{@code User.class}
 	 * @param <T>      响应体类型
 	 * @return 指定类型的JSON响应实体
-	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
-	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws RestClientResponseException                                                          当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
-	 * @throws IllegalArgumentException    当bodyType为null时抛出
+	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
 	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
@@ -886,10 +882,10 @@ public class RestRequestBuilder {
 	 * @param bodyType 响应体泛型类型，例如：{@code new ParameterizedTypeReference<List<User>>(){}}
 	 * @param <T>      响应体类型
 	 * @return 指定泛型类型的JSON响应实体
-	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
-	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws RestClientResponseException                                                          当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
-	 * @throws IllegalArgumentException    当bodyType为null时抛出
+	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
 	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
@@ -900,16 +896,16 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 将请求结果转换为指定类型的响应实体，指定可接受的媒体类型
+	 * 将请求结果转换为指定类型的响应实体，可以指定可接受的媒体类型
 	 *
 	 * @param bodyType             响应体类型，例如：{@code User.class}
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.APPLICATION_JSON}
 	 * @param <T>                  响应体类型
 	 * @return 指定类型的响应实体
-	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
-	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws RestClientResponseException                                                          当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
-	 * @throws IllegalArgumentException    当bodyType为null时抛出
+	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
 	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
@@ -919,16 +915,16 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 将请求结果转换为指定泛型类型的响应实体，指定可接受的媒体类型
+	 * 将请求结果转换为指定泛型类型的响应实体，可以指定可接受的媒体类型
 	 *
 	 * @param bodyType             响应体泛型类型，例如：{@code new ParameterizedTypeReference<List<User>>(){}}
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.APPLICATION_JSON}
 	 * @param <T>                  响应体类型
 	 * @return 指定泛型类型的响应实体
-	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
-	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws RestClientResponseException                                                          当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
-	 * @throws IllegalArgumentException    当bodyType为null时抛出
+	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
 	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
@@ -940,34 +936,14 @@ public class RestRequestBuilder {
 	/**
 	 * 将请求结果转换为无响应体的响应实体
 	 *
-	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
-	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws RestClientResponseException                                                          当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
-	public void toBodiless() throws RestClientResponseException {
-		buildResponseSpec().toBodilessEntity();
-	}
-
-	/**
-	 * 构建响应规范
-	 * <p>
-	 * 在当前请求配置基础上创建{@link RestClient.ResponseSpec}，并按需设置Accept头；
-	 * 若已配置{@link #errorHandler}，则将其注册到响应处理流程，用于统一判断并抛出业务异常。
-	 * </p>
-	 *
-	 * @param acceptableMediaTypes 可接受的媒体类型列表，用于设置Accept头，例如：{@code MediaType.APPLICATION_JSON}
-	 * @return 构建完成的响应规范，可继续调用{@code body(..)}、{@code toEntity(..)}或{@code toBodilessEntity()}
-	 * @see #buildRequestBodySpec()
-	 * @see JsonResponseErrorHandler
-	 * @since 1.0.0
-	 */
-	public RestClient.ResponseSpec buildResponseSpec(MediaType... acceptableMediaTypes) {
-		RestClient.ResponseSpec responseSpec = buildRequestBodySpec()
-			.accept(acceptableMediaTypes)
-			.retrieve();
-		return Objects.nonNull(this.errorHandler) ? responseSpec.onStatus(errorHandler) : responseSpec;
+	public ResponseEntity<Void> toBodilessEntity() throws RestClientResponseException {
+		return buildResponseSpec().toBodilessEntity();
 	}
 
 	/**
@@ -1006,5 +982,25 @@ public class RestRequestBuilder {
 		}
 
 		return requestBodySpec;
+	}
+
+	/**
+	 * 构建响应规范
+	 * <p>
+	 * 在当前请求配置基础上创建{@link RestClient.ResponseSpec}，并按需设置Accept头；
+	 * 若已配置{@link #errorHandler}，则将其注册到响应处理流程，用于统一判断并抛出业务异常。
+	 * </p>
+	 *
+	 * @param acceptableMediaTypes 可接受的媒体类型列表，用于设置Accept头，例如：{@code MediaType.APPLICATION_JSON}
+	 * @return 构建完成的响应规范，可继续调用{@code body(..)}、{@code toEntity(..)}或{@code toBodilessEntity()}
+	 * @see #buildRequestBodySpec()
+	 * @see JsonResponseErrorHandler
+	 * @since 1.0.0
+	 */
+	protected RestClient.ResponseSpec buildResponseSpec(MediaType... acceptableMediaTypes) {
+		RestClient.ResponseSpec responseSpec = buildRequestBodySpec()
+			.accept(acceptableMediaTypes)
+			.retrieve();
+		return Objects.nonNull(this.errorHandler) ? responseSpec.onStatus(errorHandler) : responseSpec;
 	}
 }

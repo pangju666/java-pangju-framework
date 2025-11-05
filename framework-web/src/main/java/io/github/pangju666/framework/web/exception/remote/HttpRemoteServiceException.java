@@ -51,14 +51,12 @@ import java.util.Objects;
  * 使用示例：
  * <pre>{@code
  * // 创建HTTP错误信息对象
- * HttpRemoteServiceError error = new HttpRemoteServiceError(
- * 		"用户服务",                    // 服务名称
- * 		"获取用户信息",                // 接口名称
- * 		new URI("http://api.example.com/users"), // 请求URI
- * 		"USER-404",                   // 错误码
- * 		"用户不存在",                   // 错误消息
- * 		HttpStatus.NOT_FOUND          // HTTP状态码
- * );
+ * HttpRemoteServiceError error = new HttpRemoteServiceError.Builder("用户服务", "获取用户信息")
+ * 	.url("http://api.example.com/users")
+ *     .code("USER-404")
+ *     .message("用户不存在")
+ *     .httpStatus(HttpStatus.NOT_FOUND)
+ *     .build();
  *
  * // 抛出HTTP远程服务异常
  * throw new HttpRemoteServiceException("调用用户服务失败", error);
@@ -153,12 +151,12 @@ public class HttpRemoteServiceException extends ServiceException {
 	@Override
 	public void log(Logger logger, Level level) {
 		String message = String.format("http远程服务请求失败，服务：%s，功能：%s，链接：%s，http状态码：%s 错误码：%s 错误信息：%s",
-			StringUtils.defaultIfBlank(this.error.service(), "未知"),
-			StringUtils.defaultIfBlank(this.error.api(), "未知"),
-			Objects.toString(this.error.uri(), "未知"),
-			Objects.nonNull(this.error.httpStatus()) ? this.error.httpStatus().value() : "未知",
-			StringUtils.defaultIfBlank(this.error.code(), "无"),
-			StringUtils.defaultIfBlank(this.error.message(), "无"));
+			StringUtils.defaultIfBlank(this.error.getService(), "未知"),
+			StringUtils.defaultIfBlank(this.error.getApi(), "未知"),
+			Objects.toString(this.error.getUrl(), "未知"),
+			Objects.nonNull(this.error.getHttpStatus()) ? this.error.getHttpStatus().value() : "未知",
+			StringUtils.defaultIfBlank(this.error.getCode(), "无"),
+			StringUtils.defaultIfBlank(this.error.getMessage(), "无"));
 		logger.atLevel(level)
 			.setCause(this)
 			.log(message);
