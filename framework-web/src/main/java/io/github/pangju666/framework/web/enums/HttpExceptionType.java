@@ -17,7 +17,7 @@
 package io.github.pangju666.framework.web.enums;
 
 import io.github.pangju666.framework.web.annotation.HttpException;
-import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.lang.WebConstants;
 
 /**
  * HTTP异常类型枚举

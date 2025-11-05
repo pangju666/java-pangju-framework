@@ -14,13 +14,12 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.client.builder;
+package io.github.pangju666.framework.web.client;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.pangju666.commons.lang.pool.Constants;
-import io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler;
-import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.lang.WebConstants;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,17 +74,32 @@ import java.util.function.Predicate;
  * </ul>
  * </p>
  *
+ * <p>
+ * 注意事项（错误处理前置要求）：
+ * <ul>
+ *   <li>如需启用 {@link JsonResponseErrorHandler} 进行统一错误处理，须在 {@link RestClient} 构建阶段注册 {@link BufferingResponseInterceptor}。</li>
+ *   <li>未启用缓冲拦截器时，响应体不可重复读取，错误处理器可能无法稳定判定并接管。</li>
+ * </ul>
+ * </p>
+ *
+ * <p>启用缓冲拦截器示例</p>
+ * <pre>{@code
+ * RestClient restClient = RestClient.builder()
+ *     .requestInterceptors(interceptors -> interceptors.add(0, new BufferingResponseInterceptor()))
+ *     .build();
+ * }</pre>
+ *
  * <p>使用示例</p>
  * <pre>{@code
  * // 示例一：GET 并按 JSON 解析
- * Result result = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
+ * Result result = RestRequestBuilder.fromUrlString(restClient, "https://api.example.com")
  *     .path("/api/test/{id}")
  *     .queryParam("param", 123)
  *     .uriVariable("id", 1)
  *     .toJson(Result.class);
  *
  * // 示例二：POST JSON 并按 Bean 解析
- * Result result2 = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
+ * Result result2 = RestRequestBuilder.fromUrlString(restClient, "https://api.example.com")
  *     .path("/api/test/{id}")
  *     .method(HttpMethod.POST)
  *     .header("Authorization", "Bearer token")
@@ -94,7 +108,7 @@ import java.util.function.Predicate;
  *     .toBean(Result.class, MediaType.APPLICATION_JSON);
  *
  * // 示例三：上传文件（multipart）并忽略响应体
- * RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
+ * RestRequestBuilder.fromUrlString(restClient, "https://api.example.com")
  *     .path("/api/upload/{id}")
  *     .method(HttpMethod.POST)
  *     .uriVariable("id", 1)
@@ -102,10 +116,14 @@ import java.util.function.Predicate;
  *     .toBodiless();
  *
  * // 示例四：集成 JSON 错误处理器（按业务码判定成功）
- * Result result3 = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
+ * RestRequestBuilder builderWithError = RestRequestBuilder.fromUrlString(
+ *     restClient,
+ *     "https://api.example.com",
+ *     "SUCCESS" // 成功业务码值
+ * );
+ * Result result3 = builderWithError
  *     .path("/api/test/{id}")
  *     .method(HttpMethod.POST)
- *     .withJsonErrorHandler("SUCCESS")
  *     .errorService("用户服务")
  *     .errorApi("创建用户")
  *     .jsonBody(new User("admin", "password"))
@@ -134,6 +152,7 @@ import java.util.function.Predicate;
  * @author pangju666
  * @see RestClient
  * @see JsonResponseErrorHandler
+ * @see BufferingResponseInterceptor
  * @since 1.0.0
  */
 public class RestRequestBuilder {
@@ -147,18 +166,17 @@ public class RestRequestBuilder {
 		MediaType.MULTIPART_MIXED, MediaType.MULTIPART_RELATED);
 
 	/**
-	 * RestClient实例，用于执行HTTP请求
-	 *
-	 * @since 1.0.0
-	 */
-	protected final RestClient restClient;
-	/**
 	 * URI构建器，用于构建请求URI
 	 *
 	 * @since 1.0.0
 	 */
 	protected final UriComponentsBuilder uriComponentsBuilder;
-
+	/**
+	 * RestClient 实例，用于发起请求与处理响应。
+	 *
+	 * @since 1.0.0
+	 */
+	protected final RestClient restClient;
 	/**
 	 * 请求头集合
 	 *
@@ -197,107 +215,177 @@ public class RestRequestBuilder {
 	 */
 	protected Object body = null;
 	/**
-	 * JSON 响应错误处理器，用于统一处理远程服务错误
+	 * JSON 响应错误处理器，用于统一处理远程服务错误。
+	 * <p>
+	 * 说明：仅当在 RestClient 上启用 {@link BufferingResponseInterceptor} 时，
+	 * 错误处理器才能稳定读取并判定响应体；未启用缓冲包装将导致响应体不可重复读取，
+	 * 判定与后续读取可能受限。
+	 * </p>
 	 *
 	 * @see JsonResponseErrorHandler
+	 * @see BufferingResponseInterceptor
 	 * @since 1.0.0
 	 */
 	protected JsonResponseErrorHandler errorHandler;
 
 	/**
-	 * 使用RestClient实例和URI构建器构造辅助类
+	 * 使用 {@link RestClient} 与 {@link UriComponentsBuilder} 构造请求构建器。
 	 * <p>
-	 * 该构造方法为protected，推荐使用静态工厂方法创建实例
+	 * 本构造器不自动配置错误处理器；如需统一 JSON 错误处理，可使用带错误处理器的构造器或工厂方法。
 	 * </p>
 	 *
-	 * @param restClient           RestClient实例
-	 * @param uriComponentsBuilder URI构建器
+	 * @param restClient           RestClient 实例，不能为空
+	 * @param uriComponentsBuilder URI 构建器，不能为空
+	 * @throws IllegalArgumentException 当 restClient 或 uriComponentsBuilder 为 null 时抛出
 	 * @since 1.0.0
 	 */
-	protected RestRequestBuilder(RestClient restClient, UriComponentsBuilder uriComponentsBuilder) {
+	public RestRequestBuilder(RestClient restClient, UriComponentsBuilder uriComponentsBuilder) {
+		Assert.notNull(restClient, "restClient 不可为null");
+		Assert.notNull(uriComponentsBuilder, "uriComponentsBuilder 不可为null");
+
 		this.restClient = restClient;
 		this.uriComponentsBuilder = uriComponentsBuilder;
 	}
 
 	/**
-	 * 从URI字符串创建RestRequestBuilder实例
+	 * 使用 {@link RestClient} 与 {@link UriComponentsBuilder} 构造，并注册给定的 JSON 响应错误处理器。
+	 * <p>
+	 * 说明：错误处理器只有在 RestClient 启用 {@link BufferingResponseInterceptor} 时才会生效；
+	 * 未启用缓冲包装时，响应体不可重复读取，判定与后续读取可能受限。
+	 * </p>
 	 *
-	 * @param restClient RestClient实例
-	 * @param uriString  URI字符串（可选），例如：{@code "https://api.example.com/users"}
-	 * @return 新的RestRequestBuilder实例
-	 * @throws IllegalArgumentException 当restClient为null时抛出
+	 * @param restClient           RestClient 实例，不能为空
+	 * @param uriComponentsBuilder URI 构建器，不能为空
+	 * @param errorHandler         自定义错误处理器实例，不能为空
+	 * @throws IllegalArgumentException 当 restClient、uriComponentsBuilder 或 errorHandler 为 null 时抛出
+	 * @see JsonResponseErrorHandler
+	 * @see BufferingResponseInterceptor
 	 * @since 1.0.0
 	 */
-	public static RestRequestBuilder fromUriString(final RestClient restClient, final String uriString) {
-		Assert.notNull(restClient, "restClient 不可为null");
-
-		if (StringUtils.isNotBlank(uriString)) {
-			if (uriString.endsWith(WebConstants.HTTP_PATH_SEPARATOR)) {
-				return new RestRequestBuilder(restClient, UriComponentsBuilder.fromUriString(
-					uriString.substring(0, uriString.length() - 1)));
-			} else {
-				return new RestRequestBuilder(restClient, UriComponentsBuilder.fromUriString(uriString));
-			}
-		} else {
-			return new RestRequestBuilder(restClient, UriComponentsBuilder.newInstance());
-		}
-	}
-
-	/**
-	 * 从URI对象创建RestRequestBuilder实例
-	 *
-	 * @param restClient RestClient实例
-	 * @param uri        URI对象（可选），例如：{@code new URI("https://api.example.com/users")}
-	 * @return 新的RestRequestBuilder实例
-	 * @throws IllegalArgumentException 当restClient为null时抛出
-	 * @since 1.0.0
-	 */
-	public static RestRequestBuilder fromUri(final RestClient restClient, final URI uri) {
-		Assert.notNull(restClient, "restClient 不可为null");
-
-		if (Objects.nonNull(uri)) {
-			return new RestRequestBuilder(restClient, UriComponentsBuilder.fromUri(uri));
-		} else {
-			return new RestRequestBuilder(restClient, UriComponentsBuilder.newInstance());
-		}
-	}
-
-	/**
-	 * 配置 JSON 错误处理器（基于成功判定谓词）
-	 * <p>通过谓词判定响应是否成功。</p>
-	 *
-	 * @param successPredicate 成功判定谓词，不能为空
-	 * @return 当前实例
-	 * @since 1.0.0
-	 */
-	public RestRequestBuilder withJsonErrorHandler(Predicate<JsonObject> successPredicate) {
-		this.errorHandler = new JsonResponseErrorHandler(successPredicate);
-		return this;
-	}
-
-	/**
-	 * 配置 JSON 错误处理器（基于成功业务码值）
-	 * <p>将响应中的业务码与指定成功码值进行比对判定。</p>
-	 *
-	 * @param successCodeValue 判定成功的业务码值，不能为空
-	 * @return 当前实例
-	 * @since 1.0.0
-	 */
-	public RestRequestBuilder withJsonErrorHandler(Object successCodeValue) {
-		this.errorHandler = new JsonResponseErrorHandler(successCodeValue);
-		return this;
-	}
-
-	/**
-	 * 配置 JSON 错误处理器（自定义实例）
-	 *
-	 * @param errorHandler 自定义错误处理器实例
-	 * @return 当前实例
-	 * @since 1.0.0
-	 */
-	public RestRequestBuilder withJsonErrorHandler(JsonResponseErrorHandler errorHandler) {
+	public RestRequestBuilder(RestClient restClient, UriComponentsBuilder uriComponentsBuilder,
+							  JsonResponseErrorHandler errorHandler) {
+		this(restClient, uriComponentsBuilder);
+		Assert.notNull(errorHandler, "errorHandler 不可为 null");
 		this.errorHandler = errorHandler;
-		return this;
+	}
+
+	/**
+	 * 基于 URL 字符串创建构建器（不配置错误处理器）。
+	 * <p>
+	 * 将 {@code urlString} 解析为 {@link UriComponentsBuilder} 并与 {@link RestClient} 组合。
+	 * </p>
+	 *
+	 * @param restClient RestClient 实例，不能为空
+	 * @param urlString  URL 字符串，不能为空
+	 * @return 新的 RestRequestBuilder 实例
+	 * @throws IllegalArgumentException 当 restClient 为 null 或 urlString 为空/仅空白时抛出
+	 * @since 1.0.0
+	 */
+	public static RestRequestBuilder fromUrlString(RestClient restClient, String urlString) {
+		Assert.hasText(urlString, "uriString 不可为空");
+		return new RestRequestBuilder(restClient, UriComponentsBuilder.fromUriString(urlString));
+	}
+
+	/**
+	 * 基于 URL 字符串创建构建器，并按成功业务码配置 JSON 错误处理器。
+	 * <p>
+	 * 说明：错误处理器只有在 RestClient 启用 {@link BufferingResponseInterceptor} 时才会生效；
+	 * 未启用缓冲包装时，响应体不可重复读取，判定与后续读取可能受限。
+	 * </p>
+	 *
+	 * @param restClient       RestClient 实例，不能为空
+	 * @param urlString        URL 字符串，不能为空
+	 * @param successCode 判定为成功的业务码，不能为空
+	 * @return 新的 RestRequestBuilder 实例
+	 * @throws IllegalArgumentException 当 restClient 为 null、urlString 为空/仅空白或 successCode 为 null 时抛出
+	 * @see BufferingResponseInterceptor
+	 * @since 1.0.0
+	 */
+	public static RestRequestBuilder fromUrlString(RestClient restClient, String urlString, Object successCode) {
+		Assert.hasText(urlString, "uriString 不可为空");
+		Assert.notNull(successCode, "success 不可为 null");
+		return new RestRequestBuilder(restClient, UriComponentsBuilder.fromUriString(urlString),
+			new JsonResponseErrorHandler(successCode));
+	}
+
+	/**
+	 * 基于 {@link URI} 创建构建器（不配置错误处理器）。
+	 *
+	 * @param restClient RestClient 实例，不能为空
+	 * @param url        目标 URI，不能为空
+	 * @return 新的 RestRequestBuilder 实例
+	 * @throws IllegalArgumentException 当 restClient 或 url 为 null 时抛出
+	 * @since 1.0.0
+	 */
+	public static RestRequestBuilder fromUrl(RestClient restClient, URI url) {
+		Assert.notNull(url, "url 不可为 null");
+		return new RestRequestBuilder(restClient, UriComponentsBuilder.fromUri(url));
+	}
+
+	/**
+	 * 基于 {@link URI} 创建构建器，并按成功判定谓词配置 JSON 错误处理器。
+	 * <p>
+	 * 说明：错误处理器只有在 RestClient 启用 {@link BufferingResponseInterceptor} 时才会生效；
+	 * 未启用缓冲包装时，响应体不可重复读取，判定与后续读取可能受限。
+	 * </p>
+	 *
+	 * @param restClient       RestClient 实例，不能为空
+	 * @param url              目标 URI，不能为空
+	 * @param successPredicate 业务成功判定谓词，不能为空
+	 * @return 新的 RestRequestBuilder 实例
+	 * @throws IllegalArgumentException 当 restClient、url 或 successPredicate 为 null 时抛出
+	 * @see BufferingResponseInterceptor
+	 * @since 1.0.0
+	 */
+	public static RestRequestBuilder fromUrl(RestClient restClient, URI url, Predicate<JsonObject> successPredicate) {
+		Assert.notNull(url, "url 不可为 null");
+		Assert.notNull(successPredicate, "successPredicate 不可为 null");
+		return new RestRequestBuilder(restClient, UriComponentsBuilder.fromUri(url),
+			new JsonResponseErrorHandler(successPredicate));
+	}
+
+	/**
+	 * 基于 URL 字符串创建构建器，并按成功判定谓词配置 JSON 错误处理器。
+	 * <p>
+	 * 说明：错误处理器只有在 RestClient 启用 {@link BufferingResponseInterceptor} 时才会生效；
+	 * 未启用缓冲包装时，响应体不可重复读取，判定与后续读取可能受限。
+	 * </p>
+	 *
+	 * @param restClient       RestClient 实例，不能为空
+	 * @param urlString        URL 字符串，不能为空
+	 * @param successPredicate 业务成功判定谓词，不能为空
+	 * @return 新的 RestRequestBuilder 实例
+	 * @throws IllegalArgumentException 当 restClient 为 null、urlString 为空/仅空白或 successPredicate 为 null 时抛出
+	 * @see BufferingResponseInterceptor
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder fromUrlString(RestClient restClient, String urlString, Predicate<JsonObject> successPredicate) {
+		Assert.hasText(urlString, "uriString 不可为空");
+		Assert.notNull(successPredicate, "successPredicate 不可为 null");
+		return new RestRequestBuilder(restClient, UriComponentsBuilder.fromUriString(urlString),
+			new JsonResponseErrorHandler(successPredicate));
+	}
+
+	/**
+	 * 基于 {@link URI} 创建构建器，并按成功业务码配置 JSON 错误处理器。
+	 * <p>
+	 * 说明：错误处理器只有在 RestClient 启用 {@link BufferingResponseInterceptor} 时才会生效；
+	 * 未启用缓冲包装时，响应体不可重复读取，判定与后续读取可能受限。
+	 * </p>
+	 *
+	 * @param restClient       RestClient 实例，不能为空
+	 * @param url              目标 URI，不能为空
+	 * @param successCode 判定为成功的业务码，不能为空
+	 * @return 新的 RestRequestBuilder 实例
+	 * @throws IllegalArgumentException 当 restClient、url 或 successCode 为 null 时抛出
+	 * @see BufferingResponseInterceptor
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder fromUrl(RestClient restClient, URI url, Object successCode) {
+		Assert.notNull(url, "url 不可为 null");
+		Assert.notNull(successCode, "successCode 不可为 null");
+		return new RestRequestBuilder(restClient, UriComponentsBuilder.fromUri(url),
+			new JsonResponseErrorHandler(successCode));
 	}
 
 	/**
@@ -306,7 +394,8 @@ public class RestRequestBuilder {
 	 *
 	 * @param service 远程服务名称
 	 * @return 当前实例
-	 * @see #withJsonErrorHandler
+	 * @see JsonResponseErrorHandler
+	 * @see #RestRequestBuilder(RestClient, UriComponentsBuilder, JsonResponseErrorHandler)
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder errorService(String service) {
@@ -322,7 +411,8 @@ public class RestRequestBuilder {
 	 *
 	 * @param api API 接口名称或路径
 	 * @return 当前实例
-	 * @see #withJsonErrorHandler
+	 * @see JsonResponseErrorHandler
+	 * @see #RestRequestBuilder(RestClient, UriComponentsBuilder, JsonResponseErrorHandler)
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder errorApi(String api) {
@@ -339,7 +429,8 @@ public class RestRequestBuilder {
 	 *
 	 * @param exceptionMessage 自定义异常消息
 	 * @return 当前实例
-	 * @see #withJsonErrorHandler
+	 * @see JsonResponseErrorHandler
+	 * @see #RestRequestBuilder(RestClient, UriComponentsBuilder, JsonResponseErrorHandler)
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder exceptionMessage(String exceptionMessage) {
@@ -356,7 +447,8 @@ public class RestRequestBuilder {
 	 *
 	 * @param codeMemberName 业务码字段名，不能为空
 	 * @return 当前实例
-	 * @see #withJsonErrorHandler
+	 * @see JsonResponseErrorHandler
+	 * @see #RestRequestBuilder(RestClient, UriComponentsBuilder, JsonResponseErrorHandler)
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder errorCodeField(String codeMemberName) {
@@ -373,7 +465,8 @@ public class RestRequestBuilder {
 	 *
 	 * @param messageMemberName 错误消息字段名，不能为空
 	 * @return 当前实例
-	 * @see #withJsonErrorHandler
+	 * @see JsonResponseErrorHandler
+	 * @see #RestRequestBuilder(RestClient, UriComponentsBuilder, JsonResponseErrorHandler)
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder errorMessageField(String messageMemberName) {
@@ -812,7 +905,7 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @see org.springframework.core.io.Resource
 	 * @see org.springframework.http.converter.ResourceHttpMessageConverter
-	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
+	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
 	public ResponseEntity<Resource> toResourceEntity(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
@@ -828,7 +921,7 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @see org.springframework.http.converter.ByteArrayHttpMessageConverter
-	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
+	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
 	public byte[] toBytes(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
@@ -844,7 +937,7 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @see org.springframework.http.converter.StringHttpMessageConverter
-	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
+	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
 	public String toString(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
@@ -865,7 +958,7 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
 	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
-	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
+	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
 	public <T> T toJson(Class<T> bodyType) throws RestClientResponseException {
@@ -887,7 +980,7 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
 	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
-	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
+	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
 	public <T> T toJson(ParameterizedTypeReference<T> bodyType) throws RestClientResponseException {
@@ -906,7 +999,7 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
-	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
+	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
 	public <T> T toBean(Class<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
@@ -925,7 +1018,7 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
-	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
+	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
 	public <T> T toBean(ParameterizedTypeReference<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
@@ -939,7 +1032,7 @@ public class RestRequestBuilder {
 	 * @throws RestClientResponseException                                                          当请求失败且未配置错误处理器，或错误处理器未接管时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
-	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
+	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
 	public ResponseEntity<Void> toBodilessEntity() throws RestClientResponseException {
@@ -949,35 +1042,30 @@ public class RestRequestBuilder {
 	/**
 	 * 构建请求
 	 * <p>
-	 * 根据当前配置构建完整的请求规范，包括：
-	 * <ul>
-	 *     <li>设置请求方法和URI</li>
-	 *     <li>配置请求头</li>
-	 *     <li>处理请求体（根据内容类型区分表单数据和其他类型）</li>
-	 * </ul>
+	 * 根据当前配置构建完整的请求规范，设置请求方法、URI、头与请求体（区分表单与非表单）。
 	 * </p>
 	 *
 	 * @return 构建的请求规范
 	 * @throws IllegalArgumentException 当请求uri为空时抛出
-	 * @since 1.0.0
-	 */
+     * @since 1.0.0
+     */
 	public RestClient.RequestBodySpec buildRequestBodySpec() {
-		URI uri = uriComponentsBuilder.build(uriVariables);
+		URI uri = this.uriComponentsBuilder.build(this.uriVariables);
 		if (StringUtils.isBlank(uri.toString())) {
 			throw new IllegalArgumentException("uri 不可为空");
 		}
 
-		RestClient.RequestBodySpec requestBodySpec = restClient
-			.method(method)
+		RestClient.RequestBodySpec requestBodySpec = this.restClient
+			.method(this.method)
 			.uri(uri)
-			.contentType(contentType)
-			.headers(httpHeaders -> httpHeaders.addAll(headers));
+			.contentType(this.contentType)
+			.headers(httpHeaders -> httpHeaders.addAll(this.headers));
 
-		if (!MediaType.APPLICATION_FORM_URLENCODED.equals(contentType)) {
-			if (FORM_MEDIA_TYPES.contains(contentType)) {
-				requestBodySpec.body(formData);
+		if (!MediaType.APPLICATION_FORM_URLENCODED.equals(this.contentType)) {
+			if (FORM_MEDIA_TYPES.contains(this.contentType)) {
+				requestBodySpec.body(this.formData);
 			} else {
-				requestBodySpec.body(body);
+				requestBodySpec.body(this.body);
 			}
 		}
 
@@ -987,16 +1075,17 @@ public class RestRequestBuilder {
 	/**
 	 * 构建响应规范
 	 * <p>
-	 * 在当前请求配置基础上创建{@link RestClient.ResponseSpec}，并按需设置Accept头；
-	 * 若已配置{@link #errorHandler}，则将其注册到响应处理流程，用于统一判断并抛出业务异常。
+	 * 基于 {@link #buildRequestBodySpec()} 创建 {@link RestClient.ResponseSpec}，并按需设置 Accept 头。
+	 * 若已配置 {@link #errorHandler}，则将其注册到响应处理流程，用于统一判断并抛出业务异常。
+	 * 如需在判定后继续读取响应体（例如用于日志记录），需要在 RestClient 构建阶段启用响应体缓冲能力。
 	 * </p>
 	 *
-	 * @param acceptableMediaTypes 可接受的媒体类型列表，用于设置Accept头，例如：{@code MediaType.APPLICATION_JSON}
-	 * @return 构建完成的响应规范，可继续调用{@code body(..)}、{@code toEntity(..)}或{@code toBodilessEntity()}
+	 * @param acceptableMediaTypes 可接受的媒体类型列表，用于设置 Accept 头，例如：{@code MediaType.APPLICATION_JSON}
+	 * @return 构建完成的响应规范，可继续调用 {@code body(..)}、{@code toEntity(..)} 或 {@code toBodilessEntity()}
 	 * @see #buildRequestBodySpec()
 	 * @see JsonResponseErrorHandler
-	 * @since 1.0.0
-	 */
+     * @since 1.0.0
+     */
 	protected RestClient.ResponseSpec buildResponseSpec(MediaType... acceptableMediaTypes) {
 		RestClient.ResponseSpec responseSpec = buildRequestBodySpec()
 			.accept(acceptableMediaTypes)

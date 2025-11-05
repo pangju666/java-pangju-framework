@@ -19,7 +19,7 @@ package io.github.pangju666.framework.web.utils;
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.IPAddressStringParameters;
-import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.lang.WebConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.lang.Nullable;

@@ -19,7 +19,7 @@ package io.github.pangju666.framework.web.exception.base;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
 import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.enums.HttpExceptionType;
-import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.lang.WebConstants;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

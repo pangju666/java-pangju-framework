@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.servlet.interceptor;
+package io.github.pangju666.framework.web.servlet;
 
-import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.lang.WebConstants;
 import org.springframework.core.Ordered;
 import org.springframework.web.servlet.HandlerInterceptor;
 

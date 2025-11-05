@@ -14,14 +14,14 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.servlet.builder;
+package io.github.pangju666.framework.web.servlet;
 
 import io.github.pangju666.commons.io.utils.FileUtils;
 import io.github.pangju666.commons.io.utils.IOUtils;
 import io.github.pangju666.framework.web.annotation.HttpException;
 import io.github.pangju666.framework.web.exception.base.BaseHttpException;
-import io.github.pangju666.framework.web.model.common.Result;
-import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.lang.WebConstants;
+import io.github.pangju666.framework.web.model.Result;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.input.BufferedFileChannelInputStream;
 import org.apache.commons.io.input.UnsynchronizedBufferedInputStream;

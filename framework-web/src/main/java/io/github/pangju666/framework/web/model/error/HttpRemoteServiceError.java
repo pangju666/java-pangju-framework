@@ -16,6 +16,7 @@
 
 package io.github.pangju666.framework.web.model.error;
 
+import io.github.pangju666.framework.web.client.JsonResponseErrorHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -27,7 +28,7 @@ import java.net.URI;
  * <p>
  * 描述通过远程调用捕获的业务或网关错误的上下文信息，包含：
  * 服务名、接口名/路径、请求 URI、业务码、错误消息与 HTTP 状态码。
- * 一般由 {@link io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler}
+ * 一般由 {@link JsonResponseErrorHandler}
  * 在错误判定后构造，并随统一异常一并抛出，便于上层消费与日志定位。
  * </p>
  *
@@ -52,7 +53,7 @@ import java.net.URI;
  *
  * @author pangju666
  * @since 1.0.0
- * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
+ * @see JsonResponseErrorHandler
  * @see io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException
  * @see io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException
  */

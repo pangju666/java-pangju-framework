@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.pool;
+package io.github.pangju666.framework.web.lang;
 
 /**
  * Web模块常量池

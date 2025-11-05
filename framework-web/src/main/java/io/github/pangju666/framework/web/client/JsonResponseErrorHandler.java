@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.web.client.handler;
+package io.github.pangju666.framework.web.client;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -16,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 
@@ -44,6 +43,9 @@ import java.util.function.Predicate;
  *   <li>网关超时（{@link HttpStatus#GATEWAY_TIMEOUT}）映射为 {@link HttpRemoteServiceTimeoutException}</li>
  *   <li>其他错误映射为 {@link HttpRemoteServiceException}</li>
  *   <li>当设置了自定义异常消息（{@link #customExceptionMessage}）时，优先使用该消息</li>
+ *   <li>需要配合 {@link BufferingResponseInterceptor} 使用，
+ *       使响应体由 {@link BufferingClientHttpResponseWrapper} 缓冲包装，
+ *       以支持重复读取并避免一次性流在判定阶段被消耗影响后续处理</li>
  * </ul>
  * </p>
  *
@@ -60,6 +62,8 @@ import java.util.function.Predicate;
  * @see HttpRemoteServiceError
  * @see HttpRemoteServiceException
  * @see HttpRemoteServiceTimeoutException
+ * @see BufferingClientHttpResponseWrapper
+ * @see BufferingResponseInterceptor
  * @since 1.0.0
  */
 public class JsonResponseErrorHandler implements ResponseErrorHandler {
@@ -248,6 +252,8 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 	 * <ul>
 	 *   <li>当 HTTP 状态码为错误（4xx/5xx）时，直接视为错误</li>
 	 *   <li>当状态码非错误且不为 200（OK）时，视为无错误（跳过业务判定）</li>
+	 *   <li>若响应未被 {@link BufferingClientHttpResponseWrapper} 包装，直接视为无错误，
+	 *   以避免一次性流在判定阶段被消耗影响后续处理；需要注册{@link BufferingResponseInterceptor} 以启用缓冲包装</li>
 	 *   <li>解析响应体为 JSON 对象；不可解析或为空时视为无错误</li>
 	 *   <li>若配置了成功判定谓词（{@link #successPredicate}），谓词返回 {@code false} 视为错误，返回 {@code true} 视为无错误</li>
 	 *   <li>否则，当存在业务码字段（{@link #codeField}）时：
@@ -258,6 +264,8 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 	 * @param response 客户端响应对象
 	 * @return 当判定为错误时返回 {@code true}，否则返回 {@code false}
 	 * @throws IOException 读取响应体时发生 IO 异常
+	 * @see BufferingResponseInterceptor
+	 * @see BufferingClientHttpResponseWrapper
 	 * @since 1.0.0
 	 */
 	@Override
@@ -272,6 +280,10 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 		if (response.getStatusCode().value() != HttpStatus.OK.value()) {
 			return false;
 		}
+		if (!(response instanceof BufferingClientHttpResponseWrapper)) {
+			return false;
+		}
+
 		JsonObject responseBody = getResponseBody(response);
 		if (Objects.isNull(responseBody)) {
 			return false;
@@ -281,7 +293,7 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 		}
 		try {
 			String errorCode = getErrorCode(responseBody);
-			return this.successCode.equals(errorCode);
+			return !this.successCode.equals(errorCode);
 		} catch (ClassCastException ignored) {
 			return false;
 		}
@@ -339,10 +351,17 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 	 * 时尝试解析；否则直接返回 {@code null}。当响应体为空（长度为 0）或解析结果不是 JSON 对象时，返回 {@code null}。
 	 * 解析使用 {@link StandardCharsets#UTF_8}。
 	 * </p>
+	 * <p>
+	 * 说明：为避免一次性流在判定或处理过程中被消耗，需要配合
+	 * {@link BufferingResponseInterceptor} 使用，使响应体由
+	 * {@link BufferingClientHttpResponseWrapper} 缓冲包装以支持重复读取。
+	 * </p>
 	 *
 	 * @param response 客户端响应对象
 	 * @return 解析得到的 JSON 对象；若不可解析或非 JSON 对象，返回 {@code null}
 	 * @throws IOException 读取响应体时发生 IO 异常
+	 * @see BufferingResponseInterceptor
+	 * @see BufferingClientHttpResponseWrapper
 	 */
 	protected JsonObject getResponseBody(ClientHttpResponse response) throws IOException {
 		if (!MediaType.APPLICATION_JSON.equals(response.getHeaders().getContentType()) &&
@@ -350,7 +369,7 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 			return null;
 		}
 
-		byte[] bodyBytes = FileCopyUtils.copyToByteArray(response.getBody());
+		byte[] bodyBytes = response.getBody().readAllBytes();
 		if (bodyBytes.length == 0) {
 			return null;
 		}

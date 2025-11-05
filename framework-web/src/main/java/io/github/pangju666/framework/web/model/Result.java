@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.web.model.common;
+package io.github.pangju666.framework.web.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.github.pangju666.commons.lang.utils.JsonUtils;
-import io.github.pangju666.framework.web.pool.WebConstants;
+import io.github.pangju666.framework.web.lang.WebConstants;
 
 /**
  * 统一响应结果封装类
