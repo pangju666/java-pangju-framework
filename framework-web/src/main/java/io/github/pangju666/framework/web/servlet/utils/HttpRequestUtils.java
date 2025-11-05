@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
@@ -152,13 +153,13 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 
 		String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
 		if (StringUtils.isNotBlank(userAgent)) {
-			if (!StringUtils.containsIgnoreCase(userAgent, "Windows NT") ||
-				(StringUtils.containsIgnoreCase(userAgent, "Windows NT") &&
-					StringUtils.containsIgnoreCase(userAgent, "compatible; MSIE 9.0;"))) {
+			if (!Strings.CI.contains(userAgent, "Windows NT") ||
+				(Strings.CI.contains(userAgent, "Windows NT") &&
+					Strings.CI.contains(userAgent, "compatible; MSIE 9.0;"))) {
 				// 排除 苹果桌面系统
-				if (!StringUtils.containsIgnoreCase(userAgent, "Windows NT") &&
-					!StringUtils.containsIgnoreCase(userAgent, "Macintosh")) {
-					return StringUtils.containsAnyIgnoreCase(userAgent, MOBILE_AGENTS);
+				if (!Strings.CI.contains(userAgent, "Windows NT") &&
+					!Strings.CI.contains(userAgent, "Macintosh")) {
+					return Strings.CI.containsAny(userAgent, MOBILE_AGENTS);
 				}
 			}
 		}
@@ -187,22 +188,22 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 		Assert.notNull(request, "request 不可为null");
 
 		String accept = request.getHeader(HttpHeaders.ACCEPT);
-		if (StringUtils.contains(accept, MediaType.APPLICATION_JSON_VALUE)) {
+		if (Strings.CS.contains(accept, MediaType.APPLICATION_JSON_VALUE)) {
 			return true;
 		}
 
 		String xRequestedWith = request.getHeader("X-Requested-With");
-		if (StringUtils.contains(xRequestedWith, "XMLHttpRequest")) {
+		if (Strings.CS.contains(xRequestedWith, "XMLHttpRequest")) {
 			return true;
 		}
 
 		String uri = request.getRequestURI();
-		if (StringUtils.containsAnyIgnoreCase(uri, ".json", ".xml")) {
+		if (Strings.CI.containsAny(uri, ".json", ".xml")) {
 			return true;
 		}
 
 		String ajax = request.getParameter("__ajax");
-		return StringUtils.containsAnyIgnoreCase(ajax, "json", "xml");
+		return Strings.CI.containsAny(ajax, "json", "xml");
 	}
 
 	/**
@@ -247,7 +248,7 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 			ip = request.getRemoteAddr();
 		}
 
-		return StringUtils.equalsAnyIgnoreCase(ip, WebConstants.LOCALHOST_IPV4_ADDRESS,
+		return Strings.CS.equalsAny(ip, WebConstants.LOCALHOST_IPV4_ADDRESS,
 			WebConstants.LOCALHOST_IPV6_ADDRESS) ? WebConstants.LOCALHOST_IPV4_ADDRESS :
 			IpUtils.getMultistageReverseProxyIp(ip);
 	}
@@ -518,6 +519,6 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 	public static boolean isJsonRequestBody(final HttpServletRequest request) {
 		Assert.notNull(request, "request 不可为null");
 
-		return StringUtils.startsWith(request.getContentType(), MediaType.APPLICATION_JSON_VALUE);
+		return Strings.CS.startsWith(request.getContentType(), MediaType.APPLICATION_JSON_VALUE);
 	}
 }

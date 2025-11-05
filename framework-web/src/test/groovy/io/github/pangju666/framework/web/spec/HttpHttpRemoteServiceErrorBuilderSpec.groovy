@@ -20,7 +20,6 @@ import com.google.gson.JsonObject
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException
 import io.github.pangju666.framework.web.model.error.HttpRemoteServiceError
-import io.github.pangju666.framework.web.model.error.HttpRemoteServiceErrorBuilder
 import org.apache.commons.lang3.ArrayUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus

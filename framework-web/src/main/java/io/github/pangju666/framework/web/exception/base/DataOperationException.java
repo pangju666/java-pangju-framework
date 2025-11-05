@@ -158,7 +158,7 @@ public class DataOperationException extends BaseHttpException {
 	public DataOperationException(String operation, String message, DataOperationError error) {
 		super(message, Objects.isNull(error) ? null : error.reason());
 		this.operation = operation;
-		this.error = ObjectUtils.defaultIfNull(error, EMPTY_ERROR);
+		this.error = ObjectUtils.getIfNull(error, EMPTY_ERROR);
 	}
 
 	/**
@@ -173,7 +173,7 @@ public class DataOperationException extends BaseHttpException {
 	public DataOperationException(String operation, String message, DataOperationError error, Throwable cause) {
 		super(message, Objects.isNull(error) ? null : error.reason(), cause);
 		this.operation = operation;
-		this.error = ObjectUtils.defaultIfNull(error, EMPTY_ERROR);
+		this.error = ObjectUtils.getIfNull(error, EMPTY_ERROR);
 	}
 
 	/**

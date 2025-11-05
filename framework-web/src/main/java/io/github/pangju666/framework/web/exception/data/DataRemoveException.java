@@ -97,7 +97,6 @@ public class DataRemoveException extends DataOperationException {
 	 */
 	public DataRemoveException(String reason) {
 		super(OPERATION, ERROR_MESSAGE, reason);
-		;
 	}
 
 	/**

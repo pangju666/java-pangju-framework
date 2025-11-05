@@ -21,6 +21,7 @@ import inet.ipaddr.IPAddressString;
 import inet.ipaddr.IPAddressStringParameters;
 import io.github.pangju666.framework.web.pool.WebConstants;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -116,7 +117,7 @@ public class IpUtils {
 	 * @since 1.0.0
 	 */
 	public static boolean isUnknown(@Nullable final String ipAddress) {
-		return StringUtils.isBlank(ipAddress) || StringUtils.equalsIgnoreCase(WebConstants.UNKNOWN_ADDRESS, ipAddress);
+		return StringUtils.isBlank(ipAddress) || Strings.CI.equals(WebConstants.UNKNOWN_ADDRESS, ipAddress);
 	}
 
 	/**
@@ -424,7 +425,7 @@ public class IpUtils {
 		}
 
 		// 多级反向代理检测
-		if (StringUtils.indexOf(ipAddress, ",") > 0) {
+		if (Strings.CS.indexOf(ipAddress, ",") > 0) {
 			final String[] splitIpAddresses = ipAddress.split(",");
 			for (String splitIpAddress : splitIpAddresses) {
 				String trimmedIpAddress = StringUtils.trim(splitIpAddress);

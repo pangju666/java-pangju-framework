@@ -245,7 +245,7 @@ public class HttpResponseBuilder {
 	public HttpResponseBuilder contentDisposition(@Nullable final String filename, @Nullable final Charset charsets) {
 		if (StringUtils.isNotBlank(filename)) {
 			response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" +
-				URLEncoder.encode(filename, ObjectUtils.defaultIfNull(charsets, StandardCharsets.UTF_8)));
+				URLEncoder.encode(filename, ObjectUtils.getIfNull(charsets, StandardCharsets.UTF_8)));
 		}
 
 		return this;
