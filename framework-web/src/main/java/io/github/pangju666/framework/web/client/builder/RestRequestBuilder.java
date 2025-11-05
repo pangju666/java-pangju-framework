@@ -16,13 +16,15 @@
 
 package io.github.pangju666.framework.web.client.builder;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.github.pangju666.commons.lang.pool.Constants;
+import io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler;
 import io.github.pangju666.framework.web.pool.WebConstants;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -41,6 +43,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * RestClient辅助类
@@ -64,7 +67,7 @@ import java.util.*;
  *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
  *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
  *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
- *     .buildRequest() // 返回 RestClient.RequestBodySpec
+ *     .buildRequestBodySpec() // 返回 RestClient.RequestBodySpec
  *     .retrieve()
  *     .accept(MediaType.APPLICATION_JSON)
  *     .toEntity(Result.class);
@@ -77,7 +80,7 @@ import java.util.*;
  *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
  *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
  *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
- *     .toJsonEntity(Result.class);
+ *     .toJson(Result.class);
  *
  * 	   // 使用RestRequestBuilder封装的方法获取返回值
  *     Result result = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
@@ -87,7 +90,7 @@ import java.util.*;
  *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
  *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
  *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
- *     .toEntity(Result.class, MediaType.APPLICATION_JSON);
+ *     .toBean(Result.class, MediaType.APPLICATION_JSON);
  *
  *     // 使用RestRequestBuilder封装的方法获取无响应体结果
  *     RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
@@ -97,7 +100,7 @@ import java.util.*;
  *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
  *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
  *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
- *     .toBodilessEntity();
+ *     .toBodiless();
  *
  *     // 使用RestRequestBuilder封装的方法返回字节数组
  *     byte[] bytes = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
@@ -107,7 +110,7 @@ import java.util.*;
  *     .queryParam("param", 123) // 可选，可以多次调用添加多个请求参数
  *     .uriVariable("id", 1) // 可选，可以多次调用添加多个路径模板参数
  *     .jsonBody(new User("admin", "password")) // 可选，只能调用一次，重复调用会覆盖之前的body
- *     .toBytesEntity();
+ *     .toBytes();
  *
  * 	   // 使用RestRequestBuilder封装的方法返回输入流
  *     InputStream inputStream = RestRequestBuilder.fromUriString(restClient, "https://api.example.com")
@@ -194,6 +197,13 @@ public class RestRequestBuilder {
 	 * @since 1.0.0
 	 */
 	protected Object body = null;
+	/**
+	 * JSON 响应错误处理器，用于统一处理远程服务错误
+	 *
+	 * @see JsonResponseErrorHandler
+	 * @since 1.0.0
+	 */
+	protected JsonResponseErrorHandler errorHandler;
 
 	/**
 	 * 使用RestClient实例和URI构建器构造辅助类
@@ -251,6 +261,127 @@ public class RestRequestBuilder {
 		} else {
 			return new RestRequestBuilder(restClient, UriComponentsBuilder.newInstance());
 		}
+	}
+
+	/**
+	 * 配置 JSON 错误处理器（基于成功判定谓词）
+	 * <p>通过谓词判定响应是否成功。</p>
+	 *
+	 * @param successPredicate 成功判定谓词，不能为空
+	 * @return 当前实例
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder withJsonErrorHandler(Predicate<JsonObject> successPredicate) {
+		this.errorHandler = new JsonResponseErrorHandler(successPredicate);
+		return this;
+	}
+
+	/**
+	 * 配置 JSON 错误处理器（基于成功业务码值）
+	 * <p>将响应中的业务码与指定成功码值进行比对判定。</p>
+	 *
+	 * @param successCodeValue 判定成功的业务码值，不能为空
+	 * @return 当前实例
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder withJsonErrorHandler(Object successCodeValue) {
+		this.errorHandler = new JsonResponseErrorHandler(successCodeValue);
+		return this;
+	}
+
+	/**
+	 * 配置 JSON 错误处理器（自定义实例）
+	 *
+	 * @param errorHandler 自定义错误处理器实例
+	 * @return 当前实例
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder withJsonErrorHandler(JsonResponseErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
+		return this;
+	}
+
+	/**
+	 * 设置错误信息中的远程服务名称
+	 * <p>仅在已配置JSON响应错误处理器时有效，未配置将被忽略。</p>
+	 *
+	 * @param service 远程服务名称
+	 * @return 当前实例
+	 * @see #withJsonErrorHandler
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder errorService(String service) {
+		if (Objects.nonNull(this.errorHandler)) {
+			this.errorHandler.setService(service);
+		}
+		return this;
+	}
+
+	/**
+	 * 设置错误信息中的 API 接口名称或路径
+	 * <p>仅在已配置JSON响应错误处理器时有效，未配置将被忽略。</p>
+	 *
+	 * @param api API 接口名称或路径
+	 * @return 当前实例
+	 * @see #withJsonErrorHandler
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder errorApi(String api) {
+		if (Objects.nonNull(this.errorHandler)) {
+			this.errorHandler.setApi(api);
+		}
+		return this;
+	}
+
+	/**
+	 * 设置自定义异常消息
+	 * <p>当抛出远程服务异常时优先使用该消息。</p>
+	 * <p>仅在已配置JSON响应错误处理器时有效，未配置将被忽略。</p>
+	 *
+	 * @param customExceptionMessage 自定义异常消息
+	 * @return 当前实例
+	 * @see #withJsonErrorHandler
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder customExceptionMessage(String customExceptionMessage) {
+		if (Objects.nonNull(this.errorHandler)) {
+			this.errorHandler.setCustomExceptionMessage(customExceptionMessage);
+		}
+		return this;
+	}
+
+	/**
+	 * 设置响应体中的业务码字段名
+	 * <p>默认字段名为 {@code code}。</p>
+	 * <p>仅在已配置JSON响应错误处理器时有效，未配置将被忽略。</p>
+	 *
+	 * @param codeMemberName 业务码字段名，不能为空
+	 * @return 当前实例
+	 * @see #withJsonErrorHandler
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder errorCodeField(String codeMemberName) {
+		if (Objects.nonNull(this.errorHandler)) {
+			this.errorHandler.setCodeField(codeMemberName);
+		}
+		return this;
+	}
+
+	/**
+	 * 设置响应体中的错误消息字段名
+	 * <p>默认字段名为 {@code message}。</p>
+	 * <p>仅在已配置JSON响应错误处理器时有效，未配置将被忽略。</p>
+	 *
+	 * @param messageMemberName 错误消息字段名，不能为空
+	 * @return 当前实例
+	 * @see #withJsonErrorHandler
+	 * @since 1.0.0
+	 */
+	public RestRequestBuilder errorMessageField(String messageMemberName) {
+		if (Objects.nonNull(this.errorHandler)) {
+			this.errorHandler.setMessageField(messageMemberName);
+		}
+		return this;
 	}
 
 	/**
@@ -376,7 +507,7 @@ public class RestRequestBuilder {
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder query(@Nullable String query) {
-		this.uriComponentsBuilder.query(StringUtils.startsWith(query, "?") ?
+		this.uriComponentsBuilder.query(Strings.CS.startsWith(query, "?") ?
 			StringUtils.substring(query, 1) : query);
 		return this;
 	}
@@ -414,78 +545,80 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 添加单个请求头
+	 * 添加单个请求头（支持数组/集合展开）
+	 * <p>
+	 * 根据传入的 {@code value} 类型执行不同处理：
+	 * <ul>
+	 *   <li>数组类型：展开为多个同名请求头，依次添加</li>
+	 *   <li>集合类型：展开为多个同名请求头，依次添加</li>
+	 *   <li>其他类型：按单值请求头添加</li>
+	 * </ul>
+	 * 若 {@code value} 为 {@code null}，则不做任何处理。
+	 * 所有值通过 {@link Objects#toString(Object, String)} 转为字符串后再添加。
+	 * </p>
 	 *
-	 * @param key  请求头名称，例如：{@code "Authorization"}
-	 * @param value 请求头值，例如：{@code "Bearer token123"}
+	 * @param key   请求头名称，例如：{@code "Authorization"}
+	 * @param value 请求头值/集合/数组，例如：{@code "Bearer token123"} 或 {@code List.of("a","b")}
 	 * @return 当前实例
-	 * @throws IllegalArgumentException 当headerName为空时抛出
+	 * @throws IllegalArgumentException 当key为空时抛出
 	 * @see HttpHeaders#add(String, String)
+	 * @see HttpHeaders#addAll(String, java.util.List)
 	 * @see Objects#toString(Object, String)
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder header(String key, @Nullable Object value) {
 		Assert.hasText(key, "key 不可为空");
 
-		this.headers.add(key, Objects.toString(value, null));
-		return this;
-	}
-
-	/**
-	 * 添加多值请求头
-	 *
-	 * @param key    请求头名称，例如：{@code "Accept"}
-	 * @param values 请求头值列表，例如：{@code List.of("application/json", "text/plain")}
-	 * @return 当前实例
-	 * @see HttpHeaders#addAll(String, List)
-	 * @see Objects#toString(Object, String)
-	 * @since 1.0.0
-	 */
-	public RestRequestBuilder header(String key, @Nullable List<?> values) {
-		if (!CollectionUtils.isEmpty(values)) {
-			if (values.size() == 1) {
-				this.headers.add(key, Objects.toString(values.get(0), null));
+		if (Objects.nonNull(value)) {
+			if (value.getClass().isArray()) {
+				this.headers.addAll(key, Arrays.stream((Object[]) value)
+					.map(item -> Objects.toString(item, null))
+					.toList());
+			} else if (value instanceof Collection<?> collection) {
+				this.headers.addAll(key, collection.stream()
+					.map(item -> Objects.toString(item, null))
+					.toList());
 			} else {
-				this.headers.addAll(key, values.stream()
-					.map(value -> Objects.toString(value, null))
-					.toList()
-				);
+				this.headers.add(key, Objects.toString(value, null));
 			}
 		}
 		return this;
 	}
 
 	/**
-	 * 批量添加请求头
+	 * 批量添加请求头（MultiValueMap）
+	 * <p>
+	 * 将提供的请求头映射合并到当前请求头中；当 {@code headers} 为 {@code null} 或空时，不做任何处理。
+	 * </p>
 	 *
 	 * @param headers 请求头映射，例如：{@code new HttpHeaders()}
 	 * @return 当前实例
 	 * @see HttpHeaders#addAll(MultiValueMap)
-	 * @see Objects#toString(Object, String)
 	 * @since 1.0.0
 	 */
-	public RestRequestBuilder headers(@Nullable MultiValueMap<String, Object> headers) {
+	public RestRequestBuilder headers(@Nullable MultiValueMap<String, String> headers) {
 		if (!CollectionUtils.isEmpty(headers)) {
-			for (Map.Entry<String, List<Object>> entry : headers.entrySet()) {
-				header(entry.getKey(), entry.getValue());
-			}
+			this.headers.addAll(headers);
 		}
 		return this;
 	}
 
 	/**
-	 * 批量添加请求头
+	 * 批量添加请求头（Map，支持数组/集合展开）
+	 * <p>
+	 * 遍历提供的请求头映射并委托至 {@link #header(String, Object)}；
+	 * 支持数组/集合值展开为多个同名请求头，{@code null} 值将被跳过。
+	 * </p>
 	 *
 	 * @param headers 请求头映射，例如：{@code Map.of("Authorization", "Bearer token123", "Accept", "application/json")}
 	 * @return 当前实例
-	 * @see HttpHeaders#add(String, String)
-	 * @see Objects#toString(Object, String)
+	 * @see #header(String, Object)
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder headers(@Nullable Map<String, Object> headers) {
 		if (!CollectionUtils.isEmpty(headers)) {
 			for (Map.Entry<String, Object> entry : headers.entrySet()) {
-				this.headers.add(entry.getKey(), Objects.toString(entry.getValue(), null));
+				header(entry.getKey(), entry.getValue());
 			}
 		}
 		return this;
@@ -551,9 +684,7 @@ public class RestRequestBuilder {
 	 *
 	 * @param body 请求体对象，例如：{@code new User("admin", "password")}
 	 * @return 当前实例
-	 * @apiNote 依赖于jackson-bind或gson库
 	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
-	 * @see org.springframework.http.converter.json.GsonHttpMessageConverter
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder jsonBody(@Nullable Object body) {
@@ -566,9 +697,7 @@ public class RestRequestBuilder {
 	 * @param body        请求体对象，例如：{@code new User("admin", "password")}
 	 * @param emptyIfNull 当body为null时是否使用空JSON对象，例如：{@code true}
 	 * @return 当前实例
-	 * @apiNote 依赖于jackson-bind或gson库
 	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
-	 * @see org.springframework.http.converter.json.GsonHttpMessageConverter
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder jsonBody(@Nullable Object body, boolean emptyIfNull) {
@@ -578,8 +707,6 @@ public class RestRequestBuilder {
 		} else {
 			if (body instanceof JsonElement jsonElement) {
 				this.body = jsonElement.toString();
-			} else if (body instanceof JsonNode node) {
-				this.body = node.toString();
 			} else {
 				this.body = body;
 			}
@@ -613,7 +740,7 @@ public class RestRequestBuilder {
 	 */
 	public RestRequestBuilder textBody(@Nullable String body, boolean emptyIfNull) {
 		this.contentType = MediaType.TEXT_PLAIN;
-		this.body = ObjectUtils.defaultIfNull(body, emptyIfNull ? StringUtils.EMPTY : null);
+		this.body = ObjectUtils.getIfNull(body, emptyIfNull ? StringUtils.EMPTY : null);
 		return this;
 	}
 
@@ -643,7 +770,7 @@ public class RestRequestBuilder {
 	 */
 	public RestRequestBuilder bytesBody(@Nullable byte[] body, boolean emptyIfNull) {
 		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
-		this.body = ObjectUtils.defaultIfNull(body, emptyIfNull ? ArrayUtils.EMPTY_BYTE_ARRAY : null);
+		this.body = ObjectUtils.getIfNull(body, emptyIfNull ? ArrayUtils.EMPTY_BYTE_ARRAY : null);
 		return this;
 	}
 
@@ -657,24 +784,6 @@ public class RestRequestBuilder {
 	 */
 	public RestRequestBuilder resourceBody(@Nullable Resource body) {
 		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
-		this.body = body;
-		return this;
-	}
-
-	/**
-	 * 设置资源请求体，指定媒体类型
-	 *
-	 * @param body      资源对象，例如：{@code new FileSystemResource(new File("example.txt"))}
-	 * @param mediaType 媒体类型，例如：{@code MediaType.APPLICATION_OCTET_STREAM}
-	 * @return 当前实例
-	 * @throws IllegalArgumentException 当mediaType为null时抛出
-	 * @see org.springframework.http.converter.ResourceHttpMessageConverter
-	 * @since 1.0.0
-	 */
-	public RestRequestBuilder resourceBody(@Nullable Resource body, MediaType mediaType) {
-		Assert.notNull(mediaType, "mediaType 不可为null");
-
-		this.contentType = mediaType;
 		this.body = body;
 		return this;
 	}
@@ -698,46 +807,20 @@ public class RestRequestBuilder {
 	}
 
 	/**
-	 * 将请求结果转换为Resource响应实体
-	 *
-	 * @return Resource响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
-	 * @see org.springframework.core.io.Resource
-	 * @since 1.0.0
-	 */
-	public ResponseEntity<Resource> toResourceEntity() throws RestClientResponseException {
-		return buildRequestBodySpec()
-			.retrieve()
-			.toEntity(Resource.class);
-	}
-
-	/**
 	 * 将请求结果转换为Resource响应实体，指定可接受的媒体类型
 	 *
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.APPLICATION_OCTET_STREAM}
 	 * @return Resource响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
+	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @see org.springframework.core.io.Resource
+	 * @see org.springframework.http.converter.ResourceHttpMessageConverter
+	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
 	public ResponseEntity<Resource> toResourceEntity(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
-		return buildRequestBodySpec()
-			.accept(acceptableMediaTypes)
-			.retrieve()
-			.toEntity(Resource.class);
-	}
-
-	/**
-	 * 将请求结果转换为字节数组响应实体
-	 *
-	 * @return 字节数组响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
-	 * @since 1.0.0
-	 */
-	public ResponseEntity<byte[]> toBytesEntity() throws RestClientResponseException {
-		return buildRequestBodySpec()
-			.retrieve()
-			.toEntity(byte[].class);
+		return buildResponseSpec(acceptableMediaTypes).toEntity(Resource.class);
 	}
 
 	/**
@@ -745,27 +828,15 @@ public class RestRequestBuilder {
 	 *
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.APPLICATION_OCTET_STREAM}
 	 * @return 字节数组响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
+	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
+	 * @see org.springframework.http.converter.ByteArrayHttpMessageConverter
+	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
-	public ResponseEntity<byte[]> toBytesEntity(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
-		return buildRequestBodySpec()
-			.accept(acceptableMediaTypes)
-			.retrieve()
-			.toEntity(byte[].class);
-	}
-
-	/**
-	 * 将请求结果转换为字符串响应实体
-	 *
-	 * @return 字符串响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
-	 * @since 1.0.0
-	 */
-	public ResponseEntity<String> toStringEntity() throws RestClientResponseException {
-		return buildRequestBodySpec()
-			.retrieve()
-			.toEntity(String.class);
+	public byte[] toBytes(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
+		return buildResponseSpec(acceptableMediaTypes).body(byte[].class);
 	}
 
 	/**
@@ -773,14 +844,15 @@ public class RestRequestBuilder {
 	 *
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON}
 	 * @return 字符串响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
+	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
+	 * @see org.springframework.http.converter.StringHttpMessageConverter
+	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
-	public ResponseEntity<String> toStringEntity(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
-		return buildRequestBodySpec()
-			.accept(acceptableMediaTypes)
-			.retrieve()
-			.toEntity(String.class);
+	public String toString(final MediaType... acceptableMediaTypes) throws RestClientResponseException {
+		return buildResponseSpec(acceptableMediaTypes).body(String.class);
 	}
 
 	/**
@@ -792,19 +864,17 @@ public class RestRequestBuilder {
 	 * @param bodyType 响应体类型，例如：{@code User.class}
 	 * @param <T>      响应体类型
 	 * @return 指定类型的JSON响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
+	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException    当bodyType为null时抛出
 	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
-	 * @see org.springframework.http.converter.json.GsonHttpMessageConverter
+	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
-	public <T> ResponseEntity<T> toJsonEntity(Class<T> bodyType) throws RestClientResponseException {
+	public <T> T toJson(Class<T> bodyType) throws RestClientResponseException {
 		Assert.notNull(bodyType, "bodyType 不可为null");
-
-		return buildRequestBodySpec()
-			.accept(MediaType.APPLICATION_JSON)
-			.retrieve()
-			.toEntity(bodyType);
+		return buildResponseSpec(MediaType.APPLICATION_JSON).body(bodyType);
 	}
 
 	/**
@@ -816,19 +886,17 @@ public class RestRequestBuilder {
 	 * @param bodyType 响应体泛型类型，例如：{@code new ParameterizedTypeReference<List<User>>(){}}
 	 * @param <T>      响应体类型
 	 * @return 指定泛型类型的JSON响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
+	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException    当bodyType为null时抛出
 	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
-	 * @see org.springframework.http.converter.json.GsonHttpMessageConverter
+	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
-	public <T> ResponseEntity<T> toJsonEntity(ParameterizedTypeReference<T> bodyType) throws RestClientResponseException {
+	public <T> T toJson(ParameterizedTypeReference<T> bodyType) throws RestClientResponseException {
 		Assert.notNull(bodyType, "bodyType 不可为null");
-
-		return buildRequestBodySpec()
-			.accept(MediaType.APPLICATION_JSON)
-			.retrieve()
-			.toEntity(bodyType);
+		return buildResponseSpec(MediaType.APPLICATION_JSON).body(bodyType);
 	}
 
 	/**
@@ -838,17 +906,16 @@ public class RestRequestBuilder {
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.APPLICATION_JSON}
 	 * @param <T>                  响应体类型
 	 * @return 指定类型的响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
+	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException    当bodyType为null时抛出
+	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
-	public <T> ResponseEntity<T> toEntity(Class<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
+	public <T> T toBean(Class<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
 		Assert.notNull(bodyType, "bodyType 不可为null");
-
-		return buildRequestBodySpec()
-			.accept(acceptableMediaTypes)
-			.retrieve()
-			.toEntity(bodyType);
+		return buildResponseSpec(acceptableMediaTypes).body(bodyType);
 	}
 
 	/**
@@ -858,30 +925,49 @@ public class RestRequestBuilder {
 	 * @param acceptableMediaTypes 可接受的媒体类型数组，例如：{@code MediaType.APPLICATION_JSON}
 	 * @param <T>                  响应体类型
 	 * @return 指定泛型类型的响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
+	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException    当bodyType为null时抛出
+	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
-	public <T> ResponseEntity<T> toEntity(ParameterizedTypeReference<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
+	public <T> T toBean(ParameterizedTypeReference<T> bodyType, MediaType... acceptableMediaTypes) throws RestClientResponseException {
 		Assert.notNull(bodyType, "bodyType 不可为null");
-
-		return buildRequestBodySpec()
-			.accept(acceptableMediaTypes)
-			.retrieve()
-			.toEntity(bodyType);
+		return buildResponseSpec(acceptableMediaTypes).body(bodyType);
 	}
 
 	/**
 	 * 将请求结果转换为无响应体的响应实体
 	 *
-	 * @return 无响应体的响应实体
-	 * @throws RestClientResponseException 当请求失败时抛出
+	 * @throws RestClientResponseException 当请求失败且未配置错误处理器，或错误处理器未接管时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException 当配置了错误处理器且判定为业务错误时抛出
+	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
+	 * @see io.github.pangju666.framework.web.client.handler.JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
-	public ResponseEntity<Void> toBodilessEntity() throws RestClientResponseException {
-		return buildRequestBodySpec()
-			.retrieve()
-			.toBodilessEntity();
+	public void toBodiless() throws RestClientResponseException {
+		buildResponseSpec().toBodilessEntity();
+	}
+
+	/**
+	 * 构建响应规范
+	 * <p>
+	 * 在当前请求配置基础上创建{@link RestClient.ResponseSpec}，并按需设置Accept头；
+	 * 若已配置{@link #errorHandler}，则将其注册到响应处理流程，用于统一判断并抛出业务异常。
+	 * </p>
+	 *
+	 * @param acceptableMediaTypes 可接受的媒体类型列表，用于设置Accept头，例如：{@code MediaType.APPLICATION_JSON}
+	 * @return 构建完成的响应规范，可继续调用{@code body(..)}、{@code toEntity(..)}或{@code toBodilessEntity()}
+	 * @see #buildRequestBodySpec()
+	 * @see JsonResponseErrorHandler
+	 * @since 1.0.0
+	 */
+	public RestClient.ResponseSpec buildResponseSpec(MediaType... acceptableMediaTypes) {
+		RestClient.ResponseSpec responseSpec = buildRequestBodySpec()
+			.accept(acceptableMediaTypes)
+			.retrieve();
+		return Objects.nonNull(this.errorHandler) ? responseSpec.onStatus(errorHandler) : responseSpec;
 	}
 
 	/**
