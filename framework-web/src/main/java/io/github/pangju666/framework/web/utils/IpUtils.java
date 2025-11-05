@@ -428,13 +428,13 @@ public class IpUtils {
 		if (Strings.CS.indexOf(ipAddress, ",") > 0) {
 			final String[] splitIpAddresses = ipAddress.split(",");
 			for (String splitIpAddress : splitIpAddresses) {
-				String trimmedIpAddress = StringUtils.trim(splitIpAddress);
+				String trimmedIpAddress = StringUtils.strip(splitIpAddress);
 				if (!isUnknown(trimmedIpAddress)) {
 					return trimmedIpAddress;
 				}
 			}
 		}
-		return ipAddress.trim();
+		return ipAddress.strip();
 	}
 
 	/**

@@ -411,7 +411,7 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 			if (StringUtils.isBlank(charsetName)) {
 				charset = StandardCharsets.UTF_8;
 			} else {
-				charset = Charset.forName(charsetName.trim());
+				charset = Charset.forName(charsetName.strip());
 			}
 		} catch (IllegalCharsetNameException e) {
 			charset = StandardCharsets.UTF_8;

@@ -289,7 +289,7 @@ public class RangeDownloadUtils {
 		String rangeValue = StringUtils.substringAfter(range, REQUEST_RANGE_HEADER_VALUE_PREFIX);
 
 		for (String part : rangeValue.split(RANGES_DELIMITER)) {
-			String[] partRange = part.trim().split(RANGE_DELIMITER);
+			String[] partRange = part.strip().split(RANGE_DELIMITER);
 			long start = Long.parseLong(partRange[0]);
 
 			if (partRange.length == 1) {
