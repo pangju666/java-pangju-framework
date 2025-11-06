@@ -43,6 +43,37 @@ public class WebConstants {
 	public static final String HTTP_PATH_SEPARATOR = "/";
 
 	/**
+	 * Ant 风格的全局路径匹配模式
+	 * <p>
+	 * 表示匹配所有路径及其子路径的 Ant 风格通配符（{@code /**}）。
+	 * 适用于 Spring MVC 拦截器与 Handler 的路径配置，例如
+	 * {@code InterceptorRegistry#addInterceptor(...).addPathPatterns(WebConstants.ANT_ANY_PATH_PATTERN)}。
+	 * 与 {@link #FILTER_ANY_URL_PATTERN}（Servlet 过滤器 URL 模式 {@code /*}）不同，
+	 * 本常量用于 MVC 层的路径匹配，不用于 Servlet 过滤器。
+	 * </p>
+	 *
+	 * @see org.springframework.web.servlet.HandlerInterceptor
+	 * @see org.springframework.web.servlet.config.annotation.InterceptorRegistry
+	 * @see org.springframework.util.AntPathMatcher
+	 * @since 1.0.0
+	 */
+	public static final String ANT_ANY_PATH_PATTERN = "/**";
+	/**
+	 * Servlet 过滤器的全局 URL 匹配模式
+	 * <p>
+	 * 表示拦截应用中的所有请求路径。适用于 {@code web.xml} 的
+	 * {@code <url-pattern>} 或 Spring Boot 的
+	 * {@code FilterRegistrationBean#addUrlPatterns(..)} 等过滤器注册场景。
+	 * 与 {@link #ANT_ANY_PATH_PATTERN}（Ant 风格 {@code /**}，用于拦截器/Handler）不同，
+	 * 本常量用于 Servlet 过滤器的 URL 模式。
+	 * </p>
+	 *
+	 * @see jakarta.servlet.Filter
+	 * @since 1.0.0
+	 */
+	public static final String FILTER_ANY_URL_PATTERN = "/*";
+
+	/**
 	 * Token前缀
 	 *
 	 * @since 1.0.0
@@ -94,18 +125,6 @@ public class WebConstants {
 	 * @since 1.0.0
 	 */
 	public static final String DEFAULT_FAILURE_MESSAGE = "请求失败";
-
-	/**
-	 * 通用路径匹配模式常量
-	 * <p>
-	 * 表示匹配所有路径及其子路径的Ant风格路径模式。
-	 * 该常量可用于拦截器、过滤器等组件中设置通配路径，
-	 * 例如在配置拦截器时使用此常量可匹配应用中的所有请求路径。
-	 * </p>
-	 *
-	 * @since 1.0.0
-	 */
-	public static final String ANY_PATH_PATTERN = "/**";
 
 	/**
 	 * 本地Ipv4地址
