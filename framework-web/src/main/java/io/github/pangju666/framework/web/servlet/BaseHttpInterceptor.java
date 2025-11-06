@@ -86,11 +86,11 @@ public abstract class BaseHttpInterceptor implements HandlerInterceptor {
 	 * @param order               拦截器执行顺序（数值越小优先级越高）
 	 * @since 1.0.0
 	 */
-	protected BaseHttpInterceptor(Set<String> excludePathPatterns, Set<String> patterns, int order) {
+	protected BaseHttpInterceptor(Set<String> patterns, Set<String> excludePathPatterns, int order) {
 		this.order = order;
 		this.excludePathPatterns = Objects.isNull(excludePathPatterns) ? Collections.emptyList() :
 			List.copyOf(excludePathPatterns);
-		this.patterns = Objects.isNull(patterns) ? Collections.singletonList(WebConstants.ANY_PATH_PATTERN) :
+		this.patterns = Objects.isNull(patterns) ? Collections.singletonList(WebConstants.ANT_ANY_PATH_PATTERN) :
 			List.copyOf(patterns);
 	}
 

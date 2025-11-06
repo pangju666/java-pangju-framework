@@ -17,8 +17,11 @@
 package io.github.pangju666.framework.web.config
 
 import io.github.pangju666.framework.web.client.BufferingResponseInterceptor
+import io.github.pangju666.framework.web.servlet.filter.HttpExceptionInfoFilter
 import org.springframework.boot.SpringBootConfiguration
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
+import org.springframework.core.Ordered
 import org.springframework.web.client.RestClient
 
 @SpringBootConfiguration
@@ -26,5 +29,15 @@ class BeanConfig {
 	@Bean
 	RestClient restClient(RestClient.Builder builder) {
 		return builder.requestInterceptor(new BufferingResponseInterceptor()).build();
+	}
+
+	@Bean
+	FilterRegistrationBean<HttpExceptionInfoFilter> httpExceptionInfoFilterFilterRegistrationBean() {
+		HttpExceptionInfoFilter httpExceptionInfoFilter = new HttpExceptionInfoFilter(
+			"/http-exception/types", "/http-exception/list", Collections.emptyList());
+		FilterRegistrationBean<HttpExceptionInfoFilter> filterRegistrationBean = new FilterRegistrationBean<>(httpExceptionInfoFilter);
+		filterRegistrationBean.addUrlPatterns("/http-exception/types", "/http-exception/list")
+		filterRegistrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+		return filterRegistrationBean;
 	}
 }
