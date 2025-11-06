@@ -37,7 +37,8 @@ import java.util.List;
  * @author pangju666
  * @since 1.0.0
  */
-public record RequiredUniqueStringListDTO(
-	@NotEmpty(message = "列表不允许为空") @NotBlankElements(message = "列表存在空白值")
-										  @UniqueElements(message = "存在重复的字符串") List<String> values) {
+public record RequiredUniqueStringListDTO(@NotEmpty(message = "列表不允许为空")
+										  @NotBlankElements(message = "列表存在空白的值")
+										  @UniqueElements(message = "列表中存在重复的值")
+										  List<String> values) {
 }

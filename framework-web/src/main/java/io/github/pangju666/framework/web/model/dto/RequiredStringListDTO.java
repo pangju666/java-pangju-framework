@@ -35,6 +35,7 @@ import java.util.List;
  * @author pangju666
  * @since 1.0.0
  */
-public record RequiredStringListDTO(@NotEmpty(message = "列表不允许为空") @NotBlankElements(message = "列表存在空白值")
+public record RequiredStringListDTO(@NotEmpty(message = "列表不允许为空")
+									@NotBlankElements(message = "列表存在空白的值")
 									List<String> values) {
 }

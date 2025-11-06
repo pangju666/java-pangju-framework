@@ -31,10 +31,10 @@ import java.util.List;
  * </ul>
  * </p>
  *
- * @param list 列表数据
+ * @param values 列表数据
  * @param <T>  列表元素类型
  * @author pangju666
  * @since 1.0.0
  */
-public record UniqueListDTO<T>(@UniqueElements(message = "集合中存在重复的值") @Valid List<T> list) {
+public record UniqueListDTO<T>(@UniqueElements(message = "列表中存在重复的值") @Valid List<T> values) {
 }

@@ -26,10 +26,10 @@ import java.util.List;
  * 用于封装列表数据，支持对列表元素进行验证。
  * </p>
  *
- * @param list 列表数据，支持元素验证
+ * @param values 列表数据，支持元素验证
  * @param <T>  列表元素类型
  * @author pangju666
  * @since 1.0.0
  */
-public record ListDTO<T>(@Valid List<T> list) {
+public record ListDTO<T>(@Valid List<T> values) {
 }

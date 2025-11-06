@@ -6,6 +6,7 @@ import org.apache.commons.codec.binary.Base64
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -67,5 +68,11 @@ class TestRequestBodyController {
 							@RequestHeader("test-header") String header,
 							@RequestPart("file") MultipartFile multipartFile) {
 		return Result.ok(List.of(path, param, header, multipartFile.getSize()))
+	}
+
+
+	@PostMapping("/test-aaaaaaaaa")
+	def tesaaaaa(@RequestBody @Validated TestDTO testDTO) {
+		return Result.ok(testDTO)
 	}
 }

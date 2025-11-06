@@ -31,10 +31,10 @@ import java.util.List;
  * </ul>
  * </p>
  *
- * @param list 必填的列表数据
+ * @param values 必填的列表数据
  * @param <T>  列表元素类型
  * @author pangju666
  * @since 1.0.0
  */
-public record RequiredListDTO<T>(@NotEmpty(message = "集合不能为空") @Valid List<T> list) {
+public record RequiredListDTO<T>(@NotEmpty(message = "列表不允许为空") @Valid List<T> values) {
 }

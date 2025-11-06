@@ -30,5 +30,5 @@ import java.util.List;
  * @author pangju666
  * @since 1.0.0
  */
-public record StringListDTO(@NotBlankElements List<String> values) {
+public record StringListDTO(@NotBlankElements(message = "列表存在空白的值") List<String> values) {
 }

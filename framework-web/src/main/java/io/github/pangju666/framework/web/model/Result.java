@@ -110,7 +110,7 @@ public record Result<T>(int code, String message, T data) {
 	/**
 	 * 创建失败响应（自定义状态码和错误信息）
 	 * <p>
-	 * 如果提供的状态码为成功码，则使用默认错误状态码
+	 * 如果提供的状态码 &gt;= 0，则使用默认错误状态码
 	 * </p>
 	 *
 	 * @param code    自定义状态码
@@ -119,7 +119,7 @@ public record Result<T>(int code, String message, T data) {
 	 * @since 1.0.0
 	 */
 	public static Result<Void> fail(int code, String message) {
-		return new Result<>(code == WebConstants.SUCCESS_CODE ? WebConstants.BASE_ERROR_CODE : code, message, null);
+		return new Result<>(code >= WebConstants.SUCCESS_CODE ? WebConstants.BASE_ERROR_CODE : code, message, null);
 	}
 
 	/**

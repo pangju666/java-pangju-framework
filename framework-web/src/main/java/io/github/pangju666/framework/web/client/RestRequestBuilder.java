@@ -87,7 +87,7 @@ import java.util.function.Predicate;
  * RestClient restClient = RestClient.builder()
  *     .requestInterceptors(interceptors -> interceptors.add(0, new BufferingResponseInterceptor()))
  *     .build();
- * </pre>
+ * }</pre>
  *
  * <p>使用示例</p>
  * <pre>{@code
@@ -116,17 +116,15 @@ import java.util.function.Predicate;
  *     .toBodilessEntity();
  *
  * // 示例四：集成 JSON 错误处理器（按业务码判定成功）
- * RestRequestBuilder builderWithError = RestRequestBuilder.fromUrlString(restClient, "https://api.example.com")
- *     .withErrorHandler("SUCCESS"); // 成功业务码值
- * Result result3 = builderWithError
+ * RestRequestBuilder.fromUrlString(restClient, "https://api.example.com")
+ *     .withErrorHandler("SUCCESS") // 成功业务码值
  *     .path("/api/test/{id}")
  *     .method(HttpMethod.POST)
  *     .errorService("用户服务")
  *     .errorApi("创建用户")
  *     .jsonBody(new User("admin", "password"))
  *     .toJson(Result.class);
- *
- * </pre>
+ * }</pre>
  *
  * <p>
  * 线程安全与复用：

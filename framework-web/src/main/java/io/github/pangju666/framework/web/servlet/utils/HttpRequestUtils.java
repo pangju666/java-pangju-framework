@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.*;
 
 /**
@@ -348,38 +349,30 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 	}
 
 	/**
-	 * 获取原始请求体
+	 * 获取原始请求体的字节数组
 	 * <p>
-	 * 从HTTP请求中读取完整的请求体内容，并以字节数组形式返回。处理逻辑如下：
+	 * 读取请求体的优先级与行为如下：
 	 * <ul>
-	 *     <li>优先从ContentCachingRequestWrapper缓存获取内容（如果已包装）</li>
-	 *     <li>如缓存数组为空或未使用包装器，则从请求输入流直接读取</li>
+	 *   <li>校验 {@code request} 非空；为空时抛出 {@link IllegalArgumentException}</li>
+	 *   <li>若请求已被 {@link ContentCachingRequestWrapper} 包装，优先返回其缓存字节；
+	 *   缓存为 {@code null} 时返回空数组</li>
+	 *   <li>否则直接从 {@link HttpServletRequest#getInputStream()} 读取全部字节并返回</li>
 	 * </ul>
+	 * 注意：直接读取输入流会消费请求体，如需后续重复读取，请在过滤器中预先使用
+	 * {@link ContentCachingRequestWrapper} 对请求进行包装以缓存内容。
 	 * </p>
 	 *
-	 * <p>
-	 * 此方法适用于需要访问原始请求体数据的场景，如：
-	 * <ul>
-	 *     <li>请求内容审计与日志记录</li>
-	 *     <li>请求体签名验证</li>
-	 *     <li>自定义格式请求体解析</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param request HTTP请求对象，不能为null
-	 * @return 包含请求体内容的字节数组
-	 * @throws IOException              读取请求内容失败时抛出
-	 * @throws IllegalArgumentException 如果request参数为null
+	 * @param request HTTP 请求对象，不能为空
+	 * @return 原始请求体字节数组；未缓存或空内容时返回空数组
+	 * @throws IOException IO 读取失败时抛出
+	 * @throws IllegalArgumentException 当请求对象为空时抛出
 	 * @since 1.0.0
 	 */
 	public static byte[] getRawRequestBody(final HttpServletRequest request) throws IOException {
 		Assert.notNull(request, "request 不可为null");
 
 		if (request instanceof ContentCachingRequestWrapper requestWrapper) {
-			byte[] bytes = requestWrapper.getContentAsByteArray();
-			if (ArrayUtils.isNotEmpty(bytes)) {
-				return bytes;
-			}
+			return ArrayUtils.nullToEmpty(requestWrapper.getContentAsByteArray());
 		}
 		try (InputStream inputStream = request.getInputStream()) {
 			return inputStream.readAllBytes();
@@ -387,34 +380,28 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 	}
 
 	/**
-	 * 获取原始请求体并根据字符集转换为字符串
+	 * 获取请求体并按字符集解码为字符串
 	 * <p>
-	 * 将请求体内容读取并转换为字符串，字符集判断逻辑如下：
-	 * <ul>
-	 *     <li>尝试从Content-Type头部提取字符集信息</li>
-	 *     <li>如提取失败或字符集名称无效，则使用UTF-8作为默认字符集</li>
-	 * </ul>
+	 * 优先使用 {@link HttpServletRequest#getCharacterEncoding()} 指定的字符集；
+	 * 当未设置、名称为空或非法/不受支持时回退为 {@link StandardCharsets#UTF_8}。
+	 * 原始字节通过 {@link #getRawRequestBody(HttpServletRequest)} 读取。
 	 * </p>
 	 *
-	 * @param request HTTP请求对象，不能为null
-	 * @return 请求体内容的字符串表示
-	 * @throws IOException              读取请求内容失败时抛出
-	 * @throws IllegalArgumentException 如果request参数为null
+	 * @param request HTTP 请求对象
+	 * @return 请求体的字符串表示；若请求体为空，返回空字符串
+	 * @throws IOException 读取请求体失败时抛出
 	 * @since 1.0.0
 	 */
 	public static String getStringRequestBody(final HttpServletRequest request) throws IOException {
 		byte[] requestBodyBytes = getRawRequestBody(request);
 
-		Charset charset;
+		Charset charset = StandardCharsets.UTF_8;
 		try {
-			String charsetName = StringUtils.substringAfterLast(request.getContentType(), ";");
-			if (StringUtils.isBlank(charsetName)) {
-				charset = StandardCharsets.UTF_8;
-			} else {
-				charset = Charset.forName(charsetName.strip());
+			String characterEncoding = request.getCharacterEncoding();
+			if (StringUtils.isNotBlank(characterEncoding)) {
+				charset = Charset.forName(characterEncoding);
 			}
-		} catch (IllegalCharsetNameException e) {
-			charset = StandardCharsets.UTF_8;
+		} catch (UnsupportedCharsetException | IllegalCharsetNameException ignored) {
 		}
 
 		return new String(requestBodyBytes, charset);

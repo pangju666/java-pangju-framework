@@ -31,9 +31,11 @@ import java.util.List;
  * </ul>
  * </p>
  *
- * @param list 字符串列表
+ * @param values 字符串列表
  * @author pangju666
  * @since 1.0.0
  */
-public record UniqueStringListDTO(@NotBlankElements @UniqueElements(message = "集合中存在重复的值") List<String> list) {
+public record UniqueStringListDTO(@NotBlankElements(message = "列表存在空白的值")
+								  @UniqueElements(message = "列表中存在重复的值")
+								  List<String> values) {
 }
