@@ -342,8 +342,8 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 		Assert.notNull(request, "request 不可为null");
 
 		String contentType = request.getContentType();
-		if (Objects.isNull(contentType) || !MediaType.MULTIPART_FORM_DATA.equalsTypeAndSubtype(
-			MediaType.valueOf(contentType))) {
+		if (StringUtils.isBlank(contentType) || !MediaType.MULTIPART_FORM_DATA.equalsTypeAndSubtype(
+			MediaType.parseMediaType(contentType))) {
 			return Collections.emptyMap();
 		}
 
@@ -515,7 +515,7 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 	public static boolean isJsonRequestBody(final HttpServletRequest request) {
 		Assert.notNull(request, "request 不可为null");
 		String contentType = request.getContentType();
-		return Objects.nonNull(contentType) && MediaType.APPLICATION_JSON.equalsTypeAndSubtype(
-			MediaType.valueOf(contentType));
+		return StringUtils.isNotBlank(contentType) && MediaType.APPLICATION_JSON.equalsTypeAndSubtype(
+			MediaType.parseMediaType(contentType));
 	}
 }
