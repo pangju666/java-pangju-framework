@@ -1,8 +1,8 @@
 package io.github.pangju666.framework.web.spec
 
 import io.github.pangju666.framework.web.TestApplication
-import io.github.pangju666.framework.web.client.builder.RestRequestBuilder
-import io.github.pangju666.framework.web.model.common.Result
+import io.github.pangju666.framework.web.client.RestRequestBuilder
+import io.github.pangju666.framework.web.model.Result
 import io.github.pangju666.framework.web.model.vo.EnumVO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader

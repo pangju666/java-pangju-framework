@@ -1,6 +1,6 @@
 package io.github.pangju666.framework.web.controller
 
-import io.github.pangju666.framework.web.model.common.Result
+import io.github.pangju666.framework.web.model.Result
 import io.github.pangju666.framework.web.model.dto.TestDTO
 import org.apache.commons.codec.binary.Base64
 import org.springframework.core.io.Resource
@@ -15,6 +15,11 @@ class TestRequestBodyController {
 	@GetMapping("/test-no-response")
 	def testGet() {
 		return new ResponseEntity<>(HttpStatus.OK)
+	}
+
+	@GetMapping("/test-a")
+	def testGeta() {
+		return Result.ok("测试")
 	}
 
 	@GetMapping("/test/{path}")

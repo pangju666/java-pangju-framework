@@ -2,8 +2,8 @@ package io.github.pangju666.framework.web.spec
 
 import io.github.pangju666.commons.lang.utils.JsonUtils
 import io.github.pangju666.framework.web.TestApplication
-import io.github.pangju666.framework.web.client.builder.RestRequestBuilder
-import io.github.pangju666.framework.web.model.common.Result
+import io.github.pangju666.framework.web.client.RestRequestBuilder
+import io.github.pangju666.framework.web.model.Result
 import io.github.pangju666.framework.web.model.dto.TestDTO
 import org.apache.commons.codec.binary.Base64
 import org.springframework.beans.factory.annotation.Autowired
@@ -209,5 +209,11 @@ class RestRequestBuilderSpec extends Specification {
 
 		then:
 		result.getContentAsByteArray() == "bytes".getBytes()
+	}
+
+	def "asdad"() {
+		setup:
+		println RestRequestBuilder.fromUrlString(restClient, "http://127.0.0.1/test-a")
+			.toJson(Result.class)
 	}
 }

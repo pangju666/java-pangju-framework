@@ -1,7 +1,7 @@
 package io.github.pangju666.framework.web.spec
 
 
-import io.github.pangju666.framework.web.pool.WebConstants
+import io.github.pangju666.framework.web.lang.WebConstants
 import io.github.pangju666.framework.web.utils.IpUtils
 import spock.lang.Specification
 import spock.lang.Unroll

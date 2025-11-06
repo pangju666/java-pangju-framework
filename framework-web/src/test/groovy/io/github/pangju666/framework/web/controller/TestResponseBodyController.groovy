@@ -1,7 +1,7 @@
 package io.github.pangju666.framework.web.controller
 
 
-import io.github.pangju666.framework.web.model.common.Result
+import io.github.pangju666.framework.web.model.Result
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.web.bind.annotation.GetMapping

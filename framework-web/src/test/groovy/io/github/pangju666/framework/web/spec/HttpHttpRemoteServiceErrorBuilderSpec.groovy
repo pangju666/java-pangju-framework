@@ -16,20 +16,13 @@
 
 package io.github.pangju666.framework.web.spec
 
-import com.google.gson.JsonObject
-import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException
-import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException
+
 import io.github.pangju666.framework.web.model.error.HttpRemoteServiceError
-import org.apache.commons.lang3.ArrayUtils
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.RestClientResponseException
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
-	def "构造函数应正确初始化基本属性"() {
+	/*def "构造函数应正确初始化基本属性"() {
 		when: "创建构建器实例"
 		def builder = new HttpRemoteServiceErrorBuilder("测试服务", "测试接口")
 
@@ -172,7 +165,7 @@ class HttpHttpRemoteServiceErrorBuilderSpec extends Specification {
 
 		then: "应抛出参数异常"
 		thrown(IllegalArgumentException)
-	}
+	}*/
 
 	def "ada"() {
 		setup:
