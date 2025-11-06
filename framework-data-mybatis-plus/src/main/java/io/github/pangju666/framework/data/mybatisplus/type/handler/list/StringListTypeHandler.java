@@ -16,6 +16,7 @@
 
 package io.github.pangju666.framework.data.mybatisplus.type.handler.list;
 
+import io.github.pangju666.framework.data.mybatisplus.type.handler.GenericsListTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
@@ -34,8 +35,8 @@ import java.util.List;
  */
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
-public final class StringVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<String> {
-	public StringVarcharToListTypeHandler() {
+public final class StringListTypeHandler extends GenericsListTypeHandler<String> {
+	public StringListTypeHandler() {
 		super((value) -> value);
 	}
 }

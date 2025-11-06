@@ -36,8 +36,8 @@ import java.util.Objects;
  * </p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see io.github.pangju666.framework.data.mybatisplus.annotation.validation.AutoIds
+ * @since 1.0.0
  */
 public class AutoIdsValidator implements ConstraintValidator<AutoIds, Collection<Long>> {
 	@Override
@@ -46,8 +46,7 @@ public class AutoIdsValidator implements ConstraintValidator<AutoIds, Collection
 			return true;
 		}
 		for (Long value : values) {
-			boolean result = Objects.nonNull(value) && value >= 1;
-			if (!result) {
+			if (Objects.isNull(value) || value < 1) {
 				return false;
 			}
 		}

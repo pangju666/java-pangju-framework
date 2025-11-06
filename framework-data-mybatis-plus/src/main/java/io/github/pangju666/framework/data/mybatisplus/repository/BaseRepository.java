@@ -33,8 +33,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 基础仓库类，扩展了MyBatis-Plus的CrudRepository功能
@@ -446,7 +446,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 		if (nonNull) {
 			queryWrapper = queryWrapper.isNotNull(column);
 		}
-		var stream = queryWrapper.list()
+		Stream<V> stream = queryWrapper.list()
 			.stream()
 			.map(column);
 		if (unique) {
@@ -1621,49 +1621,5 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 			return "null";
 		}
 		return JsonUtils.toString(value);
-	}
-
-	/**
-	 * 将集合转换为JSON数组字符串
-	 * <p>
-	 * 该方法将给定的集合对象转换为JSON数组格式的字符串。如果传入的集合为空（null或无元素），则返回null。转换过程通过{@link JsonUtils#toString}方法进行，并在结果为空字符串时返回null。
-	 * </p>
-	 *
-	 * @param values 待转换的集合对象
-	 * @param <V>    集合元素类型
-	 * @return 转换后的JSON数组字符串，如果集合为空则返回null
-	 * @apiNote 此方法仅可在<strong>MySQL</strong>数据库环境下使用
-	 * @since 1.0.0
-	 */
-	protected <V> String getJsonArrayString(Collection<V> values) {
-		if (CollectionUtils.isEmpty(values)) {
-			return null;
-		}
-		return StringUtils.defaultIfEmpty(JsonUtils.toString(values), null);
-	}
-
-	/**
-	 * 将集合转换为JSON数组字符串，支持自定义过滤条件
-	 * <p>
-	 * 该方法先使用指定的过滤条件对集合元素进行过滤，然后将过滤后的集合转换为JSON数组格式的字符串。
-	 * 如果过滤后的集合为空或转换结果为空JSON数组，则返回null。
-	 * </p>
-	 *
-	 * @param values    要转换的集合
-	 * @param predicate 用于过滤集合元素的条件，满足条件的元素将被保留
-	 * @param <V>       集合元素类型
-	 * @return 转换后的JSON数组字符串，如果集合为空或过滤后为空则返回null
-	 * @throws NullPointerException 如果predicate为null
-	 * @apiNote 此方法仅可在<strong>MySQL</strong>数据库环境下使用
-	 * @since 1.0.0
-	 */
-	protected <V> String getJsonArrayString(Collection<V> values, Predicate<V> predicate) {
-		Objects.requireNonNull(predicate);
-		if (CollectionUtils.isEmpty(values)) {
-			return null;
-		}
-
-		List<V> filterValues = values.stream().filter(predicate).toList();
-		return StringUtils.defaultIfEmpty(JsonUtils.toString(filterValues), null);
 	}
 }

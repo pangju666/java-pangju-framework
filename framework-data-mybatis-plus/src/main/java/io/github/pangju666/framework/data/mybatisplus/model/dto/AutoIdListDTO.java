@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.dto.auto;
+package io.github.pangju666.framework.data.mybatisplus.model.dto;
 
 import io.github.pangju666.framework.data.mybatisplus.annotation.validation.AutoIds;
 import org.hibernate.validator.constraints.UniqueElements;

@@ -16,6 +16,7 @@
 
 package io.github.pangju666.framework.data.mybatisplus.type.handler.list;
 
+import io.github.pangju666.framework.data.mybatisplus.type.handler.GenericsListTypeHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
@@ -24,10 +25,10 @@ import org.apache.ibatis.type.MappedTypes;
 import java.util.List;
 
 /**
- * Long类型的VARCHAR转List类型处理器
+ * Float类型的VARCHAR转List类型处理器
  * <p>
- * 用于处理数据库VARCHAR类型与List<Long>类型之间的转换。
- * 将以分隔符分隔的字符串转换为Long列表，或将Long列表转换为分隔的字符串。
+ * 用于处理数据库VARCHAR类型与List<Float>类型之间的转换。
+ * 将以分隔符分隔的字符串转换为Float列表，或将Float列表转换为分隔的字符串。
  * </p>
  *
  * @author pangju666
@@ -35,8 +36,8 @@ import java.util.List;
  */
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
-public final class LongVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<Long> {
-	public LongVarcharToListTypeHandler() {
-		super((value) -> StringUtils.isBlank(value) ? null : Long.valueOf(value));
+public final class FloatListTypeHandler extends GenericsListTypeHandler<Float> {
+	public FloatListTypeHandler() {
+		super((value) -> StringUtils.isBlank(value) ? null : Float.valueOf(value));
 	}
 }

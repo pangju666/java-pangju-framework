@@ -16,18 +16,20 @@
 
 package io.github.pangju666.framework.data.mybatisplus.type.handler.list;
 
-import org.apache.commons.lang3.BooleanUtils;
+import io.github.pangju666.framework.data.mybatisplus.type.handler.GenericsListTypeHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Boolean类型的VARCHAR转List类型处理器
+ * BigDecimal类型的VARCHAR转List类型处理器
  * <p>
- * 用于处理数据库VARCHAR类型与List<Boolean>类型之间的转换。
- * 将以分隔符分隔的字符串转换为Boolean列表，或将Boolean列表转换为分隔的字符串。
+ * 用于处理数据库VARCHAR类型与List<BigDecimal>类型之间的转换。
+ * 将以分隔符分隔的字符串转换为BigDecimal列表，或将BigDecimal列表转换为分隔的字符串。
  * </p>
  *
  * @author pangju666
@@ -35,8 +37,8 @@ import java.util.List;
  */
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
-public final class BooleanVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<Boolean> {
-	public BooleanVarcharToListTypeHandler() {
-		super((value) -> BooleanUtils.toBooleanObject(value, "true", "false", "null"));
+public final class BigDecimalListTypeHandler extends GenericsListTypeHandler<BigDecimal> {
+	public BigDecimalListTypeHandler() {
+		super((value) -> StringUtils.isBlank(value) ? null : new BigDecimal(value));
 	}
 }

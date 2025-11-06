@@ -34,8 +34,8 @@ import java.util.Objects;
  * </p>
  *
  * @author pangju666
- * @since 1.0.0
  * @see io.github.pangju666.framework.data.mybatisplus.annotation.validation.AutoId
+ * @since 1.0.0
  */
 public class AutoIdValidator implements ConstraintValidator<AutoId, Long> {
 	@Override

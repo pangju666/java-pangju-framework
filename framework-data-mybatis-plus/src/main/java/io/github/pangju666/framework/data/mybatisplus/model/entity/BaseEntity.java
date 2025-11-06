@@ -16,14 +16,12 @@
 
 package io.github.pangju666.framework.data.mybatisplus.model.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import io.github.pangju666.commons.lang.utils.DateUtils;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
 
 /**
  * 基础实体类
@@ -41,87 +39,15 @@ public abstract class BaseEntity implements Serializable {
 	 *
 	 * @since 1.0.0
 	 */
-	@TableField("create_time")
+	@TableField(value = "create_time", update = "CURRENT_TIMESTAMP", fill = FieldFill.INSERT)
 	protected Date createTime = DateUtils.nowDate();
 	/**
 	 * 更新时间，数据更新时自动设置为当前时间
 	 *
 	 * @since 1.0.0
 	 */
-	@TableField(value = "update_time", update = "CURRENT_TIMESTAMP")
+	@TableField(value = "update_time", update = "CURRENT_TIMESTAMP", fill = FieldFill.INSERT_UPDATE)
 	protected Date updateTime;
-
-	public static <E extends BaseEntity, V> List<V> getFieldValueList(final Collection<E> collection,
-																	  final SFunction<E, V> sFunction) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return Collections.emptyList();
-		}
-		return collection.stream()
-			.map(sFunction)
-			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
-	}
-
-	static <E extends BaseEntity, V> Set<V> getFieldValueSet(final Collection<E> collection,
-															 final SFunction<E, V> sFunction) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return Collections.emptySet();
-		}
-		return collection.stream()
-			.map(sFunction)
-			.filter(Objects::nonNull)
-			.collect(Collectors.toSet());
-	}
-
-	static <E extends BaseEntity, V> List<V> getUniqueFieldValueList(final Collection<E> collection,
-																	 final SFunction<E, V> sFunction) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return Collections.emptyList();
-		}
-		return collection.stream()
-			.map(sFunction)
-			.filter(Objects::nonNull)
-			.distinct()
-			.collect(Collectors.toList());
-	}
-
-	static <E extends BaseEntity, V> Map<V, E> mapByField(final Collection<E> collection, final SFunction<E, V> sFunction) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return Collections.emptyMap();
-		}
-		return collection.stream()
-			.collect(Collectors.toMap(sFunction, item -> item));
-	}
-
-	static <E extends BaseEntity, V> Map<V, List<E>> groupByField(final Collection<E> collection, final SFunction<E, V> sFunction) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return Collections.emptyMap();
-		}
-		return collection.stream()
-			.collect(Collectors.groupingBy(sFunction, Collectors.mapping(
-				item -> item, Collectors.toList())));
-	}
-
-	static <E extends BaseEntity> long sumFieldValue(final Collection<E> collection, final SFunction<E, Number> sFunction) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return 0;
-		}
-		return collection.stream()
-			.mapToLong(item -> sFunction.apply(item).longValue())
-			.filter(Objects::nonNull)
-			.sum();
-	}
-
-	static <E extends BaseEntity> Double averageFieldValue(final Collection<E> collection, final SFunction<E, Number> sFunction) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return 0d;
-		}
-		return collection.stream()
-			.mapToDouble(item -> sFunction.apply(item).doubleValue())
-			.filter(Objects::nonNull)
-			.average()
-			.orElse(0d);
-	}
 
 	public Date getCreateTime() {
 		return createTime;

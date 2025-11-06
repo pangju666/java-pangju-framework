@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.type.handler.list;
+package io.github.pangju666.framework.data.mybatisplus.type.handler;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * @author pangju666
  * @since 1.0.0
  */
-public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandler<List<T>> {
+public abstract class GenericsListTypeHandler<T> extends BaseTypeHandler<List<T>> {
 	/**
 	 * 字符串到目标类型的转换器
 	 *
@@ -65,7 +65,7 @@ public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandle
 	 * @param converter 字符串到目标类型的转换器
 	 * @since 1.0.0
 	 */
-	public GenericsVarcharToListTypeHandler(Converter<String, T> converter) {
+	public GenericsListTypeHandler(Converter<String, T> converter) {
 		this(",", converter);
 	}
 
@@ -79,7 +79,7 @@ public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandle
 	 * @param converter 字符串到目标类型的转换器
 	 * @since 1.0.0
 	 */
-	public GenericsVarcharToListTypeHandler(String delimiter, Converter<String, T> converter) {
+	public GenericsListTypeHandler(String delimiter, Converter<String, T> converter) {
 		this.delimiter = delimiter;
 		this.converter = converter;
 	}
@@ -97,10 +97,10 @@ public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandle
 	 * 最终生成的字符串为"1,,3"
 	 * </p>
 	 *
-	 * @param ps PreparedStatement对象
-	 * @param i 参数位置
+	 * @param ps        PreparedStatement对象
+	 * @param i         参数位置
 	 * @param parameter List参数，整个List不能为null，但其中的元素可以为null
-	 * @param jdbcType JDBC类型
+	 * @param jdbcType  JDBC类型
 	 * @throws SQLException 如果设置参数时发生错误
 	 * @since 1.0.0
 	 */
@@ -118,7 +118,7 @@ public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandle
 	 * 从ResultSet中获取指定列名的值，并转换为List
 	 * </p>
 	 *
-	 * @param rs 结果集
+	 * @param rs         结果集
 	 * @param columnName 列名
 	 * @return 转换后的List
 	 * @throws SQLException 如果获取结果时发生错误
@@ -134,7 +134,7 @@ public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandle
 	 * 从ResultSet中获取指定列索引的值，并转换为List
 	 * </p>
 	 *
-	 * @param rs 结果集
+	 * @param rs          结果集
 	 * @param columnIndex 列索引
 	 * @return 转换后的List
 	 * @throws SQLException 如果获取结果时发生错误
@@ -150,7 +150,7 @@ public abstract class GenericsVarcharToListTypeHandler<T> extends BaseTypeHandle
 	 * 从CallableStatement中获取指定列索引的值，并转换为List
 	 * </p>
 	 *
-	 * @param cs CallableStatement对象
+	 * @param cs          CallableStatement对象
 	 * @param columnIndex 列索引
 	 * @return 转换后的List
 	 * @throws SQLException 如果获取结果时发生错误

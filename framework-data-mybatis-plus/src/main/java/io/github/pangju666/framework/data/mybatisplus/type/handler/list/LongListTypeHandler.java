@@ -16,19 +16,19 @@
 
 package io.github.pangju666.framework.data.mybatisplus.type.handler.list;
 
+import io.github.pangju666.framework.data.mybatisplus.type.handler.GenericsListTypeHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * BigDecimal类型的VARCHAR转List类型处理器
+ * Long类型的VARCHAR转List类型处理器
  * <p>
- * 用于处理数据库VARCHAR类型与List<BigDecimal>类型之间的转换。
- * 将以分隔符分隔的字符串转换为BigDecimal列表，或将BigDecimal列表转换为分隔的字符串。
+ * 用于处理数据库VARCHAR类型与List<Long>类型之间的转换。
+ * 将以分隔符分隔的字符串转换为Long列表，或将Long列表转换为分隔的字符串。
  * </p>
  *
  * @author pangju666
@@ -36,8 +36,8 @@ import java.util.List;
  */
 @MappedTypes({List.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
-public final class BigDecimalVarcharToListTypeHandler extends GenericsVarcharToListTypeHandler<BigDecimal> {
-	public BigDecimalVarcharToListTypeHandler() {
-		super((value) -> StringUtils.isBlank(value) ? null : new BigDecimal(value));
+public final class LongListTypeHandler extends GenericsListTypeHandler<Long> {
+	public LongListTypeHandler() {
+		super((value) -> StringUtils.isBlank(value) ? null : Long.valueOf(value));
 	}
 }

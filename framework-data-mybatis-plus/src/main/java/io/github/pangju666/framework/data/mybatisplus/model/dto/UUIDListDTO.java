@@ -14,24 +14,22 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mybatisplus.model.dto.auto;
+package io.github.pangju666.framework.data.mybatisplus.model.dto;
 
-import io.github.pangju666.framework.data.mybatisplus.annotation.validation.AutoIds;
-import jakarta.validation.constraints.NotEmpty;
+import io.github.pangju666.framework.data.mybatisplus.annotation.validation.UUIDS;
 import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
 /**
- * 必填自增ID列表数据传输对象
+ * UUID列表数据传输对象
  * <p>
- * 用于传输自增类型的ID列表，支持ID的唯一性校验。
- * 列表不允许为空，且列表中的元素必须为有效的自增ID。
+ * 用于传输UUID类型的ID列表，支持ID的唯一性校验。
+ * 列表允许为空，但列表中的元素必须符合UUID格式。
  * </p>
  *
  * @author pangju666
  * @since 1.0.0
  */
-public record RequiredAutoIdListDTO(
-	@NotEmpty(message = "列表不允许为空") @UniqueElements(message = "存在重复的id") @AutoIds List<Long> ids) {
+public record UUIDListDTO(@UniqueElements(message = "存在重复的id") @UUIDS List<String> ids) {
 }
