@@ -321,22 +321,31 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 	}
 
 	/**
-	 * 获取请求参数中的文件信息
+	 * 获取上传文件的 {@link Part} 映射
 	 * <p>
-	 * 从form-data请求参数中提取所有包含文件的部分。该方法只返回那些具有提交文件名
-	 * 的部分（即实际上传的文件），过滤掉表单字段等不包含文件的部分。
-	 * 返回的Map是不可修改的，以防止意外修改。
+	 * 仅收集具有提交文件名（{@link Part#getSubmittedFileName()} 非空）的部分，过滤掉普通表单字段。
+	 * 当前实现仅在 {@code Content-Type} 为 {@code multipart/form-data} 时解析并提取文件部分；
+	 * 其他类型直接返回空映射。
+	 * 返回值为不可修改的 {@code Map}，防止外部修改。
 	 * </p>
 	 *
-	 * @param request HTTP请求对象，不能为null
-	 * @return 以表单字段名为键，Part对象为值的不可修改Map
-	 * @throws IllegalArgumentException 当request为null时抛出
-	 * @throws ServletException 解析multipart请求失败时抛出
+	 * <p>注意：文件上传的标准内容类型为 {@code multipart/form-data}。</p>
+	 *
+	 * @param request HTTP 请求对象，不能为空
+	 * @return 键为表单字段名、值为文件 {@link Part} 的不可修改映射；未匹配时返回空映射
+	 * @throws IllegalArgumentException 当 {@code request} 为 {@code null} 时抛出
+	 * @throws ServletException 解析请求的 {@code Part} 失败时抛出
 	 * @throws IOException 读取请求内容失败时抛出
 	 * @since 1.0.0
 	 */
 	public static Map<String, Part> getParts(final HttpServletRequest request) throws ServletException, IOException {
 		Assert.notNull(request, "request 不可为null");
+
+		String contentType = request.getContentType();
+		if (Objects.isNull(contentType) || !MediaType.MULTIPART_FORM_DATA.equalsTypeAndSubtype(
+			MediaType.valueOf(contentType))) {
+			return Collections.emptyMap();
+		}
 
 		Collection<Part> parts = request.getParts();
 		Map<String, Part> requestPartMap = new HashMap<>(parts.size());
@@ -492,20 +501,21 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 	}
 
 	/**
-	 * 判断请求体是否为JSON类型
+	 * 判断请求体是否为 JSON 类型
 	 * <p>
-	 * 通过检查Content-Type头部值，确定请求体是否为JSON格式。
-	 * 此方法支持带字符集参数的JSON类型，如"application/json;charset=UTF-8"。
+	 * 依据 {@code Content-Type} 的“类型/子类型”是否与 {@code application/json} 相等进行判断，
+	 * 忽略字符集等参数（例如 {@code application/json;charset=UTF-8} 也视为 JSON）。
 	 * </p>
 	 *
-	 * @param request HTTP请求对象，不能为null
-	 * @return 如果Content-Type以"application/json"开头则返回true，否则返回false
-	 * @throws IllegalArgumentException 当request为null时抛出
+	 * @param request HTTP 请求对象，不能为空
+	 * @return 当 {@code Content-Type} 的类型与子类型为 {@code application/json} 时返回 {@code true}，否则返回 {@code false}
+	 * @throws IllegalArgumentException 当 {@code request} 为 {@code null} 时抛出
 	 * @since 1.0.0
 	 */
 	public static boolean isJsonRequestBody(final HttpServletRequest request) {
 		Assert.notNull(request, "request 不可为null");
-
-		return Strings.CS.startsWith(request.getContentType(), MediaType.APPLICATION_JSON_VALUE);
+		String contentType = request.getContentType();
+		return Objects.nonNull(contentType) && MediaType.APPLICATION_JSON.equalsTypeAndSubtype(
+			MediaType.valueOf(contentType));
 	}
 }

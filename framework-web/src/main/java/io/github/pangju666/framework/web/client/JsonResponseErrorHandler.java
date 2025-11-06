@@ -363,14 +363,15 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 	/**
 	 * 读取并解析响应体为 JSON 对象
 	 * <p>
-	 * 仅当响应头 {@code Content-Type} 等于 {@code application/json} 或 {@code application/json;charset=UTF-8}
-	 * 时尝试解析；否则直接返回 {@code null}。当响应体为空（长度为 0）或解析结果不是 JSON 对象时，返回 {@code null}。
-	 * 解析使用 {@link StandardCharsets#UTF_8}。
+	 * 仅当响应头 {@code Content-Type} 的“类型/子类型”与 {@code application/json} 相等时尝试解析，
+	 * 忽略其参数（例如 {@code application/json;charset=UTF-8} 也视为 JSON）。否则直接返回 {@code null}。
+	 * 当响应体为空（长度为 0）或解析结果不是 JSON 对象（如数组或原始值）时，返回 {@code null}。
+	 * 解析统一使用 {@link StandardCharsets#UTF_8} 进行解码。
 	 * </p>
 	 * <p>
-	 * 说明：为避免一次性流在判定或处理过程中被消耗，需要配合
-	 * {@link BufferingResponseInterceptor} 使用，使响应体由
-	 * {@link BufferingClientHttpResponseWrapper} 缓冲包装以支持重复读取。
+	 * 注意：响应体输入流为一次性流，读取会消耗内容。为支持在错误处理流程中重复读取，请配合
+	 * {@link BufferingResponseInterceptor} 使用，使响应体通过
+	 * {@link BufferingClientHttpResponseWrapper} 进行缓冲包装。
 	 * </p>
 	 *
 	 * @param response 客户端响应对象
@@ -380,8 +381,7 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 	 * @see BufferingClientHttpResponseWrapper
 	 */
 	protected JsonObject getResponseBody(ClientHttpResponse response) throws IOException {
-		if (!MediaType.APPLICATION_JSON.equals(response.getHeaders().getContentType()) &&
-			!MediaType.APPLICATION_JSON_UTF8.equals(response.getHeaders().getContentType())) {
+		if (!MediaType.APPLICATION_JSON.equalsTypeAndSubtype(response.getHeaders().getContentType())) {
 			return null;
 		}
 
