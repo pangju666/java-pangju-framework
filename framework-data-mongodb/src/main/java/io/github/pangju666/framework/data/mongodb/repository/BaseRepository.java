@@ -20,8 +20,6 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import io.github.pangju666.commons.lang.utils.StringUtils;
 import io.github.pangju666.framework.data.mongodb.utils.QueryUtils;
-import io.github.pangju666.framework.spring.utils.ReflectionUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +30,10 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -80,10 +81,10 @@ import java.util.stream.Stream;
  * </p>
  *
  * @param <ID> ID类型
- * @param <T> 实体类型
+ * @param <T>  实体类型
  * @author pangju666
- * @since 1.0.0
  * @see QueryUtils
+ * @since 1.0.0
  */
 public abstract class BaseRepository<ID, T> {
 	/**
@@ -118,11 +119,11 @@ public abstract class BaseRepository<ID, T> {
 	 * 通常需要配合{@link #setMongoOperations(MongoOperations)}方法使用，
 	 * 或者使用{@link #BaseRepository(MongoOperations)}构造函数。</p>
 	 *
-	 * @since 1.0.0
 	 * @see Document
+	 * @since 1.0.0
 	 */
 	protected BaseRepository() {
-		this.entityClass = ReflectionUtils.getClassGenericType(this.getClass(), 1);
+		this.entityClass = getClassGenericType(this.getClass());
 		if (Objects.nonNull(this.entityClass)) {
 			String collectionName = null;
 			Document document = this.entityClass.getAnnotation(Document.class);
@@ -173,8 +174,8 @@ public abstract class BaseRepository<ID, T> {
 	 *
 	 * @param mongoOperations MongoDB操作类实例，不能为null
 	 * @throws IllegalArgumentException 如果{@code mongoOperations}为null
-	 * @since 1.0.0
 	 * @see MongoOperations#getCollectionName(Class)
+	 * @since 1.0.0
 	 */
 	public void setMongoOperations(MongoOperations mongoOperations) {
 		Assert.notNull(mongoOperations, "mongoOperations 不可为null");
@@ -412,7 +413,7 @@ public abstract class BaseRepository<ID, T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByIds(Collection<ID> ids) {
-		List<ID> validIds = CollectionUtils.emptyIfNull(ids)
+		List<ID> validIds = CollectionUtils.isEmpty(ids) ? Collections.emptyList() : ids
 			.stream()
 			.filter(Objects::nonNull)
 			.toList();
@@ -496,7 +497,7 @@ public abstract class BaseRepository<ID, T> {
 	 * @since 1.0.0
 	 */
 	public List<T> listByKeyValues(String key, Collection<?> values) {
-		List<?> validValues = CollectionUtils.emptyIfNull(values)
+		List<?> validValues = CollectionUtils.isEmpty(values) ? Collections.emptyList() : values
 			.stream()
 			.filter(Objects::nonNull)
 			.toList();
@@ -528,7 +529,7 @@ public abstract class BaseRepository<ID, T> {
 		Assert.notNull(query, "query 不可为null");
 		Assert.hasText(key, "key 不可为空");
 
-		List<?> validValues = CollectionUtils.emptyIfNull(values)
+		List<?> validValues = CollectionUtils.isEmpty(values) ? Collections.emptyList() : values
 			.stream()
 			.filter(Objects::nonNull)
 			.toList();
@@ -764,7 +765,7 @@ public abstract class BaseRepository<ID, T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByIds(Collection<ID> ids) {
-		List<ID> validIds = CollectionUtils.emptyIfNull(ids)
+		List<ID> validIds = CollectionUtils.isEmpty(ids) ? Collections.emptyList() : ids
 			.stream()
 			.filter(Objects::nonNull)
 			.toList();
@@ -790,7 +791,7 @@ public abstract class BaseRepository<ID, T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByKeyValue(String key, Object value) {
-		return mongoOperations.stream(QueryUtils.queryByKeyValue(key,value), this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByKeyValue(key, value), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -810,14 +811,14 @@ public abstract class BaseRepository<ID, T> {
 	 * @since 1.0.0
 	 */
 	public Stream<T> streamByKeyValues(String key, Collection<?> values) {
-		List<?> validValues = CollectionUtils.emptyIfNull(values)
+		List<?> validValues = CollectionUtils.isEmpty(values) ? Collections.emptyList() : values
 			.stream()
 			.filter(Objects::nonNull)
 			.toList();
 		if (validValues.isEmpty()) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(QueryUtils.queryByKeyValue(key,values), this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByKeyValue(key, values), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -842,7 +843,7 @@ public abstract class BaseRepository<ID, T> {
 		Assert.notNull(query, "query 不可为null");
 		Assert.hasText(key, "key 不可为空");
 
-		List<?> validValues = CollectionUtils.emptyIfNull(values)
+		List<?> validValues = CollectionUtils.isEmpty(values) ? Collections.emptyList() : values
 			.stream()
 			.filter(Objects::nonNull)
 			.toList();
@@ -869,7 +870,7 @@ public abstract class BaseRepository<ID, T> {
 		if (StringUtils.isEmpty(regex)) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(QueryUtils.queryByNotRegex(key,regex), this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByNotRegex(key, regex), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -888,7 +889,7 @@ public abstract class BaseRepository<ID, T> {
 		if (Objects.isNull(pattern)) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(QueryUtils.queryByNotRegex(key,pattern), this.entityClass, this.collectionName);
+		return mongoOperations.stream(QueryUtils.queryByNotRegex(key, pattern), this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -955,7 +956,7 @@ public abstract class BaseRepository<ID, T> {
 		if (StringUtils.isEmpty(regex)) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(QueryUtils.queryByNotRegex(key,regex), this.entityClass,
+		return mongoOperations.stream(QueryUtils.queryByNotRegex(key, regex), this.entityClass,
 			this.collectionName);
 	}
 
@@ -975,7 +976,7 @@ public abstract class BaseRepository<ID, T> {
 		if (Objects.isNull(pattern)) {
 			return Stream.empty();
 		}
-		return mongoOperations.stream(QueryUtils.queryByNotRegex(key,pattern),
+		return mongoOperations.stream(QueryUtils.queryByNotRegex(key, pattern),
 			this.entityClass, this.collectionName);
 	}
 
@@ -1228,7 +1229,7 @@ public abstract class BaseRepository<ID, T> {
 	 * @since 1.0.0
 	 */
 	public Collection<T> insertBatch(Collection<T> entities) {
-		List<T> validaEntities = CollectionUtils.emptyIfNull(entities)
+		List<T> validaEntities = CollectionUtils.isEmpty(entities) ? Collections.emptyList() : entities
 			.stream()
 			.filter(Objects::nonNull)
 			.toList();
@@ -1293,13 +1294,13 @@ public abstract class BaseRepository<ID, T> {
 	 */
 	public Collection<T> saveBatch(Collection<T> entities, boolean parallel) {
 		if (parallel) {
-			return CollectionUtils.emptyIfNull(entities)
+			return CollectionUtils.isEmpty(entities) ? Collections.emptyList() : entities
 				.parallelStream()
 				.filter(Objects::nonNull)
 				.map(validaEntity -> mongoOperations.save(validaEntity, this.collectionName))
 				.collect(Collectors.toList());
 		} else {
-			return CollectionUtils.emptyIfNull(entities)
+			return CollectionUtils.isEmpty(entities) ? Collections.emptyList() : entities
 				.stream()
 				.filter(Objects::nonNull)
 				.map(validaEntity -> mongoOperations.save(validaEntity, this.collectionName))
@@ -1387,7 +1388,7 @@ public abstract class BaseRepository<ID, T> {
 	 * @since 1.0.0
 	 */
 	public long removeByIds(Collection<ID> ids) {
-		List<ID> validIds = CollectionUtils.emptyIfNull(ids)
+		List<ID> validIds = CollectionUtils.isEmpty(ids) ? Collections.emptyList() : ids
 			.stream()
 			.filter(Objects::nonNull)
 			.toList();
@@ -1414,5 +1415,21 @@ public abstract class BaseRepository<ID, T> {
 
 		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
 		return result.wasAcknowledged() ? result.getDeletedCount() : 0;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Class<T> getClassGenericType(Class<?> clazz) {
+		Type genType = clazz.getGenericSuperclass();
+		if (!(genType instanceof ParameterizedType)) {
+			return null;
+		}
+		Type[] params = ((ParameterizedType) genType).getActualTypeArguments();
+		if (1 >= params.length) {
+			return null;
+		}
+		if (!(params[1] instanceof Class)) {
+			return null;
+		}
+		return (Class<T>) params[1];
 	}
 }

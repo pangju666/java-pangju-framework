@@ -20,15 +20,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>io.github.pangju666.commons</groupId>
-			<artifactId>commons-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.github.pangju666.commons</groupId>
-			<artifactId>commons-lang</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
@@ -36,7 +27,14 @@
 			<groupId>jakarta.servlet</groupId>
 			<artifactId>jakarta.servlet-api</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>io.github.pangju666.commons</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.pangju666.commons</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>

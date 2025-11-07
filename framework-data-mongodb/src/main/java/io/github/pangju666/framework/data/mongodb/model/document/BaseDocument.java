@@ -17,12 +17,12 @@
 package io.github.pangju666.framework.data.mongodb.model.document;
 
 import io.github.pangju666.framework.data.mongodb.pool.MongoConstants;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.MongoId;
+import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.*;

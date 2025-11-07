@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.redis.pool;
+package io.github.pangju666.framework.data.redis.lang;
 
 /**
  * Redis相关常量
