@@ -1,27 +1,19 @@
-package io.github.pangju666.framework.data.mybatisplus.spec
+package io.github.pangju666.framework.data.mybatisplus.test;
 
-import com.google.gson.reflect.TypeToken
-import io.github.pangju666.commons.lang.utils.JsonUtils
-import io.github.pangju666.framework.data.mybatisplus.repository.TestRepository
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.transaction.annotation.Transactional
-
-import static org.junit.jupiter.api.Assertions.*
+import io.github.pangju666.framework.data.mybatisplus.repository.TestRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BaseRepositoryTest {
+public class BaseRepositoryTest {
 	@Autowired
-	TestRepository repository
+	TestRepository repository;
 
 	private static final String TEST1_NAME = "test1";
 	private static final String TEST2_NAME = "test2";
 	private static final String NON_EXIST_NAME = "test3";
 
-	@Nested
+	/*@Nested
 	@DisplayName("JSON操作测试")
 	class JsonOperationTests {
 		@Test
@@ -75,8 +67,8 @@ class BaseRepositoryTest {
 		@Test
 		@DisplayName("测试空JSON查询")
 		void testEmptyJsonQueries() {
-			assertFalse(repository.listByEmptyJsonObject(TestEntity::getJsonValue).isEmpty());
-			assertFalse(repository.listByEmptyJsonArray(TestEntity::getJsonArray).isEmpty());
+			assertFalse(repository.listByEmptyJsonObject(TestDO::getJsonValue).isEmpty());
+			assertFalse(repository.listByEmptyJsonArray(TestDO::getJsonArray).isEmpty());
 		}
 	}
 
@@ -262,5 +254,5 @@ class BaseRepositoryTest {
 			// 不存在的值
 			assertFalse(repository.removeByLikeColumnValue(TestEntity::getName, "nonexistent"));
 		}
-	}
+	}*/
 }

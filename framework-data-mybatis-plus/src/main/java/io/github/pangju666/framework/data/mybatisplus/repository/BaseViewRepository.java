@@ -27,28 +27,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * 视图基础仓库类，用于处理数据库视图的查询操作
- * <p>
- * 该类继承自{@link BaseRepository}，专门用于处理数据库视图的访问。<br/>
- * 由于数据库视图通常是只读的，该类通过重写并禁用所有修改操作方法来确保视图的只读特性：
- * <ul>
- *     <li>禁用所有插入操作（如save、saveBatch等）</li>
- *     <li>禁用所有更新操作（如update、updateById等）</li>
- *     <li>禁用所有删除操作（如remove、removeById等）</li>
- *     <li>禁用所有更新链式操作（如update()、lambdaUpdate()等）</li>
- * </ul>
- * 所有修改操作方法都被标记为final，并在调用时抛出UnsupportedOperationException异常。
- * </p>
- * <p>
- * 保留了BaseRepository中所有的查询功能，可以正常使用查询相关的方法。
- * </p>
- *
- * @param <M> Mapper类型，必须继承自BaseMapper
- * @param <T> 实体类型
- * @author pangju666
- * @since 1.0.0
- */
 public abstract class BaseViewRepository<M extends BaseMapper<T>, T> extends BaseRepository<M, T> {
 	@Override
 	public final boolean save(T entity) {
@@ -62,6 +40,16 @@ public abstract class BaseViewRepository<M extends BaseMapper<T>, T> extends Bas
 
 	@Override
 	public final boolean saveOrUpdateBatch(Collection<T> entityList) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public final boolean updateBatchById(Collection<T> entityList) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public final boolean removeBatchByIds(Collection<?> list) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -107,11 +95,6 @@ public abstract class BaseViewRepository<M extends BaseMapper<T>, T> extends Bas
 
 	@Override
 	public final boolean update(T entity, Wrapper<T> updateWrapper) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public final boolean updateBatchById(Collection<T> entityList) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -167,11 +150,6 @@ public abstract class BaseViewRepository<M extends BaseMapper<T>, T> extends Bas
 
 	@Override
 	public final <V> boolean removeByColumnValues(SFunction<T, V> column, Collection<V> values) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public final <V> boolean removeByColumnValues(SFunction<T, V> column, Collection<V> values, int batchSize) {
 		throw new UnsupportedOperationException();
 	}
 

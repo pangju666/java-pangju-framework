@@ -42,12 +42,12 @@
 			<artifactId>spring-tx</artifactId>
 			<optional>true</optional>
 		</dependency>
-
 		<dependency>
-			<groupId>org.spockframework</groupId>
-			<artifactId>spock-spring</artifactId>
-			<scope>test</scope>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<optional>true</optional>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -71,6 +71,6 @@
 	</dependencies>
 
 	<build>
-		<testSourceDirectory>src/test/groovy</testSourceDirectory>
+		<testSourceDirectory>src/test/java</testSourceDirectory>
 	</build>
 </project>
