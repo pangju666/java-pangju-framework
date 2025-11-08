@@ -315,12 +315,11 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 * 扫描 Hash 的键值对（默认选项）。
 	 *
 	 * @param key Hash 的键；不可为空或空白
-	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无元素时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public <HV> Map<String, HV> scanHash(String key) {
+	public Map<String, V> scanHash(String key) {
 		return scanHash(key, ScanOptions.NONE);
 	}
 
@@ -331,17 +330,16 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 *
 	 * @param key         Hash 的键；不可为空或空白
 	 * @param scanOptions 扫描选项；不可为 {@code null}
-	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无元素时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code scanOptions} 为 {@code null}
      * @since 1.0.0
      */
-	public <HV> Map<String, HV> scanHash(String key, ScanOptions scanOptions) {
+	public Map<String, V> scanHash(String key, ScanOptions scanOptions) {
 		Assert.hasText(key, "key 不可为空");
 		Assert.notNull(scanOptions, "scanOptions 不可为null");
 
-		HashOperations<String, String, HV> hashOperations = super.opsForHash();
-		try (Cursor<Map.Entry<String, HV>> cursor = hashOperations.scan(key, scanOptions)) {
+		HashOperations<String, String, V> hashOperations = super.opsForHash();
+		try (Cursor<Map.Entry<String, V>> cursor = hashOperations.scan(key, scanOptions)) {
 			return cursor.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		}
 	}
@@ -353,12 +351,11 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 *
 	 * @param key    Hash 的键；不可为空或空白
 	 * @param suffix 哈希字段后缀；为空或空白时返回空映射
-	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无匹配或后缀为空白时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public <HV> Map<String, HV> scanHashBySuffix(String key, String suffix) {
+	public Map<String, V> scanHashBySuffix(String key, String suffix) {
 		if (StringUtils.isBlank(suffix)) {
 			return Collections.emptyMap();
 		}
@@ -373,12 +370,11 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 *
 	 * @param key    Hash 的键；不可为空或空白
 	 * @param prefix 哈希字段前缀；为空或空白时返回空映射
-	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无匹配或前缀为空白时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public <HV> Map<String, HV> scanHashByPrefix(String key, String prefix) {
+	public Map<String, V> scanHashByPrefix(String key, String prefix) {
 		if (StringUtils.isBlank(prefix)) {
 			return Collections.emptyMap();
 		}
@@ -393,12 +389,11 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 *
 	 * @param key     Hash 的键；不可为空或空白
 	 * @param keyword 关键字（字段名包含该关键字）；为空或空白时返回空映射
-	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无匹配或关键字为空白时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public <HV> Map<String, HV> scanHashByKeyword(String key, String keyword) {
+	public Map<String, V> scanHashByKeyword(String key, String keyword) {
 		if (StringUtils.isBlank(keyword)) {
 			return Collections.emptyMap();
 		}
