@@ -92,7 +92,6 @@ import java.util.stream.Stream;
  *     <li><b>单条删除</b>（如 {@code removeById}）：确认且恰好影响 1 条视为成功。</li>
  *     <li><b>批量删除/更新</b>（如 {@code removeByIds}、{@code updateByIds}）：确认且影响条数大于 0 视为成功。</li>
  *     <li><b>按 ID 局部更新</b>（{@code updateById(Update, String)}）：确认且实际修改 1 条（如值未变化则视为未修改）。</li>
- *     <li><b>整文替换</b>（{@code updateById(T)}）：会覆盖未在对象中的字段，仅在可构造完整文档时使用。</li>
  * </ul>
  * </p>
  *
@@ -1058,30 +1057,6 @@ public abstract class BaseRepository<T extends BaseDocument> {
 			.filter(Objects::nonNull)
 			.map(document -> mongoOperations.save(document, this.collectionName))
 			.collect(Collectors.toList());
-	}
-
-	/**
-	 * 根据文档自身携带的 ID 进行整文替换更新
-	 * <p>
-	 * 使用 {@link MongoOperations#findAndReplace(Query, Object, String)} 按 ID 查找并替换整条文档：
-	 * <ul>
-	 *     <li>要求传入实体的 {@code id} 非空；更新过程中会暂时清空 {@code id} 字段避免冲突。</li>
-	 *     <li>如果匹配文档存在则替换并返回替换后的文档；否则返回 {@code null}。</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param document 含 ID 的待更新文档，不能为 {@code null}
-	 * @return 替换后的文档，如果未匹配到则返回 {@code null}
-	 * @throws IllegalArgumentException 当 {@code document} 为 {@code null} 或 {@code document.id} 为空时抛出
-	 * @since 1.0.0
-	 */
-	public T updateById(T document) {
-		Assert.notNull(document, "document 不可为null");
-		Assert.hasText(document.getId(), "文档id 不可为空");
-
-		String id = document.getId();
-		document.setId(null);
-		return mongoOperations.findAndReplace(QueryUtils.queryById(id), document, this.collectionName);
 	}
 
 	/**
