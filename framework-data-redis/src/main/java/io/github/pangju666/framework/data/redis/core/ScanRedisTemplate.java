@@ -16,9 +16,12 @@
 
 package io.github.pangju666.framework.data.redis.core;
 
+import io.github.pangju666.framework.data.redis.lang.RedisConstants;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -28,31 +31,29 @@ import java.util.stream.Collectors;
 /**
  * 扫描增强版 RedisTemplate。
  *
- * <p>用途：围绕 Redis SCAN 命令提供简洁的扫描 API，
- * 将游标结果聚合为集合或映射。</p>
+ * <p>用途：围绕 Redis {@code SCAN} 命令提供简洁的扫描 API，聚合游标结果为集合或映射，降低调用复杂度。</p>
  *
  * <p>行为特性：</p>
  * <ul>
- *   <li>采用渐进式迭代（{@link Cursor}），方法完成后自动关闭游标。</li>
- *   <li>{@code count} 为服务端返回数量建议；当 {@code count <= 0} 时直接返回空结果。</li>
- *   <li>提供匹配模式由服务器端过滤；ZSet 扫描结果按默认比较排序并返回 {@link SortedSet}。</li>
+ *   <li>采用渐进式迭代（{@link Cursor}），方法结束后自动关闭游标。</li>
+ *   <li>{@code count} 为每次迭代的“建议返回数量”，属于性能提示参数，并非精确控制。</li>
+ *   <li>匹配模式由服务器端过滤；ZSet 扫描结果按默认比较排序并返回 {@link SortedSet}。</li>
+ *   <li>推荐通过 {@link #scanOptions(String, DataType, Long)} 构建 {@link ScanOptions}。</li>
  * </ul>
  *
- * <p>匹配模式的序列化器要求：</p>
+ * <p>匹配模式的序列化器要求（本类具体约束）：</p>
  * <ul>
- *   <li>当设置匹配模式（{@link org.springframework.data.redis.core.ScanOptions.ScanOptionsBuilder#match(String)}）时，相关序列化器必须支持 {@link String} 序列化，否则抛出 {@link UnsupportedOperationException}。</li>
- *   <li>键扫描：需 {@link #getKeySerializer()} 支持 {@code String}（见 {@link #scanKeys(ScanOptions)}）。</li>
- *   <li>Set/ZSet 元素扫描：需 {@link #getValueSerializer()} 支持 {@code String}（见 {@link #scanSetValues(Object, ScanOptions)}、{@link #scanZSetValues(Object, ScanOptions)}）。</li>
- *   <li>Hash 值扫描：需 {@link #getHashValueSerializer()} 支持 {@code String}（见 {@link #scanHashValues(Object, ScanOptions)}）。</li>
+ *   <li>键扫描：本类固定键序列化器为字符串（不可更改），始终支持模式匹配。</li>
+ *   <li>Hash 扫描：本类固定哈希键序列化器为字符串（不可更改），仅支持对哈希字段名（hash key/field）进行模式匹配；不支持基于哈希值（hash value）的匹配过滤。</li>
+ *   <li>Set/ZSet 元素扫描：当设置匹配模式时，当前值序列化器必须支持 {@link String} 序列化，否则抛出 {@link UnsupportedOperationException}。</li>
  * </ul>
  *
- * @param <K> 键类型
  * @param <V> 值类型
  * @author pangju666
  * @since 1.0.0
  * @see RedisTemplate
  */
-public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
+public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	/**
 	 * 无参构造。
 	 *
@@ -60,6 +61,8 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 */
 	public ScanRedisTemplate() {
 		super();
+		super.setKeySerializer(RedisSerializer.string());
+		super.setHashKeySerializer(RedisSerializer.string());
 	}
 
 	/**
@@ -68,39 +71,34 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @param redisTemplate 现有模板实例
 	 * @since 1.0.0
 	 */
-	public ScanRedisTemplate(RedisTemplate<K, V> redisTemplate) {
+	public ScanRedisTemplate(RedisTemplate<?, V> redisTemplate) {
 		this();
-		setKeySerializer(redisTemplate.getKeySerializer());
 		setValueSerializer(redisTemplate.getValueSerializer());
-		setHashKeySerializer(redisTemplate.getHashKeySerializer());
 		setHashValueSerializer(redisTemplate.getHashValueSerializer());
 		setConnectionFactory(redisTemplate.getConnectionFactory());
+	}
+
+	@Override
+	public void setKeySerializer(RedisSerializer<?> serializer) {
+		// 保持键序列化器为 String，避免被外部修改。
+	}
+
+	@Override
+	public void setHashKeySerializer(RedisSerializer<?> serializer) {
+		// 保持哈希键序列化器为 String，避免被外部修改。
 	}
 
 	/**
 	 * 按类型扫描所有键。
 	 *
-	 * @param dataType 键的数据类型（如 {@link DataType#STRING}、{@link DataType#SET} 等）
+	 * @param dataType 键的数据类型（如 {@link DataType#STRING}、{@link DataType#SET} 等）；为 {@code null} 时不设置类型过滤
 	 * @return 匹配类型的键集合；无匹配时为空集合
 	 * @since 1.0.0
 	 */
-	public Set<K> scanKeys(DataType dataType) {
-		return scanKeys(scanOptions(null, dataType, null));
-	}
-
-	/**
-	 * 按类型扫描键（指定每次扫描数量）。
-	 *
-	 * @param dataType 键的数据类型
-	 * @param count    每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 键集合；无匹配或 {@code count <= 0} 时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<K> scanKeys(DataType dataType, long count) {
-		if (count <= 0) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(null, dataType, count));
+	public Set<String> scanKeys(DataType dataType) {
+		// 为 null 时不设置类型过滤
+		return scanKeys(scanOptions(null, ObjectUtils.getIfNull(dataType,
+			DataType.NONE), null));
 	}
 
 	/**
@@ -109,30 +107,133 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 键集合；无匹配时为空集合
 	 * @since 1.0.0
 	 */
-	public Set<K> scanKeys() {
+	public Set<String> scanKeys() {
 		return scanKeys(ScanOptions.NONE);
 	}
 
 	/**
 	 * 使用指定扫描选项扫描键。
 	 *
-	 * <p>当提供匹配模式且当前 key 序列化器无法序列化 {@link String} 类型时，抛出 {@link UnsupportedOperationException}。</p>
+	 * <p>匹配模式由服务器端过滤。由于本类固定键序列化器为字符串，键的模式匹配始终受支持。</p>
 	 *
 	 * @param scanOptions 扫描选项；不可为 {@code null}
 	 * @return 键集合；无匹配时为空集合
 	 * @throws IllegalArgumentException 当 {@code scanOptions} 为 {@code null}
-	 * @throws UnsupportedOperationException 当提供模式且 key 序列化器不支持 {@code String} 序列化
 	 * @since 1.0.0
 	 */
-	public Set<K> scanKeys(ScanOptions scanOptions) {
+	public Set<String> scanKeys(ScanOptions scanOptions) {
 		Assert.notNull(scanOptions, "scanOptions 不可为null");
-		if (StringUtils.isNotBlank(scanOptions.getPattern()) && !getKeySerializer().canSerialize(String.class)) {
-			throw new UnsupportedOperationException();
-		}
 
-		try (Cursor<K> cursor = super.scan(scanOptions)) {
+		try (Cursor<String> cursor = super.scan(scanOptions)) {
 			return cursor.stream().collect(Collectors.toSet());
 		}
+	}
+
+	/**
+	 * 按后缀扫描所有键。
+	 *
+	 * <p>匹配模式：{@code *suffix}</p>
+	 *
+	 * @param suffix 键后缀；为空或空白时返回空集合
+	 * @return 键集合；无匹配或后缀为空白时为空集合
+	 * @since 1.0.0
+	 */
+	public Set<String> scanKeysBySuffix(String suffix) {
+		if (StringUtils.isBlank(suffix)) {
+			return Collections.emptySet();
+		}
+		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, null));
+	}
+
+	/**
+	 * 按后缀扫描键并按类型过滤。
+	 *
+	 * <p>匹配模式：{@code *suffix}</p>
+	 *
+	 * @param suffix   键后缀；为空或空白时返回空集合
+	 * @param dataType 键的数据类型过滤；为 {@code null} 时不设置类型过滤
+	 * @return 键集合；无匹配或后缀为空白时为空集合
+	 * @since 1.0.0
+	 */
+	public Set<String> scanKeysBySuffix(String suffix, DataType dataType) {
+		if (StringUtils.isBlank(suffix)) {
+			return Collections.emptySet();
+		}
+		// dataType 为 null 时不设置类型过滤
+		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix,
+			ObjectUtils.getIfNull(dataType, DataType.NONE), null));
+	}
+
+	/**
+	 * 按前缀扫描所有键。
+	 *
+	 * <p>匹配模式：{@code prefix*}</p>
+	 *
+	 * @param prefix 键前缀；为空或空白时返回空集合
+	 * @return 键集合；无匹配或前缀为空白时为空集合
+	 * @since 1.0.0
+	 */
+	public Set<String> scanKeysByPrefix(String prefix) {
+		if (StringUtils.isBlank(prefix)) {
+			return Collections.emptySet();
+		}
+		return scanKeys(scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, null));
+	}
+
+	/**
+	 * 按前缀扫描键并按类型过滤。
+	 *
+	 * <p>匹配模式：{@code prefix*}</p>
+	 *
+	 * @param prefix   键前缀；为空或空白时返回空集合
+	 * @param dataType 键的数据类型过滤；为 {@code null} 时不设置类型过滤
+	 * @return 键集合；无匹配或前缀为空白时为空集合
+	 * @since 1.0.0
+	 */
+	public Set<String> scanKeysByPrefix(String prefix, DataType dataType) {
+		if (StringUtils.isBlank(prefix)) {
+			return Collections.emptySet();
+		}
+		// dataType 为 null 时不设置类型过滤
+		return scanKeys(scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL,
+			ObjectUtils.getIfNull(dataType, DataType.NONE), null));
+	}
+
+	/**
+	 * 按关键字扫描所有键（包含该关键字）。
+	 *
+	 * <p>匹配模式：{@code *keyword*}</p>
+	 *
+	 * @param keyword 关键字；为空或空白时返回空集合
+	 * @return 键集合；无匹配或关键字为空白时为空集合
+	 * @since 1.0.0
+	 */
+	public Set<String> scanKeysByKeyword(String keyword) {
+		if (StringUtils.isBlank(keyword)) {
+			return Collections.emptySet();
+		}
+		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
+			RedisConstants.CURSOR_PATTERN_SYMBOL, null, null));
+	}
+
+	/**
+	 * 按关键字扫描键并按类型过滤。
+	 *
+	 * <p>匹配模式：{@code *keyword*}</p>
+	 *
+	 * @param keyword  关键字；为空或空白时返回空集合
+	 * @param dataType 键的数据类型过滤；为 {@code null} 时不设置类型过滤
+	 * @return 键集合；无匹配或关键字为空白时为空集合
+	 * @since 1.0.0
+	 */
+	public Set<String> scanKeysByKeyword(String keyword, DataType dataType) {
+		if (StringUtils.isBlank(keyword)) {
+			return Collections.emptySet();
+		}
+		// dataType 为 null 时不设置类型过滤
+		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
+			RedisConstants.CURSOR_PATTERN_SYMBOL, ObjectUtils.getIfNull(dataType,
+			DataType.NONE), null));
 	}
 
 	/**
@@ -143,29 +244,14 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
 	 * @since 1.0.0
 	 */
-	public SortedSet<ZSetOperations.TypedTuple<V>> scanZSetValues(K key) {
+	public SortedSet<ZSetOperations.TypedTuple<V>> scanZSetValues(String key) {
 		return scanZSetValues(key, ScanOptions.NONE);
-	}
-
-	/**
-	 * 扫描 ZSet 的元素（指定每次扫描数量）。
-	 *
-	 * @param key   ZSet 的键；不可为 {@code null}
-	 * @param count 每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 有序的元素集合；无元素或 {@code count <= 0} 时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public SortedSet<ZSetOperations.TypedTuple<V>> scanZSetValues(K key, long count) {
-		if (count <= 0) {
-			return Collections.emptySortedSet();
-		}
-		return scanZSetValues(key, scanOptions(null, null, count));
 	}
 
 	/**
 	 * 扫描 ZSet 的元素（指定扫描选项）。
 	 *
+	 * <p>匹配模式由服务器端过滤。</p>
 	 * <p>当提供匹配模式且当前 value 序列化器无法序列化 {@link String} 类型时，抛出 {@link UnsupportedOperationException}。</p>
 	 *
 	 * @param key         ZSet 的键；不可为 {@code null}
@@ -174,11 +260,11 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @throws IllegalArgumentException 当 {@code key} 或 {@code scanOptions} 为 {@code null}
 	 * @throws UnsupportedOperationException 当提供模式且 value 序列化器不支持 {@code String} 序列化
 	 * @since 1.0.0
-	 */
-	public SortedSet<ZSetOperations.TypedTuple<V>> scanZSetValues(K key, ScanOptions scanOptions) {
-		Assert.notNull(key, "key 不可为null");
+     */
+	public SortedSet<ZSetOperations.TypedTuple<V>> scanZSetValues(String key, ScanOptions scanOptions) {
+		Assert.hasText(key, "key 不可为空");
 		Assert.notNull(scanOptions, "scanOptions 不可为null");
-		if (StringUtils.isNotBlank(scanOptions.getPattern()) && !getValueSerializer().canSerialize(String.class)) {
+		if (StringUtils.isNotBlank(scanOptions.getPattern()) && !getValueSerializer().canSerialize(java.lang.String.class)) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -197,30 +283,14 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
 	 * @since 1.0.0
 	 */
-	public Set<V> scanSetValues(K key) {
+	public Set<V> scanSetValues(String key) {
 		return scanSetValues(key, ScanOptions.NONE);
-	}
-
-	/**
-	 * 扫描 Set 的元素（指定每次扫描数量）。
-	 *
-	 * @param key   Set 的键；不可为 {@code null}
-	 * @param count 每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 元素集合；无元素或 {@code count <= 0} 时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Set<V> scanSetValues(K key, long count) {
-		if (count <= 0) {
-			return Collections.emptySet();
-		}
-		return scanSetValues(key, scanOptions(null, null, count));
 	}
 
 	/**
 	 * 扫描 Set 的元素（指定扫描选项）。
 	 *
-	 * <p>当提供匹配模式时，按 Redis 服务器端匹配进行过滤。</p>
+	 * <p>匹配模式由服务器端过滤。</p>
 	 * <p>当提供匹配模式且当前 value 序列化器无法序列化 {@link String} 类型时，抛出 {@link UnsupportedOperationException}。</p>
 	 *
 	 * @param key         Set 的键；不可为 {@code null}
@@ -228,10 +298,10 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @return 元素集合；无元素时为空集合
 	 * @throws IllegalArgumentException 当 {@code key} 或 {@code scanOptions} 为 {@code null}
 	 * @throws UnsupportedOperationException 当提供模式且 value 序列化器不支持 {@code String} 序列化
-	 * @since 1.0.0
-	 */
-	public Set<V> scanSetValues(K key, ScanOptions scanOptions) {
-		Assert.notNull(key, "key 不可为null");
+     * @since 1.0.0
+     */
+	public Set<V> scanSetValues(String key, ScanOptions scanOptions) {
+		Assert.hasText(key, "key 不可为空");
 		Assert.notNull(scanOptions, "scanOptions 不可为null");
 		if (StringUtils.isNotBlank(scanOptions.getPattern()) && !getValueSerializer().canSerialize(String.class)) {
 			throw new UnsupportedOperationException();
@@ -246,59 +316,95 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * 扫描 Hash 的键值对（默认选项）。
 	 *
 	 * @param key Hash 的键；不可为 {@code null}
-	 * @param <HK> 哈希键类型
 	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无元素时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
 	 * @since 1.0.0
 	 */
-	public <HK, HV> Map<HK, HV> scanHashValues(K key) {
+	public <HV> Map<String, HV> scanHashValues(String key) {
 		return scanHashValues(key, ScanOptions.NONE);
-	}
-
-	/**
-	 * 扫描 Hash 的键值对（指定每次扫描数量）。
-	 *
-	 * @param key   Hash 的键；不可为 {@code null}
-	 * @param count 每次迭代建议返回的数量；{@code count <= 0} 时返回空映射
-	 * @param <HK> 哈希键类型
-	 * @param <HV> 哈希值类型
-	 * @return 键值映射；无元素或 {@code count <= 0} 时为空映射
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public <HK, HV> Map<HK, HV> scanHashValues(K key, long count) {
-		if (count <= 0) {
-			return Collections.emptyMap();
-		}
-		return scanHashValues(key, scanOptions(null, null, count));
 	}
 
 	/**
 	 * 扫描 Hash 的键值对（指定扫描选项）。
 	 *
-	 * <p>当提供匹配模式且当前 hash value 序列化器无法序列化 {@link String} 类型时，抛出 {@link UnsupportedOperationException}。</p>
+	 * <p>匹配模式由服务器端过滤，且仅作用于哈希字段名（hash key/field）。</p>
+	 * <p>不支持基于哈希值（hash value）的模式匹配过滤。</p>
+	 * <p>本类固定哈希键序列化器为字符串，哈希字段的模式匹配始终受支持。</p>
 	 *
 	 * @param key         Hash 的键；不可为 {@code null}
 	 * @param scanOptions 扫描选项；不可为 {@code null}
-	 * @param <HK> 哈希键类型
 	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无元素时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 或 {@code scanOptions} 为 {@code null}
-	 * @throws UnsupportedOperationException 当提供模式且 hash value 序列化器不支持 {@code String} 序列化
-	 * @since 1.0.0
-	 */
-	public <HK, HV> Map<HK, HV> scanHashValues(K key, ScanOptions scanOptions) {
-		Assert.notNull(key, "key 不可为null");
+     * @since 1.0.0
+     */
+	public <HV> Map<String, HV> scanHashValues(String key, ScanOptions scanOptions) {
+		Assert.hasText(key, "key 不可为空");
 		Assert.notNull(scanOptions, "scanOptions 不可为null");
-		if (StringUtils.isNotBlank(scanOptions.getPattern()) && !getHashValueSerializer().canSerialize(String.class)) {
-			throw new UnsupportedOperationException();
-		}
 
-		HashOperations<K, HK, HV> hashOperations = super.opsForHash();
-		try (Cursor<Map.Entry<HK, HV>> cursor = hashOperations.scan(key, scanOptions)) {
+		HashOperations<String, String, HV> hashOperations = super.opsForHash();
+		try (Cursor<Map.Entry<String, HV>> cursor = hashOperations.scan(key, scanOptions)) {
 			return cursor.stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		}
+	}
+
+	/**
+	 * 按后缀扫描 Hash 的键值对（按哈希字段名过滤）。
+	 *
+	 * <p>匹配模式：{@code *suffix}，仅作用于哈希字段名。</p>
+	 *
+	 * @param key    Hash 的键；不可为 {@code null}
+	 * @param suffix 哈希字段后缀；为空或空白时返回空映射
+	 * @return 键值映射；无匹配或后缀为空白时为空映射
+	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
+	 * @since 1.0.0
+	 */
+	public Map<String, String> scanHashValuesBySuffix(String key, String suffix) {
+		if (StringUtils.isBlank(suffix)) {
+			return Collections.emptyMap();
+		}
+		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, null);
+		return scanHashValues(key, scanOptions);
+	}
+
+	/**
+	 * 按前缀扫描 Hash 的键值对（按哈希字段名过滤）。
+	 *
+	 * <p>匹配模式：{@code prefix*}，仅作用于哈希字段名。</p>
+	 *
+	 * @param key    Hash 的键；不可为 {@code null}
+	 * @param prefix 哈希字段前缀；为空或空白时返回空映射
+	 * @return 键值映射；无匹配或前缀为空白时为空映射
+	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
+	 * @since 1.0.0
+	 */
+	public Map<String, String> scanHashValuesByPrefix(String key, String prefix) {
+		if (StringUtils.isBlank(prefix)) {
+			return Collections.emptyMap();
+		}
+		ScanOptions scanOptions = scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
+		return scanHashValues(key, scanOptions);
+	}
+
+	/**
+	 * 按关键字扫描 Hash 的键值对（按哈希字段名过滤）。
+	 *
+	 * <p>匹配模式：{@code *keyword*}，仅作用于哈希字段名。</p>
+	 *
+	 * @param key     Hash 的键；不可为 {@code null}
+	 * @param keyword 关键字（字段名包含该关键字）；为空或空白时返回空映射
+	 * @return 键值映射；无匹配或关键字为空白时为空映射
+	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
+	 * @since 1.0.0
+	 */
+	public Map<String, String> scanHashValuesByKeyword(String key, String keyword) {
+		if (StringUtils.isBlank(keyword)) {
+			return Collections.emptyMap();
+		}
+		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
+			RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
+		return scanHashValues(key, scanOptions);
 	}
 
 	/**
@@ -309,6 +415,7 @@ public class ScanRedisTemplate<K, V> extends RedisTemplate<K, V> {
 	 * @param count    每次迭代建议返回的数量；为 {@code null} 时不设置数量建议
 	 * @return 构建完成的扫描选项
 	 * @since 1.0.0
+	 * @apiNote {@code count}是一个性能调优选项，用于建议每次迭代返回的元素数量。但它不是精确控制，而是一个提示
 	 */
 	public ScanOptions scanOptions(@Nullable String pattern, @Nullable DataType dataType, @Nullable Long count) {
 		ScanOptions.ScanOptionsBuilder builder = ScanOptions.scanOptions();

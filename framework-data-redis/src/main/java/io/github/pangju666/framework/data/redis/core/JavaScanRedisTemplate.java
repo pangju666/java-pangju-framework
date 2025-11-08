@@ -36,16 +36,15 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @since 1.0.0
  * @see ScanRedisTemplate
  */
-public class JavaScanRedisTemplate extends ScanRedisTemplate<String, Object> {
+public class JavaScanRedisTemplate extends ScanRedisTemplate<Object> {
 	/**
 	 * 无参构造，初始化键、哈希键为字符串序列化器，值、哈希值为 Java 序列化器。
 	 *
 	 * @since 1.0.0
 	 */
 	public JavaScanRedisTemplate() {
-		setKeySerializer(RedisSerializer.string());
+		super();
 		setValueSerializer(RedisSerializer.java());
-		setHashKeySerializer(RedisSerializer.string());
 		setHashValueSerializer(RedisSerializer.java());
 	}
 

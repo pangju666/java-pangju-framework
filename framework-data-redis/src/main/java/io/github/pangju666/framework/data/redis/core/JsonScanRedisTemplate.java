@@ -36,16 +36,15 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  * @since 1.0.0
  * @see ScanRedisTemplate
  */
-public class JsonScanRedisTemplate extends ScanRedisTemplate<String, Object> {
+public class JsonScanRedisTemplate extends ScanRedisTemplate<Object> {
 	/**
 	 * 无参构造，初始化键、哈希键为字符串序列化器，值、哈希值为 JSON 序列化器。
 	 *
 	 * @since 1.0.0
 	 */
 	public JsonScanRedisTemplate() {
-		setKeySerializer(RedisSerializer.string());
+		super();
 		setValueSerializer(RedisSerializer.json());
-		setHashKeySerializer(RedisSerializer.string());
 		setHashValueSerializer(RedisSerializer.json());
 	}
 

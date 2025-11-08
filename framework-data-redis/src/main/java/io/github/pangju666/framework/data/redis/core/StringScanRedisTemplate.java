@@ -27,7 +27,6 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -50,16 +49,15 @@ import java.util.SortedSet;
  * @since 1.0.0
  * @see ScanRedisTemplate
  */
-public class StringScanRedisTemplate extends ScanRedisTemplate<String, String> {
+public class StringScanRedisTemplate extends ScanRedisTemplate<String> {
 	/**
 	 * 无参构造，初始化键、值、哈希键与哈希值的序列化器为字符串序列化器。
 	 *
 	 * @since 1.0.0
 	 */
 	public StringScanRedisTemplate() {
-		setKeySerializer(RedisSerializer.string());
+		super();
 		setValueSerializer(RedisSerializer.string());
-		setHashKeySerializer(RedisSerializer.string());
 		setHashValueSerializer(RedisSerializer.string());
 	}
 
@@ -73,214 +71,6 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String, String> {
 		this();
 		setConnectionFactory(connectionFactory);
 		afterPropertiesSet();
-	}
-
-	/**
-	 * 按后缀扫描所有键。
-	 *
-	 * <p>匹配模式：{@code *suffix}</p>
-	 *
-	 * @param suffix 键后缀；为空或空白时返回空集合
-	 * @return 键集合；无匹配或后缀为空白时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysBySuffix(String suffix) {
-		if (StringUtils.isBlank(suffix)) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, null));
-	}
-
-	/**
-	 * 按后缀扫描键并按类型过滤。
-	 *
-	 * <p>匹配模式：{@code *suffix}</p>
-	 *
-	 * @param suffix   键后缀；为空或空白时返回空集合
-	 * @param dataType 键的数据类型过滤；为 {@code null} 时不设置类型过滤
-	 * @return 键集合；无匹配或后缀为空白时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysBySuffix(String suffix, DataType dataType) {
-		if (StringUtils.isBlank(suffix)) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, dataType, null));
-	}
-
-	/**
-	 * 按后缀扫描键（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *suffix}</p>
-	 *
-	 * @param suffix 键后缀；为空或空白时返回空集合
-	 * @param count  每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 键集合；无匹配、后缀为空白或 {@code count <= 0} 时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysBySuffix(String suffix, long count) {
-		if (StringUtils.isBlank(suffix) || count <= 0) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, count));
-	}
-
-	/**
-	 * 按后缀扫描键并按类型过滤（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *suffix}</p>
-	 *
-	 * @param suffix   键后缀；为空或空白时返回空集合
-	 * @param dataType 键的数据类型过滤；为 {@code null} 时不设置类型过滤
-	 * @param count    每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 键集合；无匹配、后缀为空白或 {@code count <= 0} 时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysBySuffix(String suffix, DataType dataType, long count) {
-		if (StringUtils.isBlank(suffix) || count <= 0) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, dataType, count));
-	}
-
-	/**
-	 * 按前缀扫描所有键。
-	 *
-	 * <p>匹配模式：{@code prefix*}</p>
-	 *
-	 * @param prefix 键前缀；为空或空白时返回空集合
-	 * @return 键集合；无匹配或前缀为空白时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysByPrefix(String prefix) {
-		if (StringUtils.isBlank(prefix)) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, null));
-	}
-
-	/**
-	 * 按前缀扫描键并按类型过滤。
-	 *
-	 * <p>匹配模式：{@code prefix*}</p>
-	 *
-	 * @param prefix   键前缀；为空或空白时返回空集合
-	 * @param dataType 键的数据类型过滤；为 {@code null} 时不设置类型过滤
-	 * @return 键集合；无匹配或前缀为空白时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysByPrefix(String prefix, DataType dataType) {
-		if (StringUtils.isBlank(prefix)) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, dataType, null));
-	}
-
-	/**
-	 * 按前缀扫描键（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code prefix*}</p>
-	 *
-	 * @param prefix 键前缀；为空或空白时返回空集合
-	 * @param count  每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 键集合；无匹配、前缀为空白或 {@code count <= 0} 时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysByPrefix(String prefix, long count) {
-		if (StringUtils.isBlank(prefix) || count <= 0) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, count));
-	}
-
-	/**
-	 * 按前缀扫描键并按类型过滤（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code prefix*}</p>
-	 *
-	 * @param prefix   键前缀；为空或空白时返回空集合
-	 * @param dataType 键的数据类型过滤；为 {@code null} 时不设置类型过滤
-	 * @param count    每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 键集合；无匹配、前缀为空白或 {@code count <= 0} 时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysByPrefix(String prefix, DataType dataType, long count) {
-		if (StringUtils.isBlank(prefix) || count <= 0) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, dataType, count));
-	}
-
-	/**
-	 * 按关键字扫描所有键（包含该关键字）。
-	 *
-	 * <p>匹配模式：{@code *keyword*}</p>
-	 *
-	 * @param keyword 关键字；为空或空白时返回空集合
-	 * @return 键集合；无匹配或关键字为空白时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysByKeyword(String keyword) {
-		if (StringUtils.isBlank(keyword)) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
-			RedisConstants.CURSOR_PATTERN_SYMBOL, null, null));
-	}
-
-	/**
-	 * 按关键字扫描键并按类型过滤。
-	 *
-	 * <p>匹配模式：{@code *keyword*}</p>
-	 *
-	 * @param keyword  关键字；为空或空白时返回空集合
-	 * @param dataType 键的数据类型过滤；为 {@code null} 时不设置类型过滤
-	 * @return 键集合；无匹配或关键字为空白时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysByKeyword(String keyword, DataType dataType) {
-		if (StringUtils.isBlank(keyword)) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
-			RedisConstants.CURSOR_PATTERN_SYMBOL, dataType, null));
-	}
-
-	/**
-	 * 按关键字扫描键（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *keyword*}</p>
-	 *
-	 * @param keyword 关键字；为空或空白时返回空集合
-	 * @param count   每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 键集合；无匹配、关键字为空白或 {@code count <= 0} 时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysByKeyword(String keyword, long count) {
-		if (StringUtils.isBlank(keyword) || count <= 0) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
-			RedisConstants.CURSOR_PATTERN_SYMBOL, null, count));
-	}
-
-	/**
-	 * 按关键字扫描键并按类型过滤（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *keyword*}</p>
-	 *
-	 * @param keyword  关键字；为空或空白时返回空集合
-	 * @param dataType 键的数据类型过滤；为 {@code null} 时不设置类型过滤
-	 * @param count    每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 键集合；无匹配、关键字为空白或 {@code count <= 0} 时为空集合
-	 * @since 1.0.0
-	 */
-	public Set<String> scanKeysByKeyword(String keyword, DataType dataType, long count) {
-		if (StringUtils.isBlank(keyword) || count <= 0) {
-			return Collections.emptySet();
-		}
-		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
-			RedisConstants.CURSOR_PATTERN_SYMBOL, dataType, count));
 	}
 
 	/**
@@ -303,26 +93,6 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String, String> {
 	}
 
 	/**
-	 * 按后缀扫描 ZSet 的元素（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *suffix}</p>
-	 *
-	 * @param key    ZSet 的键；不可为 {@code null}
-	 * @param suffix 元素后缀；为空或空白时返回空集合
-	 * @param count  每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 有序的元素集合；无匹配、后缀为空白或 {@code count <= 0} 时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public SortedSet<ZSetOperations.TypedTuple<String>> scanZSetValuesBySuffix(String key, String suffix, long count) {
-		if (StringUtils.isBlank(suffix) || count <= 0) {
-			return Collections.emptySortedSet();
-		}
-		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, count);
-		return scanZSetValues(key, scanOptions);
-	}
-
-	/**
 	 * 按前缀扫描 ZSet 的元素。
 	 *
 	 * <p>匹配模式：{@code prefix*}</p>
@@ -338,26 +108,6 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String, String> {
 			return Collections.emptySortedSet();
 		}
 		ScanOptions scanOptions = scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
-		return scanZSetValues(key, scanOptions);
-	}
-
-	/**
-	 * 按前缀扫描 ZSet 的元素（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code prefix*}</p>
-	 *
-	 * @param key    ZSet 的键；不可为 {@code null}
-	 * @param prefix 元素前缀；为空或空白时返回空集合
-	 * @param count  每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 有序的元素集合；无匹配、前缀为空白或 {@code count <= 0} 时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public SortedSet<ZSetOperations.TypedTuple<String>> scanZSetValuesByPrefix(String key, String prefix, long count) {
-		if (StringUtils.isBlank(prefix) || count <= 0) {
-			return Collections.emptySortedSet();
-		}
-		ScanOptions scanOptions = scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, count);
 		return scanZSetValues(key, scanOptions);
 	}
 
@@ -382,27 +132,6 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String, String> {
 	}
 
 	/**
-	 * 按关键字扫描 ZSet 的元素（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *keyword*}</p>
-	 *
-	 * @param key     ZSet 的键；不可为 {@code null}
-	 * @param keyword 关键字；为空或空白时返回空集合
-	 * @param count   每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 有序的元素集合；无匹配、关键字为空白或 {@code count <= 0} 时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public SortedSet<ZSetOperations.TypedTuple<String>> scanZSetValuesByKeyword(String key, String keyword, long count) {
-		if (StringUtils.isBlank(keyword) || count <= 0) {
-			return Collections.emptySortedSet();
-		}
-		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
-			RedisConstants.CURSOR_PATTERN_SYMBOL, null, count);
-		return scanZSetValues(key, scanOptions);
-	}
-
-	/**
 	 * 按后缀扫描 Set 的元素。
 	 *
 	 * <p>匹配模式：{@code *suffix}</p>
@@ -418,26 +147,6 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String, String> {
 			return Collections.emptySet();
 		}
 		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, null);
-		return scanSetValues(key, scanOptions);
-	}
-
-	/**
-	 * 按后缀扫描 Set 的元素（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *suffix}</p>
-	 *
-	 * @param key    Set 的键；不可为 {@code null}
-	 * @param suffix 元素后缀；为空或空白时返回空集合
-	 * @param count  每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 元素集合；无匹配、后缀为空白或 {@code count <= 0} 时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Set<String> scanSetValuesBySuffix(String key, String suffix, long count) {
-		if (StringUtils.isBlank(suffix) || count <= 0) {
-			return Collections.emptySet();
-		}
-		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, count);
 		return scanSetValues(key, scanOptions);
 	}
 
@@ -461,26 +170,6 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String, String> {
 	}
 
 	/**
-	 * 按前缀扫描 Set 的元素（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code prefix*}</p>
-	 *
-	 * @param key    Set 的键；不可为 {@code null}
-	 * @param prefix 元素前缀；为空或空白时返回空集合
-	 * @param count  每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 元素集合；无匹配、前缀为空白或 {@code count <= 0} 时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Set<String> scanSetValuesByPrefix(String key, String prefix, long count) {
-		if (StringUtils.isBlank(prefix) || count <= 0) {
-			return Collections.emptySet();
-		}
-		ScanOptions scanOptions = scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, count);
-		return scanSetValues(key, scanOptions);
-	}
-
-	/**
 	 * 按关键字扫描 Set 的元素（包含该关键字）。
 	 *
 	 * <p>匹配模式：{@code *keyword*}</p>
@@ -498,146 +187,6 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String, String> {
 		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
 			RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
 		return scanSetValues(key, scanOptions);
-	}
-
-	/**
-	 * 按关键字扫描 Set 的元素（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *keyword*}</p>
-	 *
-	 * @param key     Set 的键；不可为 {@code null}
-	 * @param keyword 关键字；为空或空白时返回空集合
-	 * @param count   每次迭代建议返回的数量；{@code count <= 0} 时返回空集合
-	 * @return 元素集合；无匹配、关键字为空白或 {@code count <= 0} 时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Set<String> scanSetValuesByKeyword(String key, String keyword, long count) {
-		if (StringUtils.isBlank(keyword) || count <= 0) {
-			return Collections.emptySet();
-		}
-		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
-			RedisConstants.CURSOR_PATTERN_SYMBOL, null, count);
-		return scanSetValues(key, scanOptions);
-	}
-
-	/**
-	 * 按后缀扫描 Hash 的键值对。
-	 *
-	 * <p>匹配模式：{@code *suffix}</p>
-	 *
-	 * @param key    Hash 的键；不可为 {@code null}
-	 * @param suffix 哈希值后缀；为空或空白时返回空映射
-	 * @return 键值映射；无匹配或后缀为空白时为空映射
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Map<String, String> scanHashValuesBySuffix(String key, String suffix) {
-		if (StringUtils.isBlank(suffix)) {
-			return Collections.emptyMap();
-		}
-		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, null);
-		return scanHashValues(key, scanOptions);
-	}
-
-	/**
-	 * 按后缀扫描 Hash 的键值对（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *suffix}</p>
-	 *
-	 * @param key    Hash 的键；不可为 {@code null}
-	 * @param suffix 哈希值后缀；为空或空白时返回空映射
-	 * @param count  每次迭代建议返回的数量；{@code count <= 0} 时返回空映射
-	 * @return 键值映射；无匹配、后缀为空白或 {@code count <= 0} 时为空映射
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Map<String, String> scanHashValuesBySuffix(String key, String suffix, long count) {
-		if (StringUtils.isBlank(suffix) || count <= 0) {
-			return Collections.emptyMap();
-		}
-		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, count);
-		return scanHashValues(key, scanOptions);
-	}
-
-	/**
-	 * 按前缀扫描 Hash 的键值对。
-	 *
-	 * <p>匹配模式：{@code prefix*}</p>
-	 *
-	 * @param key    Hash 的键；不可为 {@code null}
-	 * @param prefix 哈希值前缀；为空或空白时返回空映射
-	 * @return 键值映射；无匹配或前缀为空白时为空映射
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Map<String, String> scanHashValuesByPrefix(String key, String prefix) {
-		if (StringUtils.isBlank(prefix)) {
-			return Collections.emptyMap();
-		}
-		ScanOptions scanOptions = scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
-		return scanHashValues(key, scanOptions);
-	}
-
-	/**
-	 * 按前缀扫描 Hash 的键值对（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code prefix*}</p>
-	 *
-	 * @param key    Hash 的键；不可为 {@code null}
-	 * @param prefix 哈希值前缀；为空或空白时返回空映射
-	 * @param count  每次迭代建议返回的数量；{@code count <= 0} 时返回空映射
-	 * @return 键值映射；无匹配、前缀为空白或 {@code count <= 0} 时为空映射
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Map<String, String> scanHashValuesByPrefix(String key, String prefix, long count) {
-		if (StringUtils.isBlank(prefix) || count <= 0) {
-			return Collections.emptyMap();
-		}
-		ScanOptions scanOptions = scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, count);
-		return scanHashValues(key, scanOptions);
-	}
-
-	/**
-	 * 按关键字扫描 Hash 的键值对（哈希值包含该关键字）。
-	 *
-	 * <p>匹配模式：{@code *keyword*}</p>
-	 *
-	 * @param key     Hash 的键；不可为 {@code null}
-	 * @param keyword 关键字；为空或空白时返回空映射
-	 * @return 键值映射；无匹配或关键字为空白时为空映射
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Map<String, String> scanHashValuesByKeyword(String key, String keyword) {
-		if (StringUtils.isBlank(keyword)) {
-			return Collections.emptyMap();
-		}
-		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
-			RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
-		return scanHashValues(key, scanOptions);
-	}
-
-	/**
-	 * 按关键字扫描 Hash 的键值对（指定每次扫描数量）。
-	 *
-	 * <p>匹配模式：{@code *keyword*}</p>
-	 *
-	 * @param key     Hash 的键；不可为 {@code null}
-	 * @param keyword 关键字；为空或空白时返回空映射
-	 * @param count   每次迭代建议返回的数量；{@code count <= 0} 时返回空映射
-	 * @return 键值映射；无匹配、关键字为空白或 {@code count <= 0} 时为空映射
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
-	 * @since 1.0.0
-	 */
-	public Map<String, String> scanHashValuesByKeyword(String key, String keyword, long count) {
-		if (StringUtils.isBlank(keyword) || count <= 0) {
-			return Collections.emptyMap();
-		}
-		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
-			RedisConstants.CURSOR_PATTERN_SYMBOL, null, count);
-		return scanHashValues(key, scanOptions);
 	}
 
 	/**
