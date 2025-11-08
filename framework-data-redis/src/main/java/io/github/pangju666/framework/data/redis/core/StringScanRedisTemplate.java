@@ -18,7 +18,6 @@ package io.github.pangju666.framework.data.redis.core;
 
 import io.github.pangju666.framework.data.redis.lang.RedisConstants;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.DefaultStringRedisConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -33,16 +32,14 @@ import java.util.SortedSet;
 /**
  * 字符串版扫描模板。
  *
- * <p>基于 {@link ScanRedisTemplate} 的便捷封装，默认使用字符串序列化器
- *（键、值、哈希键、哈希值均为 {@link RedisSerializer#string()}），
- * 提供按后缀、前缀、关键字的简易扫描方法，覆盖键、ZSet、Set、Hash 等场景。</p>
+ * <p>在 {@link ScanRedisTemplate} 基础上，预设键、值、哈希键和哈希值的序列化器为
+ * {@link RedisSerializer#string()}，确保所有基于模式的扫描路径均与字符串序列化兼容。
+ * 提供对 ZSet/Set 元素的按后缀、前缀、关键字的便捷扫描方法。</p>
  *
- * <p>行为特性：</p>
+ * <p>行为特性与约束：</p>
  * <ul>
- *   <li>空或空白的匹配参数直接返回空结果以避免不必要扫描。</li>
- *   <li>{@code count <= 0} 时直接返回空结果。</li>
- *   <li>统一通过 {@link #scanOptions(String, DataType, Long)} 构建 {@link ScanOptions}。</li>
- *   <li>匹配模式由服务器端过滤；因采用字符串序列化器，匹配模式不受序列化器限制。</li>
+ *   <li>空或空白的匹配参数直接返回空结果，避免不必要的扫描。</li>
+ *   <li>匹配模式由服务器端过滤；采用字符串序列化器可避免在 Set/ZSet 元素扫描时因模式匹配引发的 {@link UnsupportedOperationException}。</li>
  * </ul>
  *
  * @author pangju666
@@ -51,7 +48,7 @@ import java.util.SortedSet;
  */
 public class StringScanRedisTemplate extends ScanRedisTemplate<String> {
 	/**
-	 * 无参构造，初始化键、值、哈希键与哈希值的序列化器为字符串序列化器。
+	 * 无参构造。
 	 *
 	 * @since 1.0.0
 	 */
@@ -78,18 +75,18 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String> {
 	 *
 	 * <p>匹配模式：{@code *suffix}</p>
 	 *
-	 * @param key    ZSet 的键；不可为 {@code null}
+	 * @param key    ZSet 的键；不可为空或空白
 	 * @param suffix 元素后缀；为空或空白时返回空集合
 	 * @return 有序的元素集合；无匹配或后缀为空白时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public SortedSet<ZSetOperations.TypedTuple<String>> scanZSetValuesBySuffix(String key, String suffix) {
+	public SortedSet<ZSetOperations.TypedTuple<String>> scanZSetBySuffix(String key, String suffix) {
 		if (StringUtils.isBlank(suffix)) {
 			return Collections.emptySortedSet();
 		}
 		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, null);
-		return scanZSetValues(key, scanOptions);
+		return scanZSet(key, scanOptions);
 	}
 
 	/**
@@ -97,18 +94,18 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String> {
 	 *
 	 * <p>匹配模式：{@code prefix*}</p>
 	 *
-	 * @param key    ZSet 的键；不可为 {@code null}
+	 * @param key    ZSet 的键；不可为空或空白
 	 * @param prefix 元素前缀；为空或空白时返回空集合
 	 * @return 有序的元素集合；无匹配或前缀为空白时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public SortedSet<ZSetOperations.TypedTuple<String>> scanZSetValuesByPrefix(String key, String prefix) {
+	public SortedSet<ZSetOperations.TypedTuple<String>> scanZSetByPrefix(String key, String prefix) {
 		if (StringUtils.isBlank(prefix)) {
 			return Collections.emptySortedSet();
 		}
 		ScanOptions scanOptions = scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
-		return scanZSetValues(key, scanOptions);
+		return scanZSet(key, scanOptions);
 	}
 
 	/**
@@ -116,19 +113,19 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String> {
 	 *
 	 * <p>匹配模式：{@code *keyword*}</p>
 	 *
-	 * @param key     ZSet 的键；不可为 {@code null}
+	 * @param key     ZSet 的键；不可为空或空白
 	 * @param keyword 关键字；为空或空白时返回空集合
 	 * @return 有序的元素集合；无匹配或关键字为空白时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public SortedSet<ZSetOperations.TypedTuple<String>> scanZSetValuesByKeyword(String key, String keyword) {
+	public SortedSet<ZSetOperations.TypedTuple<String>> scanZSetByKeyword(String key, String keyword) {
 		if (StringUtils.isBlank(keyword)) {
 			return Collections.emptySortedSet();
 		}
 		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
 			RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
-		return scanZSetValues(key, scanOptions);
+		return scanZSet(key, scanOptions);
 	}
 
 	/**
@@ -136,18 +133,18 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String> {
 	 *
 	 * <p>匹配模式：{@code *suffix}</p>
 	 *
-	 * @param key    Set 的键；不可为 {@code null}
+	 * @param key    Set 的键；不可为空或空白
 	 * @param suffix 元素后缀；为空或空白时返回空集合
 	 * @return 元素集合；无匹配或后缀为空白时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public Set<String> scanSetValuesBySuffix(String key, String suffix) {
+	public Set<String> scanSetBySuffix(String key, String suffix) {
 		if (StringUtils.isBlank(suffix)) {
 			return Collections.emptySet();
 		}
 		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, null, null);
-		return scanSetValues(key, scanOptions);
+		return scanSet(key, scanOptions);
 	}
 
 	/**
@@ -155,18 +152,18 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String> {
 	 *
 	 * <p>匹配模式：{@code prefix*}</p>
 	 *
-	 * @param key    Set 的键；不可为 {@code null}
+	 * @param key    Set 的键；不可为空或空白
 	 * @param prefix 元素前缀；为空或空白时返回空集合
 	 * @return 元素集合；无匹配或前缀为空白时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public Set<String> scanSetValuesByPrefix(String key, String prefix) {
+	public Set<String> scanSetByPrefix(String key, String prefix) {
 		if (StringUtils.isBlank(prefix)) {
 			return Collections.emptySet();
 		}
 		ScanOptions scanOptions = scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
-		return scanSetValues(key, scanOptions);
+		return scanSet(key, scanOptions);
 	}
 
 	/**
@@ -174,19 +171,19 @@ public class StringScanRedisTemplate extends ScanRedisTemplate<String> {
 	 *
 	 * <p>匹配模式：{@code *keyword*}</p>
 	 *
-	 * @param key     Set 的键；不可为 {@code null}
+	 * @param key     Set 的键；不可为空或空白
 	 * @param keyword 关键字；为空或空白时返回空集合
 	 * @return 元素集合；无匹配或关键字为空白时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为 {@code null}
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public Set<String> scanSetValuesByKeyword(String key, String keyword) {
+	public Set<String> scanSetByKeyword(String key, String keyword) {
 		if (StringUtils.isBlank(keyword)) {
 			return Collections.emptySet();
 		}
 		ScanOptions scanOptions = scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
 			RedisConstants.CURSOR_PATTERN_SYMBOL, null, null);
-		return scanSetValues(key, scanOptions);
+		return scanSet(key, scanOptions);
 	}
 
 	/**

@@ -22,15 +22,9 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 /**
  * JSON 序列化版扫描模板。
  *
- * <p>基于 {@link ScanRedisTemplate} 的便捷封装，默认使用
- * 键、哈希键为 {@link RedisSerializer#string()}，值、哈希值为
- * {@link RedisSerializer#json()} 的序列化方案，适合以 JSON 格式存储对象的场景。</p>
- *
- * <p>说明：</p>
- * <ul>
- *   <li>该类仅负责初始化序列化器，扫描能力与行为特性由父类提供。</li>
- *   <li>值/哈希值序列化器非字符串类型，使用匹配模式进行“值扫描”可能不受支持；当提供匹配模式且序列化器不能序列化 {@link String} 时将抛出 {@link UnsupportedOperationException}。如需模式扫描值，推荐使用 {@link StringScanRedisTemplate} 或确保当前序列化器能正确处理字符串模式并与存储格式一致。</li>
- * </ul>
+ * <p>在 {@link ScanRedisTemplate} 基础上预设序列化方案：键与哈希字段使用
+ * {@link RedisSerializer#string()}，值与哈希值使用 {@link RedisSerializer#json()}。
+ * 适用于以 JSON 格式存储对象的场景。</p>
  *
  * @author pangju666
  * @since 1.0.0
