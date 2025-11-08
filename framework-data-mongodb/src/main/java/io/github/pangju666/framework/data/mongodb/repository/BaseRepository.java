@@ -65,6 +65,37 @@ import java.util.stream.Stream;
  * }</pre>
  * </p>
  *
+ * <p>
+ * 参数与约束总则：
+ * <ul>
+ *     <li><b>key/id</b>：遵循非空且非空白约束（多数方法使用 {@code Assert.hasText} 校验）。若方法未在仓储层显式校验，调用方需自行保证有效性。</li>
+ *     <li><b>集合参数</b>：批量方法会过滤集合中的 {@code null} 与空白字符串元素；过滤后为空时返回空结果或 {@code false}。</li>
+ *     <li><b>Optional 返回</b>：未匹配到文档时统一返回 {@code Optional.empty()}。</li>
+ *     <li><b>null 值语义</b>：匹配“值为 {@code null}”与“字段缺失”并不等价；如需匹配缺失字段应使用 {@code $exists:false}。</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * 性能与使用提示：
+ * <ul>
+ *     <li><b>索引前提</b>：建议为常用字段（如 {@code _id}、查询字段 {@code key}）建立合适索引，以保障查询与更新效率。</li>
+ *     <li><b>正则查询</b>：正则匹配通常不索引友好；建议限制前缀锚点并使用 {@link java.util.regex.Pattern} 控制 flags，避免慢查询与潜在 ReDoS 风险。</li>
+ *     <li><b>分页计数</b>：分页会进行 {@code count} 与数据查询；复杂或超大集合场景下可考虑跳过计数或使用估算策略。</li>
+ *     <li><b>批量操作</b>：超大批次建议改用批量管道（例如 {@code BulkOperations}）；当前实现会逐条/多条更新，调用方需控制批次大小。</li>
+ *     <li><b>流式查询</b>：{@code stream*} 方法基于游标；请使用 try-with-resources 或在消费结束时关闭流以释放资源。</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * 成功判定语义：
+ * <ul>
+ *     <li><b>单条删除</b>（如 {@code removeById}）：确认且恰好影响 1 条视为成功。</li>
+ *     <li><b>批量删除/更新</b>（如 {@code removeByIds}、{@code updateByIds}）：确认且影响条数大于 0 视为成功。</li>
+ *     <li><b>按 ID 局部更新</b>（{@code updateById(Update, String)}）：确认且实际修改 1 条（如值未变化则视为未修改）。</li>
+ *     <li><b>整文替换</b>（{@code updateById(T)}）：会覆盖未在对象中的字段，仅在可构造完整文档时使用。</li>
+ * </ul>
+ * </p>
+ *
  * @param <T> 实体类型
  * @author pangju666
  * @see QueryUtils
@@ -399,6 +430,9 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 * 使用MongoDB的distinct命令查询指定字段的所有不同值。
 	 * 此方法不带任何查询条件，将返回集合中该字段的所有唯一值。
 	 * </p>
+	 * <p>
+	 * 说明：distinct仅统计“字段存在”的值；字段缺失的文档不参与统计。若需排除{@code null}值，请结合查询条件使用 {@code $exists:true} 与 {@code $ne:null}。
+	 * </p>
 	 *
 	 * @param key        要查询的字段名
 	 * @param valueClass 字段值的类型Class对象
@@ -420,6 +454,9 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 * <p>
 	 * 使用MongoDB的distinct命令在指定查询条件下查询字段的不同值。
 	 * 此方法允许通过查询条件过滤文档，只返回匹配文档中该字段的唯一值。
+	 * </p>
+	 * <p>
+	 * 说明：distinct仅统计“字段存在”的值；对于缺失字段的文档不会产生值。如需排除{@code null}，请在查询中加入 {@code $exists:true} 与 {@code $ne:null}。
 	 * </p>
 	 *
 	 * @param query      MongoDB查询条件
@@ -565,6 +602,9 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 *     <li>字段不存在</li>
 	 * </ul>
 	 * </p>
+	 * <p>
+	 * 注意：如需仅匹配“值为{@code null}”而排除“字段缺失”的情况，请在查询中显式添加 {@code $exists:true} 条件以限定字段存在。
+	 * </p>
 	 *
 	 * @param key 要查询的字段名
 	 * @return 匹配的文档列表，如果没有匹配则返回空列表
@@ -583,6 +623,9 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 *     <li>字段存在</li>
 	 *     <li>字段值不为 {@code null}</li>
 	 * </ul>
+	 * </p>
+	 * <p>
+	 * 说明：该查询会排除“字段缺失”的文档，仅匹配“字段存在且值非{@code null}”。
 	 * </p>
 	 *
 	 * @param key 要查询的字段名
@@ -843,7 +886,8 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	/**
 	 * 查询集合中的所有文档并返回流
 	 * <p>
-	 * 不带任何查询条件，返回整个集合的文档流
+	 * 不带任何查询条件，返回整个集合的文档流。
+	 * 流基于游标，请在消费结束或异常时关闭以释放资源，建议使用 try-with-resources。
 	 * </p>
 	 *
 	 * @return 包含所有文档的流
@@ -856,7 +900,8 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	/**
 	 * 根据排序条件查询所有文档并返回流
 	 * <p>
-	 * 对集合中的所有文档进行排序并返回文档流
+	 * 对集合中的所有文档进行排序并返回文档流。
+	 * 流基于游标，请在消费结束或异常时关闭以释放资源，建议使用 try-with-resources。
 	 * </p>
 	 *
 	 * @param sort 排序条件
@@ -873,7 +918,8 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	/**
 	 * 根据查询条件获取文档流
 	 * <p>
-	 * 使用指定的查询条件过滤文档并返回文档流
+	 * 使用指定的查询条件过滤文档并返回文档流。
+	 * 流基于游标，请在消费结束或异常时关闭以释放资源，建议使用 try-with-resources。
 	 * </p>
 	 *
 	 * @param query MongoDB查询条件
@@ -891,6 +937,9 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 * 分页查询所有文档
 	 * <p>
 	 * 不带任何查询条件，对整个集合进行分页
+	 * </p>
+	 * <p>
+	 * 计数说明：总记录数通过独立的 {@link #count()} 操作获取；当集合数据量较大或并发较高时，计数可能成为性能瓶颈，建议确保相关过滤/排序字段具备合适索引以提升整体分页效率。
 	 * </p>
 	 *
 	 * @param pageable 分页参数
@@ -910,6 +959,9 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 * 根据查询条件分页查询文档
 	 * <p>
 	 * 使用指定的查询条件过滤文档并进行分页
+	 * </p>
+	 * <p>
+	 * 计数说明：总记录数通过 {@link #count(Query)} 在相同查询条件下获取；当过滤条件复杂或涉及大量数据时，计数会带来额外的性能开销。为提升性能，建议为查询条件中涉及的键建立索引，并尽量避免未索引的范围查询。
 	 * </p>
 	 *
 	 * @param pageable 分页参数
