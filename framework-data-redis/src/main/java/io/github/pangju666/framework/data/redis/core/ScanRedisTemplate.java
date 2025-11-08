@@ -238,18 +238,6 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	}
 
 	/**
-	 * 扫描 ZSet 的元素（默认选项）。
-	 *
-	 * @param key ZSet 的键；不可为空或空白
-	 * @return 有序的元素集合（按默认比较规则排序）；无元素时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
-	 * @since 1.0.0
-	 */
-	public SortedSet<ZSetOperations.TypedTuple<V>> scanZSet(String key) {
-		return scanZSet(key, ScanOptions.NONE);
-	}
-
-	/**
 	 * 扫描 ZSet 的元素（指定扫描选项）。
 	 *
 	 * <p>匹配模式由服务器端过滤。</p>
@@ -276,18 +264,6 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	}
 
 	/**
-	 * 扫描 Set 的元素（默认选项）。
-	 *
-	 * @param key Set 的键；不可为空或空白
-	 * @return 元素集合；无元素时为空集合
-	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
-	 * @since 1.0.0
-	 */
-	public Set<V> scanSet(String key) {
-		return scanSet(key, ScanOptions.NONE);
-	}
-
-	/**
 	 * 扫描 Set 的元素（指定扫描选项）。
 	 *
 	 * <p>匹配模式由服务器端过滤。</p>
@@ -309,18 +285,6 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 		try (Cursor<V> cursor = super.opsForSet().scan(key, scanOptions)) {
 			return cursor.stream().collect(Collectors.toSet());
 		}
-	}
-
-	/**
-	 * 扫描 Hash 的键值对（默认选项）。
-	 *
-	 * @param key Hash 的键；不可为空或空白
-	 * @return 键值映射；无元素时为空映射
-	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
-	 * @since 1.0.0
-	 */
-	public Map<String, V> scanHash(String key) {
-		return scanHash(key, ScanOptions.NONE);
 	}
 
 	/**
