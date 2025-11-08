@@ -16,317 +16,92 @@
 
 package io.github.pangju666.framework.data.redis.utils;
 
-import io.github.pangju666.framework.data.redis.enums.RedisSerializerType;
 import io.github.pangju666.framework.data.redis.lang.RedisConstants;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.connection.DataType;
-import org.springframework.data.redis.core.ScanOptions;
-import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Objects;
+import java.util.Collection;
 
 /**
- * Redis操作工具类
- * <p>
- * 提供Redis键扫描和键名管理的工具方法，主要功能包括：
+ * Redis 工具类。
+ *
+ * <p><b>提供能力：</b></p>
  * <ul>
- *     <li>键名组合：使用统一分隔符组合多级键名</li>
- *     <li>扫描选项构建：支持多种模式的键扫描</li>
- *     <li>数据类型过滤：支持按Redis数据类型筛选</li>
+ *   <li>键拼接：通过路径分隔符将多个片段组合为一个 Redis 键（{@link #computeKey(Object...)}）。</li>
+ *   <li>批量删除：支持批量删除键，并在未完全删除时进行重试（{@link #deleteKeys(RedisTemplate, Collection)}、
+ *   {@link #deleteKeys(RedisTemplate, Collection, int)}）。</li>
  * </ul>
- * </p>
  *
- * <p>
- * 扫描模式支持：
- * <ul>
- *     <li>数据类型匹配：按STRING、LIST、SET等类型过滤</li>
- *     <li>前缀匹配：使用 "prefix*" 模式</li>
- *     <li>后缀匹配：使用 "*suffix" 模式</li>
- *     <li>关键字匹配：使用 "*keyword*" 模式</li>
- * </ul>
- * </p>
- *
- * <p>
- * 使用示例：
- * <pre>{@code
- * // 组合多级键名
- * String key = RedisUtils.computeKey("user", "profile", "1");  // 结果: user:profile:1
- *
- * // 按数据类型扫描
- * ScanOptions typeOptions = RedisUtils.scanOptionsByDataType(DataType.STRING, 100L);
- *
- * // 按前缀扫描
- * ScanOptions prefixOptions = RedisUtils.scanOptionsByPrefix("user:");
- *
- * // 按关键字扫描
- * ScanOptions keywordOptions = RedisUtils.scanOptionsByKeyword("profile");
- * }</pre>
- * </p>
- *
- * <p>
- * 性能优化：
- * <ul>
- *     <li>使用SCAN命令替代KEYS命令，避免大量键时的性能问题</li>
- *     <li>支持设置每次扫描返回的数量，控制内存使用</li>
- *     <li>提供数据类型过滤，减少不必要的键扫描</li>
- * </ul>
- * </p>
- *
- * <p>
- * 注意事项：
- * <ul>
- *     <li>工具类中的方法都是静态的，无需实例化</li>
- *     <li>键名分隔符统一使用{@link RedisConstants#REDIS_PATH_DELIMITER}</li>
- *     <li>扫描参数为null时会使用默认值</li>
- * </ul>
- * </p>
+ * <p><b>线程安全：</b>类本身无状态，所有方法为静态方法，可在并发环境下安全调用。</p>
  *
  * @author pangju666
- * @version 1.0.0
- * @see org.springframework.data.redis.core.ScanOptions
- * @see org.springframework.data.redis.connection.DataType
  * @since 1.0.0
  */
 public class RedisUtils {
+	/**
+	 * 批量删除默认重试次数。
+	 * <p>在首轮删除后，若仍存在未删除的键，则最多进行该次数的额外删除尝试。</p>
+	 *
+	 * @since 1.0.0
+	 */
+	protected static final int DEFAULT_DELETE_RETRY_TIMES = 3;
+
 	protected RedisUtils() {
 	}
 
 	/**
-	 * 使用{@link RedisConstants#REDIS_PATH_DELIMITER 分隔符}组合多个键
+	 * 计算（拼接）Redis 键。
 	 *
-	 * @param keys 要组合的键数组
-	 * @return 组合后的键字符串
+	 * <p>将多个键片段使用路径分隔符 {@link RedisConstants#REDIS_PATH_DELIMITER} 进行拼接。</p>
+	 *
+	 * @param keys 键的片段（顺序拼接）；为空数组时返回空字符串
+	 * @return 拼接后的完整键，不为 {@code null}
 	 * @since 1.0.0
 	 */
-	public static String computeKey(final String... keys) {
-		return StringUtils.join(keys, RedisConstants.REDIS_PATH_DELIMITER);
+	public static String computeKey(final Object... keys) {
+		return StringUtils.joinWith(RedisConstants.REDIS_PATH_DELIMITER, keys);
 	}
 
 	/**
-	 * 创建扫描选项
-	 * <p>
-	 * 构建Redis SCAN命令的扫描选项，支持以下功能：
-	 * <ul>
-	 *     <li>指定匹配模式（pattern）：支持通配符 *、?</li>
-	 *     <li>指定数据类型（type）：STRING、LIST、SET、ZSET、HASH、STREAM</li>
-	 *     <li>指定每次扫描返回的数量（count）：建议值为100-1000</li>
-	 * </ul>
-	 * </p>
+	 * 批量删除键（{@link #DEFAULT_DELETE_RETRY_TIMES 使用默认重试次数}）。
 	 *
-	 * @param pattern  匹配模式，支持Redis通配符
-	 * @param dataType 数据类型，用于过滤指定类型的键
-	 * @param count    期望每次扫描返回的数量
-	 * @return 扫描选项对象
-	 * @see ScanOptions.ScanOptionsBuilder
+	 * @param redisTemplate RedisTemplate 实例
+	 * @param keys          待删除的键集合；为空集合时直接返回
 	 * @since 1.0.0
 	 */
-	public static ScanOptions scanOptions(final String pattern, final DataType dataType, final Long count) {
-		ScanOptions.ScanOptionsBuilder builder = ScanOptions.scanOptions();
-		if (Objects.nonNull(count)) {
-			builder.count(count);
+	public static <K> void deleteKeys(final RedisTemplate<K, ?> redisTemplate, final Collection<K> keys) {
+		deleteKeys(redisTemplate, keys, DEFAULT_DELETE_RETRY_TIMES);
+	}
+
+	/**
+	 * 批量删除键（支持重试）。
+	 *
+	 * <p>先执行一次批量删除；若未全部删除成功，则在不超过 {@code retryTimes} 次的条件下进行额外删除尝试，
+	 * 直到全部删除或达到重试上限（最多额外重试 {@code retryTimes} 次）。</p>
+	 *
+	 * @param redisTemplate RedisTemplate 实例
+	 * @param keys          待删除的键集合；为空集合时直接返回
+	 * @param retryTimes    最大额外尝试次数
+	 * @throws IllegalArgumentException 当 {@code retryTimes} 小于等于 0
+	 * @since 1.0.0
+	 */
+	public static <K> void deleteKeys(final RedisTemplate<K, ?> redisTemplate, final Collection<K> keys, final int retryTimes) {
+		Assert.isTrue(retryTimes > 0, "retryTimes 必须大于0");
+
+		if (CollectionUtils.isEmpty(keys)) {
+			return;
 		}
-		if (Objects.nonNull(dataType)) {
-			builder.type(dataType);
+		long deleteCount = ObjectUtils.getIfNull(redisTemplate.delete(keys), 0L);
+		if (deleteCount < keys.size()) {
+			long count = keys.size() - deleteCount;
+			long times = 0;
+			while (times < retryTimes && count > 0) {
+				++times;
+				count -= ObjectUtils.getIfNull(redisTemplate.delete(keys), 0L);
+			}
 		}
-		if (StringUtils.isNotBlank(pattern)) {
-			builder.match(pattern);
-		}
-		return builder.build();
-	}
-
-	/**
-	 * 创建按数据类型匹配的扫描选项
-	 * <p>
-	 * 快捷方法，创建仅按数据类型过滤的扫描选项。
-	 * </p>
-	 * <p>
-	 * 等同于调用 {@link #scanOptionsByDataType(DataType, Long)} 且 count 为 null。
-	 * </p>
-	 *
-	 * @param dataType 数据类型
-	 * @return 扫描选项对象，仅包含数据类型过滤
-	 * @since 1.0.0
-	 */
-	public static ScanOptions scanOptionsByDataType(final DataType dataType) {
-		return scanOptions(null, dataType, null);
-	}
-
-	/**
-	 * 创建按数据类型匹配的扫描选项（完整版）
-	 * <p>
-	 * 创建按数据类型过滤的扫描选项，支持指定返回数量。
-	 * </p>
-	 * <p>
-	 * 使用场景：
-	 * <ul>
-	 *     <li>需要获取特定类型（如STRING、HASH等）的所有键</li>
-	 *     <li>需要控制每次扫描返回的数量以优化性能</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param dataType 数据类型
-	 * @param count    期望返回的数量
-	 * @return 扫描选项对象
-	 * @since 1.0.0
-	 */
-	public static ScanOptions scanOptionsByDataType(final DataType dataType, final Long count) {
-		return scanOptions(null, dataType, count);
-	}
-
-	/**
-	 * 创建后缀匹配的扫描选项
-	 * <p>
-	 * 快捷方法，创建用于后缀匹配的扫描选项。
-	 * </p>
-	 * <p>
-	 * 等同于调用 {@link #scanOptionsBySuffix(String, DataType, Long)} 且 dataType 和 count 为 null。
-	 * </p>
-	 *
-	 * @param suffix 后缀字符串
-	 * @return 扫描选项对象，使用 "*suffix" 作为匹配模式
-	 * @throws IllegalArgumentException 当suffix为空时抛出
-	 * @see #scanOptionsBySuffix(String, DataType, Long)
-	 * @since 1.0.0
-	 */
-	public static ScanOptions scanOptionsBySuffix(final String suffix) {
-		return scanOptionsBySuffix(suffix, null, null);
-	}
-
-	/**
-	 * 创建后缀匹配的扫描选项（完整版）
-	 * <p>
-	 * 创建用于后缀匹配的扫描选项，支持指定数据类型和返回数量。
-	 * </p>
-	 * <p>
-	 * 使用 "*suffix" 作为匹配模式，例如：
-	 * <ul>
-	 *     <li>suffix="user" 将生成模式 "*user"</li>
-	 *     <li>可选指定数据类型进行过滤</li>
-	 *     <li>可选指定每次扫描返回的数量</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param suffix   后缀字符串
-	 * @param dataType 数据类型
-	 * @param count    期望返回的数量
-	 * @return 扫描选项对象
-	 * @throws IllegalArgumentException 当suffix为空时抛出
-	 * @since 1.0.0
-	 */
-	public static ScanOptions scanOptionsBySuffix(final String suffix, final DataType dataType, final Long count) {
-		Assert.hasText(suffix, "suffix不可为null");
-		return scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix, dataType, count);
-	}
-
-	/**
-	 * 创建前缀匹配的扫描选项
-	 * <p>
-	 * 快捷方法，创建用于前缀匹配的扫描选项。</p>
-	 * <p>等同于调用 {@link #scanOptionsByPrefix(String, DataType, Long)} 且 dataType 和 count 为 null。
-	 * </p>
-	 *
-	 * @param prefix 前缀字符串
-	 * @return 扫描选项对象，使用 "prefix*" 作为匹配模式
-	 * @throws IllegalArgumentException 当prefix为空时抛出
-	 * @see #scanOptionsByPrefix(String, DataType, Long)
-	 * @since 1.0.0
-	 */
-	public static ScanOptions scanOptionsByPrefix(final String prefix) {
-		return scanOptionsByPrefix(prefix, null, null);
-	}
-
-	/**
-	 * 创建前缀匹配的扫描选项（完整版）
-	 * <p>
-	 * 创建用于前缀匹配的扫描选项，支持指定数据类型和返回数量。</p>
-	 * <p>使用 "prefix*" 作为匹配模式，例如：
-	 * <ul>
-	 *     <li>prefix="user" 将生成模式 "user*"</li>
-	 *     <li>可选指定数据类型进行过滤</li>
-	 *     <li>可选指定每次扫描返回的数量</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param prefix   前缀字符串
-	 * @param dataType 数据类型
-	 * @param count    期望返回的数量
-	 * @return 扫描选项对象
-	 * @throws IllegalArgumentException 当prefix为空时抛出
-	 * @since 1.0.0
-	 */
-	public static ScanOptions scanOptionsByPrefix(final String prefix, final DataType dataType, final Long count) {
-		Assert.hasText(prefix, "prefix不可为null");
-		return scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL, dataType, count);
-	}
-
-	/**
-	 * 创建关键字匹配的扫描选项
-	 * <p>
-	 * 快捷方法，创建用于关键字匹配的扫描选项。</p>
-	 * <p>等同于调用 {@link #scanOptionsByKeyword(String, DataType, Long)} 且 dataType 和 count 为 null。
-	 * </p>
-	 *
-	 * @param keyword 关键字
-	 * @return 扫描选项对象，使用 "*keyword*" 作为匹配模式
-	 * @throws IllegalArgumentException 当keyword为空时抛出
-	 * @see #scanOptionsByKeyword(String, DataType, Long)
-	 * @since 1.0.0
-	 */
-	public static ScanOptions scanOptionsByKeyword(final String keyword) {
-		return scanOptionsByKeyword(keyword, null, null);
-	}
-
-	/**
-	 * 创建关键字匹配的扫描选项（完整版）
-	 * <p>
-	 * 创建用于关键字匹配的扫描选项，支持指定数据类型和返回数量。</p>
-	 * <p>使用 "*keyword*" 作为匹配模式，例如：
-	 * <ul>
-	 *     <li>keyword="user" 将生成模式 "*user*"</li>
-	 *     <li>可选指定数据类型进行过滤</li>
-	 *     <li>可选指定每次扫描返回的数量</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param keyword  关键字
-	 * @param dataType 数据类型
-	 * @param count    期望返回的数量
-	 * @return 扫描选项对象
-	 * @throws IllegalArgumentException 当keyword为空时抛出
-	 * @since 1.0.0
-	 */
-	public static ScanOptions scanOptionsByKeyword(final String keyword, final DataType dataType, final Long count) {
-		Assert.hasText(keyword, "keyword不可为null");
-		return scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword + RedisConstants.CURSOR_PATTERN_SYMBOL,
-			dataType, count);
-	}
-
-	/**
-	 * 获取指定类型的Redis序列化器
-	 * <p>
-	 * 根据传入的序列化器类型返回对应的Spring Redis序列化器实例。支持以下序列化类型：
-	 * <ul>
-	 *     <li>{@link RedisSerializerType#STRING} - 返回字符串序列化器，用于处理String类型数据</li>
-	 *     <li>{@link RedisSerializerType#JAVA} - 返回Java序列化器，使用Java原生序列化机制</li>
-	 *     <li>{@link RedisSerializerType#JSON} - 返回JSON序列化器，用于对象与JSON的转换</li>
-	 *     <li>{@link RedisSerializerType#BYTE_ARRAY} - 返回字节数组序列化器，用于处理原始字节数据</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param type 序列化器类型
-	 * @return 对应类型的Redis序列化器实例
-	 * @throws IllegalArgumentException 如果type为null
-	 * @see RedisSerializerType
-	 * @see org.springframework.data.redis.serializer.RedisSerializer
-	 * @since 1.0.0
-	 */
-	public static RedisSerializer<?> getSerializer(RedisSerializerType type) {
-		return switch (type) {
-			case STRING -> RedisSerializer.string();
-			case JAVA -> RedisSerializer.java();
-			case JSON -> RedisSerializer.json();
-			case BYTE_ARRAY -> RedisSerializer.byteArray();
-		};
 	}
 }

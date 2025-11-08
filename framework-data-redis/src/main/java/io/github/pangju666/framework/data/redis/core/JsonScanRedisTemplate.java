@@ -20,71 +20,25 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
- * JSON序列化的Redis模板类
- * <p>
- * 扩展自{@link ScanRedisTemplate}，专门用于处理JSON格式数据的序列化和反序列化。
- * 此实现具有以下特点：
+ * JSON 序列化版扫描模板。
+ *
+ * <p>基于 {@link ScanRedisTemplate} 的便捷封装，默认使用
+ * 键、哈希键为 {@link RedisSerializer#string()}，值、哈希值为
+ * {@link RedisSerializer#json()} 的序列化方案，适合以 JSON 格式存储对象的场景。</p>
+ *
+ * <p>说明：</p>
  * <ul>
- *     <li>键使用字符串序列化器，保证键的可读性</li>
- *     <li>值使用JSON序列化器，支持跨语言数据交换</li>
- *     <li>Hash的键使用字符串序列化器，确保字段名的可读性</li>
- *     <li>Hash的值使用JSON序列化器，支持结构化数据存储</li>
+ *   <li>该类仅负责初始化序列化器，扫描能力与行为特性由父类提供。</li>
+ *   <li>值/哈希值序列化器非字符串类型，使用匹配模式进行“值扫描”可能不受支持；当提供匹配模式且序列化器不能序列化 {@link String} 时将抛出 {@link UnsupportedOperationException}。如需模式扫描值，推荐使用 {@link StringScanRedisTemplate} 或确保当前序列化器能正确处理字符串模式并与存储格式一致。</li>
  * </ul>
- * </p>
- *
- * <p>
- * 优点：
- * <ul>
- *     <li>数据格式标准化，支持跨语言访问</li>
- *     <li>存储的数据具有可读性，便于调试</li>
- *     <li>较小的存储空间占用</li>
- *     <li>支持动态类型，适合灵活的数据结构</li>
- * </ul>
- * </p>
- *
- * <p>
- * 使用场景：
- * <ul>
- *     <li>需要跨语言访问Redis数据时</li>
- *     <li>数据结构相对简单，不涉及复杂的类型信息</li>
- *     <li>需要直接查看或编辑存储的数据内容</li>
- *     <li>与其他JSON相关的系统集成</li>
- * </ul>
- * </p>
- *
- * <p>
- * 使用示例：
- * <pre>{@code
- * @Autowired
- * private JsonScanRedisTemplate redisTemplate;
- *
- * // 存储对象为JSON
- * User user = new User("张三", 25);
- * redisTemplate.opsForValue().set("user:1", user);
- *
- * // 读取JSON为对象
- * User cachedUser = redisTemplate.opsForValue().get("user:1", User.class);
- *
- * // 存储Map为JSON
- * Map<String, Object> data = new HashMap<>();
- * data.put("name", "张三");
- * data.put("age", 25);
- * redisTemplate.opsForValue().set("user:2", data);
- * }</pre>
- * </p>
- *
- * <p>代码创意来源于{@link org.springframework.data.redis.core.StringRedisTemplate}</p>
  *
  * @author pangju666
- * @version 1.0.0
- * @see ScanRedisTemplate
- * @see RedisSerializer#json()
  * @since 1.0.0
+ * @see ScanRedisTemplate
  */
 public class JsonScanRedisTemplate extends ScanRedisTemplate<String, Object> {
 	/**
-	 * 构造一个新的 <code>JsonScanRedisTemplate</code> 实例。
-	 * <p>{@link #setConnectionFactory(RedisConnectionFactory)} 和 {@link #afterPropertiesSet()} 仍需调用。</p>
+	 * 无参构造，初始化键、哈希键为字符串序列化器，值、哈希值为 JSON 序列化器。
 	 *
 	 * @since 1.0.0
 	 */
@@ -96,9 +50,9 @@ public class JsonScanRedisTemplate extends ScanRedisTemplate<String, Object> {
 	}
 
 	/**
-	 * 构造一个新的 <code>JsonScanRedisTemplate</code> 实例以备使用。
+	 * 使用给定连接工厂构造，并初始化为字符串/JSON 序列化器组合。
 	 *
-	 * @param connectionFactory 用于创建新连接的连接工厂
+	 * @param connectionFactory Redis 连接工厂
 	 * @since 1.0.0
 	 */
 	public JsonScanRedisTemplate(RedisConnectionFactory connectionFactory) {
