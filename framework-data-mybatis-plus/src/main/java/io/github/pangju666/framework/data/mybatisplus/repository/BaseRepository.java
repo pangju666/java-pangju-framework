@@ -57,12 +57,12 @@ import java.util.stream.Collectors;
  * <p><b>版本要求（仅 JSON 相关查询函数）：</b></p>
  * <ul>
  *   <li>MySQL 5.7.8+：基础 JSON 能力（{@code JSON_CONTAINS_PATH}、{@code JSON_CONTAINS}），以及空对象/空数组检测。
- *       关联方法：{@link #listByJsonColumnKey(SFunction, String)}、{@link #listByJsonArrayColumnValue(SFunction, Object)}、
- *       {@link #listByEmptyJsonObject(SFunction)}、{@link #listByEmptyJsonArray(SFunction)}；及其 {@code String column} 重载。</li>
+ *       关联方法：{@link #listByColumnJsonKey(SFunction, String)}、{@link #listByColumnJsonArrayValue(SFunction, Object)}、
+ *       {@link #listByColumnEmptyJsonObject(SFunction)}、{@link #listByColumnEmptyJsonArray(SFunction)}；及其 {@code String column} 重载。</li>
  *   <li>MySQL 5.7.13+：{@code column->>'$.key'} 文本比较。
- *       关联方法：{@link #listByJsonColumnKeyValue(SFunction, String, Object)}；及其 {@code String column} 重载。</li>
+ *       关联方法：{@link #listByColumnJsonKeyValue(SFunction, String, Object)}；及其 {@code String column} 重载。</li>
  *   <li>MySQL 8.0.17+：{@code JSON_OVERLAPS}（数组交集）。
- *       关联方法：{@link #listByJsonArrayColumnValues(SFunction, Collection)}；及其 {@code String column} 重载。</li>
+ *       关联方法：{@link #listByColumnJsonArrayValues(SFunction, Collection)}；及其 {@code String column} 重载。</li>
  * </ul>
  *
  * <p><b>使用约定与行为：</b></p>
@@ -128,7 +128,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public <V> List<T> listByEmptyJsonObject(SFunction<T, V> column) {
+	public <V> List<T> listByColumnEmptyJsonObject(SFunction<T, V> column) {
 		Assert.notNull(column, "column 不可为null");
 
 		return lambdaQuery()
@@ -149,7 +149,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public <V> List<T> listByEmptyJsonArray(SFunction<T, V> column) {
+	public <V> List<T> listByColumnEmptyJsonArray(SFunction<T, V> column) {
 		Assert.notNull(column, "column 不可为null");
 
 		return lambdaQuery()
@@ -170,10 +170,10 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null 或 {@code key} 为空白
 	 * @since 1.0.0
 	 */
-	public List<T> listByJsonColumnKey(SFunction<T, ?> column, String key) {
+	public List<T> listByColumnJsonKey(SFunction<T, ?> column, String key) {
 		Assert.notNull(column, "column 不可为null");
 		Assert.hasText(key, "key 不可为空");
-		return listByJsonColumnKey(columnToString(column), key);
+		return listByColumnJsonKey(columnToString(column), key);
 	}
 
 	/**
@@ -188,10 +188,10 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null 或 {@code key} 为空白
 	 * @since 1.0.0
 	 */
-	public List<T> listByJsonColumnKeyValue(SFunction<T, ?> column, String key, Object value) {
+	public List<T> listByColumnJsonKeyValue(SFunction<T, ?> column, String key, Object value) {
 		Assert.notNull(column, "column 不可为null");
 		Assert.hasText(key, "key 不可为空");
-		return listByJsonColumnKeyValue(columnToString(column), key, value);
+		return listByColumnJsonKeyValue(columnToString(column), key, value);
 	}
 
 	/**
@@ -205,9 +205,9 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public List<T> listByJsonArrayColumnValue(SFunction<T, ?> column, Object value) {
+	public List<T> listByColumnJsonArrayValue(SFunction<T, ?> column, Object value) {
 		Assert.notNull(column, "column 不可为null");
-		return listByJsonArrayColumnValue(columnToString(column), value);
+		return listByColumnJsonArrayValue(columnToString(column), value);
 	}
 
 	/**
@@ -221,9 +221,9 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public List<T> listByJsonArrayColumnValues(SFunction<T, ?> column, Collection<?> values) {
+	public List<T> listByColumnJsonArrayValues(SFunction<T, ?> column, Collection<?> values) {
 		Assert.notNull(column, "column 不可为null");
-		return listByJsonArrayColumnValues(columnToString(column), values);
+		return listByColumnJsonArrayValues(columnToString(column), values);
 	}
 
 	/**
@@ -235,7 +235,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 或 {@code key} 为空白
 	 * @since 1.0.0
 	 */
-	public List<T> listByJsonColumnKey(String column, String key) {
+	public List<T> listByColumnJsonKey(String column, String key) {
 		Assert.hasText(column, "column 不可为空");
 		Assert.hasText(key, "key 不可为空");
 
@@ -254,7 +254,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 或 {@code key} 为空白
 	 * @since 1.0.0
 	 */
-	public List<T> listByJsonColumnKeyValue(String column, String key, Object value) {
+	public List<T> listByColumnJsonKeyValue(String column, String key, Object value) {
 		Assert.hasText(column, "column 不可为空");
 		Assert.hasText(key, "key 不可为空");
 
@@ -272,7 +272,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为空白
 	 * @since 1.0.0
 	 */
-	public List<T> listByJsonArrayColumnValue(String column, Object value) {
+	public List<T> listByColumnJsonArrayValue(String column, Object value) {
 		Assert.hasText(column, "column 不可为空");
 
 		return lambdaQuery()
@@ -289,7 +289,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为空白
 	 * @since 1.0.0
 	 */
-	public List<T> listByJsonArrayColumnValues(String column, Collection<?> values) {
+	public List<T> listByColumnJsonArrayValues(String column, Collection<?> values) {
 		Assert.hasText(column, "column 不可为空");
 
 		if (CollectionUtils.isEmpty(values)) {
@@ -607,7 +607,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @return 列不为 null 的实体列表
 	 * @since 1.0.0
 	 */
-	public <V> List<T> listByNotNullColumn(SFunction<T, V> column) {
+	public <V> List<T> listByColumnNotNull(SFunction<T, V> column) {
 		return lambdaQuery().isNotNull(column).list();
 	}
 
@@ -619,7 +619,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @return 列为 null 的实体列表
 	 * @since 1.0.0
 	 */
-	public <V> List<T> listByNullColumn(SFunction<T, V> column) {
+	public <V> List<T> listByColumnNull(SFunction<T, V> column) {
 		return lambdaQuery().isNull(column).list();
 	}
 
@@ -632,7 +632,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public List<T> listByLikeColumnValue(SFunction<T, String> column, String value) {
+	public List<T> listByColumnLikeColumn(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -652,7 +652,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public List<T> listByLikeLeftColumnValue(SFunction<T, String> column, String value) {
+	public List<T> listByColumnLikeLeft(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -672,7 +672,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public List<T> listByLikeRightColumnValue(SFunction<T, String> column, String value) {
+	public List<T> listByColumnLikeRight(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -692,7 +692,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public List<T> listByNotLikeColumnValue(SFunction<T, String> column, String value) {
+	public List<T> listByColumnNotLike(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -712,7 +712,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public List<T> listByNotLikeLeftColumnValue(SFunction<T, String> column, String value) {
+	public List<T> listByColumnNotLikeLeft(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -732,7 +732,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public List<T> listByNotLikeRightColumnValue(SFunction<T, String> column, String value) {
+	public List<T> listByColumnNotLikeRight(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -828,7 +828,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public boolean removeByLikeColumnValue(SFunction<T, String> column, String value) {
+	public boolean removeByColumnLike(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -848,7 +848,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public boolean removeByNotLikeColumnValue(SFunction<T, String> column, String value) {
+	public boolean removeByColumnNotLike(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -868,7 +868,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public boolean removeByLikeLeftColumnValue(SFunction<T, String> column, String value) {
+	public boolean removeByColumnLikeLeft(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -888,7 +888,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public boolean removeByNotLikeLeftColumnValue(SFunction<T, String> column, String value) {
+	public boolean removeByColumnNotLikeLeft(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -908,7 +908,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public boolean removeByLikeRightColumnValue(SFunction<T, String> column, String value) {
+	public boolean removeByColumnLikeRight(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
@@ -928,7 +928,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
 	 */
-	public boolean removeByNotLikeRightColumnValue(SFunction<T, String> column, String value) {
+	public boolean removeByColumnNotLikeRight(SFunction<T, String> column, String value) {
 		Assert.notNull(column, "column 不可为null");
 
 		if (StringUtils.isEmpty(value)) {
