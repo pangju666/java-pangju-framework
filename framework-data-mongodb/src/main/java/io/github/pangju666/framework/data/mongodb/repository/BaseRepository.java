@@ -79,7 +79,7 @@ import java.util.stream.Stream;
  * }</pre>
  * </p>
  *
- * @param <T>  实体类型
+ * @param <T> 实体类型
  * @author pangju666
  * @see QueryUtils
  * @since 1.0.0
@@ -579,7 +579,7 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 * @throws IllegalArgumentException 当key为空时抛出
 	 * @since 1.0.0
 	 */
-	public List<T> listByNullKey(String key) {
+	public List<T> listByKeyNull(String key) {
 		return mongoOperations.find(QueryUtils.queryByKeyNull(key), this.entityClass, this.collectionName);
 	}
 
@@ -598,7 +598,7 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 * @throws IllegalArgumentException 当key为空时抛出
 	 * @since 1.0.0
 	 */
-	public List<T> listByNotNullKey(String key) {
+	public List<T> listByKeyNotNull(String key) {
 		return mongoOperations.find(QueryUtils.queryByKeyNotNull(key), this.entityClass, this.collectionName);
 	}
 
@@ -1049,7 +1049,7 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 * @throws IllegalArgumentException 当key为空时抛出
 	 * @since 1.0.0
 	 */
-	public Stream<T> streamByNullKey(String key) {
+	public Stream<T> streamByKeyNull(String key) {
 		return mongoOperations.stream(QueryUtils.queryByKeyNull(key), this.entityClass, this.collectionName);
 	}
 
@@ -1068,7 +1068,7 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 * @throws IllegalArgumentException 当key为空时抛出
 	 * @since 1.0.0
 	 */
-	public Stream<T> streamByNotNullKey(String key) {
+	public Stream<T> streamByKeyNotNull(String key) {
 		return mongoOperations.stream(QueryUtils.queryByKeyNotNull(key), this.entityClass, this.collectionName);
 	}
 
@@ -1289,25 +1289,48 @@ public abstract class BaseRepository<T extends BaseDocument> {
 			.collect(Collectors.toList());
 	}
 
+	public T updateById(T document) {
+		Assert.notNull(document, "document 不可为null");
+		Assert.hasText(document.getId(), "文档id 不可为空");
+
+		String id = document.getId();
+		document.setId(null);
+		return mongoOperations.findAndReplace(QueryUtils.queryById(id), document, this.collectionName);
+	}
+
 	/**
 	 * 根据ID更新文档的指定字段值
 	 * <p>
 	 * 使用MongoDB的$set操作符更新单个字段
 	 * </p>
 	 *
-	 * @param key   要更新的字段名
-	 * @param value 新的字段值
-	 * @param id    文档ID
 	 * @return 如果更新成功返回true，否则返回false
 	 * @throws IllegalArgumentException 当key或id为空时抛出
 	 * @since 1.0.0
 	 */
-	public boolean updateById(String key, @Nullable Object value, String id) {
-		Assert.hasText(key, "key 不可为空");
+	public boolean updateById(Update update, String id) {
+		Assert.notNull(update, "update 不可为null");
+		Assert.hasText(id, "id 不可为空");
 
-		UpdateResult result = mongoOperations.updateFirst(QueryUtils.queryById(id), new Update().set(key, value),
-			this.entityClass, this.collectionName);
+		UpdateResult result = mongoOperations.updateFirst(QueryUtils.queryById(id), update, this.entityClass,
+			this.collectionName);
 		return result.wasAcknowledged() && result.getModifiedCount() == 1;
+	}
+
+	public boolean updateByIds(Update update, Collection<String> ids) {
+		if (CollectionUtils.isEmpty(ids)) {
+			return false;
+		}
+		List<String> validIds = ids.stream()
+			.filter(StringUtils::isNotBlank)
+			.toList();
+		if (validIds.isEmpty()) {
+			return false;
+		}
+
+		UpdateResult result = mongoOperations.updateFirst(QueryUtils.queryById(validIds), update, this.entityClass,
+			this.collectionName);
+		return result.wasAcknowledged();
 	}
 
 	/**
@@ -1328,10 +1351,10 @@ public abstract class BaseRepository<T extends BaseDocument> {
 	 * @throws IllegalArgumentException 当key为空时抛出
 	 * @since 1.0.0
 	 */
-	public <V> long replaceKeyValue(String key, @Nullable V newValue, @Nullable V oldValue) {
+	public <V> boolean replaceKeyValue(String key, @Nullable V newValue, @Nullable V oldValue) {
 		UpdateResult result = mongoOperations.updateMulti(QueryUtils.queryByKeyValue(key, oldValue),
 			new Update().set(key, newValue), this.entityClass, this.collectionName);
-		return result.wasAcknowledged() ? result.getModifiedCount() : 0;
+		return result.wasAcknowledged();
 	}
 
 	/**
@@ -1375,24 +1398,6 @@ public abstract class BaseRepository<T extends BaseDocument> {
 			return false;
 		}
 		DeleteResult result = mongoOperations.remove(QueryUtils.queryByIds(validIds), this.entityClass, this.collectionName);
-		return result.wasAcknowledged();
-	}
-
-	/**
-	 * 根据查询条件删除文档
-	 * <p>
-	 * 使用MongoDB的remove操作删除匹配查询条件的所有文档
-	 * </p>
-	 *
-	 * @param query MongoDB查询条件
-	 * @return 成功删除的文档数量
-	 * @throws IllegalArgumentException 当query为null时抛出
-	 * @since 1.0.0
-	 */
-	public boolean remove(Query query) {
-		Assert.notNull(query, "query 不可为null");
-
-		DeleteResult result = mongoOperations.remove(query, this.entityClass, this.collectionName);
 		return result.wasAcknowledged();
 	}
 
