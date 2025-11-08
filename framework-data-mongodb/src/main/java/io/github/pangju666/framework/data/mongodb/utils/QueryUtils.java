@@ -22,6 +22,7 @@ import io.github.pangju666.framework.data.mongodb.lang.MongoConstants;
 import org.bson.Document;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.query.*;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.time.Duration;
@@ -37,11 +38,11 @@ import java.util.regex.Pattern;
  * </p>
  * <ul>
  *   <li>空查询占位（{@link #emptyQuery()} 与 {@link #EMPTY_QUERY}）</li>
- *   <li>字段值为空/非空（{@link #queryByNullValue(String)}、{@link #queryByNotNullValue(String)}）</li>
- *   <li>ID 等值、包含（{@code $in}）、排除（{@code $nin}）（{@link #queryById(String)}、{@link #queryByIds(Collection)}、{@link #queryByNotIds(Collection)}）</li>
- *   <li>字段等值/不等值（{@link #queryByValue(String, Object)}、{@link #queryByNotValue(String, Object)}）</li>
- *   <li>值集合包含/排除（{@link #queryByValues(String, Collection)}、{@link #queryByNotValues(String, Collection)}）</li>
- *   <li>正则匹配/不匹配（支持 {@link String} 与 {@link Pattern}，{@link #queryByRegex(String, String)}、{@link #queryByRegex(String, Pattern)}、{@link #queryByNotRegex(String, String)}、{@link #queryByNotRegex(String, Pattern)}）</li>
+ *   <li>字段值为空/非空（{@link #queryByKeyNull(String)}、{@link #queryByKeyNotNull(String)}）</li>
+ *   <li>ID 等值、包含（{@code $in}）、排除（{@code $nin}）（{@link #queryById(Object)}、{@link #queryByIds(Collection)}、{@link #queryByNotIds(Collection)}）</li>
+ *   <li>字段等值/不等值（{@link #queryByKeyValue(String, Object)}、{@link #queryByKeyNotValue(String, Object)}）</li>
+ *   <li>值集合包含/排除（{@link #queryByKeyValues(String, Collection)}、{@link #queryByKeyNotValues(String, Collection)}）</li>
+ *   <li>正则匹配/不匹配（支持 {@link String} 与 {@link Pattern}，{@link #queryByKeyRegex(String, String)}、{@link #queryByKeyRegex(String, Pattern)}、{@link #queryByKeyNotRegex(String, String)}、{@link #queryByKeyNotRegex(String, Pattern)}）</li>
  * </ul>
  *
  * <p>
@@ -101,7 +102,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByNullValue(final String key) {
+	public static Query queryByKeyNull(final String key) {
 		return Query.query(nullValueCriteria(key));
     }
 
@@ -120,20 +121,20 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByNotNullValue(final String key) {
+	public static Query queryByKeyNotNull(final String key) {
 		return Query.query(notNullValueCriteria(key));
     }
 
     /**
 	 * 根据 ID 构建等值查询。
      *
-	 * @param id 文档 ID，不可为空或空白
+	 * @param id 文档 ID，不可为null
      * @return 查询对象
-	 * @throws IllegalArgumentException 当 {@code id} 为空或空白时抛出
+	 * @throws IllegalArgumentException 当 {@code id} 为null
      * @since 1.0.0
      */
-	public static Query queryById(final String id) {
-		Assert.hasText(id, "id 不可为空");
+	public static Query queryById(final Object id) {
+		Assert.notNull(id, "id 不可为null");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).is(id));
     }
@@ -149,7 +150,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code ids} 为空时抛出
      * @since 1.0.0
      */
-	public static Query queryByIds(final Collection<String> ids) {
+	public static Query queryByIds(final Collection<?> ids) {
 		Assert.notEmpty(ids, "ids 不可为空");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).in(ids));
@@ -166,7 +167,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code ids} 为空时抛出
      * @since 1.0.0
      */
-	public static Query queryByNotIds(final Collection<String> ids) {
+	public static Query queryByNotIds(final Collection<?> ids) {
         Assert.notEmpty(ids, "ids 不可为空");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).nin(ids));
@@ -185,7 +186,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByValue(final String key, final Object value) {
+	public static Query queryByKeyValue(final String key, @Nullable final Object value) {
 		if (Objects.isNull(value)) {
 			return Query.query(nullValueCriteria(key));
         }
@@ -207,7 +208,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByNotValue(final String key, final Object value) {
+	public static Query queryByKeyNotValue(final String key, @Nullable final Object value) {
         if (Objects.isNull(value)) {
 			return Query.query(notNullValueCriteria(key));
         }
@@ -228,7 +229,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code values} 为空时抛出
      * @since 1.0.0
      */
-	public static Query queryByValues(final String key, final Collection<?> values) {
+	public static Query queryByKeyValues(final String key, final Collection<?> values) {
         Assert.hasText(key, "key 不可为空");
         Assert.notEmpty(values, "values 不可为空");
 
@@ -247,7 +248,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code values} 为空时抛出
      * @since 1.0.0
      */
-	public static Query queryByNotValues(final String key, final Collection<?> values) {
+	public static Query queryByKeyNotValues(final String key, final Collection<?> values) {
         Assert.hasText(key, "key 不可为空");
         Assert.notEmpty(values, "values 不可为空");
 
@@ -258,7 +259,7 @@ public class QueryUtils {
 	 * 根据字段名和正则表达式字符串构建匹配查询。
      * <p>
 	 * 使用 MongoDB 的正则表达式进行模式匹配查询，大小写敏感性与匹配选项由服务器端默认或索引配置决定。
-	 * 若需指定匹配选项，请使用 {@link #queryByRegex(String, Pattern)}。
+	 * 若需指定匹配选项，请使用 {@link #queryByKeyRegex(String, Pattern)}。
      * </p>
      *
 	 * @param key   要查询的字段名，不可为空或空白
@@ -267,7 +268,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 或 {@code regex} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByRegex(final String key, final String regex) {
+	public static Query queryByKeyRegex(final String key, final String regex) {
         Assert.hasText(key, "key 不可为空");
         Assert.hasText(regex, "regex 不可为空");
 
@@ -286,7 +287,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code pattern} 为 {@code null} 时抛出
      * @since 1.0.0
      */
-	public static Query queryByRegex(final String key, final Pattern pattern) {
+	public static Query queryByKeyRegex(final String key, final Pattern pattern) {
         Assert.hasText(key, "key 不可为空");
         Assert.notNull(pattern, "pattern 不可为null");
 
@@ -296,7 +297,7 @@ public class QueryUtils {
     /**
 	 * 根据字段名和正则表达式字符串构建“不匹配”查询。
      * <p>
-	 * 使用 MongoDB 的正则表达式进行模式不匹配查询；匹配选项说明参见 {@link #queryByRegex(String, String)}。
+	 * 使用 MongoDB 的正则表达式进行模式不匹配查询；匹配选项说明参见 {@link #queryByKeyRegex(String, String)}。
      * </p>
      *
 	 * @param key   要查询的字段名，不可为空或空白
@@ -305,7 +306,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 或 {@code regex} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByNotRegex(final String key, final String regex) {
+	public static Query queryByKeyNotRegex(final String key, final String regex) {
         Assert.hasText(key, "key 不可为空");
         Assert.hasText(regex, "regex 不可为空");
 
@@ -324,7 +325,7 @@ public class QueryUtils {
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code pattern} 为 {@code null} 时抛出
      * @since 1.0.0
      */
-	public static Query queryByNotRegex(final String key, final Pattern pattern) {
+	public static Query queryByKeyNotRegex(final String key, final Pattern pattern) {
         Assert.hasText(key, "key 不可为空");
         Assert.notNull(pattern, "pattern 不可为null");
 
