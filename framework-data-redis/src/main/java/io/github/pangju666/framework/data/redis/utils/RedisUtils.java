@@ -18,11 +18,11 @@ package io.github.pangju666.framework.data.redis.utils;
 
 import io.github.pangju666.framework.data.redis.lang.RedisConstants;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -57,12 +57,21 @@ public class RedisUtils {
 	 *
 	 * <p>将多个键片段使用路径分隔符 {@link RedisConstants#REDIS_PATH_DELIMITER} 进行拼接。</p>
 	 *
-	 * @param keys 键的片段（顺序拼接）；为空数组时返回空字符串
+	 * <p>行为说明：每个片段先通过 {@link String#valueOf(Object)} 转为字符串，随后调用
+	 * {@link String#strip()} 去除首尾空白字符（空格、制表、换行等）；不会移除中间的分隔符或进行额外规范化。</p>
+	 * <p>兼容性：允许片段为 {@code null}，将被转换为字符串 {@code "null"} 再参与拼接。</p>
+	 *
+	 * @param keys 键的片段（按给定顺序拼接）；不能为空或长度为 0
 	 * @return 拼接后的完整键，不为 {@code null}
+	 * @throws IllegalArgumentException 当 {@code keys} 为空或长度为 0
 	 * @since 1.0.0
 	 */
 	public static String computeKey(final Object... keys) {
-		return StringUtils.joinWith(RedisConstants.REDIS_PATH_DELIMITER, keys);
+		Assert.notEmpty(keys, "keys 不可为空");
+
+		return String.join(RedisConstants.REDIS_PATH_DELIMITER, Arrays.stream(keys)
+			.map(key -> String.valueOf(key).strip())
+			.toList());
 	}
 
 	/**
