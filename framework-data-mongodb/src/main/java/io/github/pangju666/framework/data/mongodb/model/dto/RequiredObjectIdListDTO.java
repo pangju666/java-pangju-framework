@@ -32,6 +32,7 @@ import java.util.List;
  * @author pangju666
  * @since 1.0.0
  */
-public record RequiredObjectIdListDTO(
-	@NotEmpty(message = "列表不允许为空") @UniqueElements(message = "存在重复的id") @ObjectIds List<String> ids) {
+public record RequiredObjectIdListDTO(@NotEmpty(message = "id列表不允许为空")
+									  @UniqueElements(message = "存在重复的id")
+									  @ObjectIds List<String> ids) {
 }

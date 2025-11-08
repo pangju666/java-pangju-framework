@@ -16,7 +16,7 @@
 
 package io.github.pangju666.framework.data.mongodb.model.document;
 
-import io.github.pangju666.framework.data.mongodb.pool.MongoConstants;
+import io.github.pangju666.framework.data.mongodb.lang.MongoConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -29,12 +29,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * MongoDB基础文档类
+ * MongoDB 基础文档类。
  *
  * <ul>
- * <li>提供通用的ID处理功能。</li>
- * <li>使用{@link ObjectId}的十六进制字符串作为文档ID。</li>
- * <li>实现了序列化接口以支持序列化操作。</li>
+ *   <li>统一提供文档 ID 的定义与常用处理能力（读取、设置、转换）。</li>
+ *   <li>默认将文档 ID 映射为字符串（{@link FieldType#STRING}），通常为 {@link ObjectId} 的 24 位十六进制表示。</li>
+ *   <li>提供集合工具方法以便批量提取 ID（列表、集合）与按 ID 构建映射。</li>
  * </ul>
  *
  * @author pangju666
@@ -42,8 +42,11 @@ import java.util.stream.Collectors;
  */
 public abstract class BaseDocument implements Serializable {
 	/**
-	 * 文档ID
-	 * <p>使用MongoDB的_id字段，类型为字符串</p>
+	 * 文档 ID。
+	 * <p>
+	 * 映射到 MongoDB 的 {@code _id} 字段，类型为字符串（{@link FieldType#STRING}），字段名为
+	 * {@link MongoConstants#ID_FIELD_NAME}。一般情况下，该字符串为 {@link ObjectId} 的 24 位十六进制表示。
+	 * </p>
 	 *
 	 * @since 1.0.0
 	 */
@@ -51,10 +54,52 @@ public abstract class BaseDocument implements Serializable {
 	@Field(name = MongoConstants.ID_FIELD_NAME)
 	protected String id;
 
+	/**
+	 * 以文档 ID 为键构建映射。
+	 * <p>
+	 * 将输入集合中的每个文档以其 {@code id} 映射到对应的文档实例；当输入集合为空时返回空映射。
+	 * 该实现会过滤掉空白或 {@code null} 的 ID。
+	 * </p>
+	 *
+	 * <p>注意：</p>
+	 * <ul>
+	 *   <li>若出现重复 ID，将抛出 {@link IllegalStateException}（由 {@link Collectors#toMap} 的默认策略触发）。</li>
+	 *   <li>过滤后生成的 Map 不包含空键。</li>
+	 * </ul>
+	 *
+	 * @param collection 文档集合
+	 * @return 以非空白 ID 为键的映射；当集合为空或无有效 ID 时返回空映射
+	 * @throws IllegalStateException 当存在重复 ID 时抛出
+	 * @since 1.0.0
+	 */
+	public static Map<String, ? extends BaseDocument> mapById(final Collection<? extends BaseDocument> collection) {
+		if (CollectionUtils.isEmpty(collection)) {
+			return Collections.emptyMap();
+		}
+		return collection.stream()
+			.filter(item -> StringUtils.isNotBlank(item.getId()))
+			.collect(Collectors.toMap(BaseDocument::getId, item -> item));
+	}
+
+	/**
+	 * 获取文档 ID。
+	 *
+	 * @return 文档 ID；可能为 {@code null}
+	 * @since 1.0.0
+	 */
 	public String getId() {
 		return id;
 	}
 
+	/**
+	 * 设置文档 ID。
+	 * <p>
+	 * 该方法不进行格式校验；若需要将 ID 转换为 {@link ObjectId} 请使用 {@link #getObjectId()}，并确保 ID 为合法的 24 位十六进制字符串。
+	 * </p>
+	 *
+	 * @param id 文档 ID；允许为 {@code null}
+	 * @since 1.0.0
+	 */
 	public void setId(String id) {
 		this.id = id;
 	}
@@ -102,41 +147,18 @@ public abstract class BaseDocument implements Serializable {
 	}
 
 	/**
-	 * 获取文档集合中的唯一ID列表
-	 * <p>
-	 * 提取集合中所有非空的文档ID，去重并保持顺序。
-	 * 会过滤掉空白字符串。
-	 * </p>
+	 * 将字符串 ID 转换为 {@link ObjectId}。
 	 *
-	 * @param collection 文档集合
-	 * @return 去重后的ID列表，如果集合为空则返回空列表
+	 * <ul>
+	 *   <li>当 {@code id} 为空时返回 {@code null}。</li>
+	 *   <li>当 {@code id} 非法（不是 24 位十六进制字符串）时，抛出 {@link IllegalArgumentException}。</li>
+	 * </ul>
+	 *
+	 * @return 对应的 {@link ObjectId}；当 ID 为空时返回 {@code null}
+	 * @throws IllegalArgumentException 当 ID 非法时抛出
 	 * @since 1.0.0
 	 */
-	public static List<String> getUniqueIdList(final Collection<? extends BaseDocument> collection) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return Collections.emptyList();
-		}
-		return collection.stream()
-			.map(BaseDocument::getId)
-			.filter(StringUtils::isNotBlank)
-			.distinct()
-			.collect(Collectors.toList());
-	}
-
-	public static Map<String, ? extends BaseDocument> mapByField(final Collection<? extends BaseDocument> collection) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return Collections.emptyMap();
-		}
-		return collection.stream()
-			.collect(Collectors.toMap(BaseDocument::getId, item -> item));
-	}
-
-	public static <E extends BaseDocument> Map<String, List<E>> groupByField(final Collection<E> collection) {
-		if (CollectionUtils.isEmpty(collection)) {
-			return Collections.emptyMap();
-		}
-		return collection.stream()
-			.collect(Collectors.groupingBy(BaseDocument::getId, Collectors.mapping(
-				item -> item, Collectors.toList())));
+	public ObjectId getObjectId() {
+		return Objects.nonNull(id) ? new ObjectId(id) : null;
 	}
 }

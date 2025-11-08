@@ -106,31 +106,44 @@ public class EntityUtils {
 	}
 
 	/**
-	 * 以字段值作为键，将实体映射为 {@code Map}
+	 * 以字段值作为键，将实体映射为 {@code Map}。
 	 * <p>
-	 * 注意：当存在重复键时，{@link Collectors#toMap} 将抛出 {@link IllegalStateException}。
-	 * 请确保键唯一，或在提取前进行去重。
+	 * 行为说明：
 	 * </p>
+	 * <ul>
+	 *   <li>会过滤掉字段值为 {@code null} 的实体（不包含空键）。</li>
+	 *   <li>当存在重复键时，{@link Collectors#toMap} 将抛出 {@link IllegalStateException}，请确保键唯一或先去重。</li>
+	 *   <li>当集合为空或为 {@code null} 时返回空映射。</li>
+	 * </ul>
 	 *
 	 * @param collection 实体集合，可为 {@code null}
-	 * @param sFunction  字段提取函数（方法引用）
+	 * @param sFunction  字段提取函数（方法引用），不可为 {@code null}
 	 * @param <T>        实体类型
 	 * @param <V>        键的类型（字段值类型）
-	 * @return 非 {@code null} 的映射；当集合为空或为 {@code null} 时返回空映射
+	 * @return 以非 {@code null} 字段值为键的映射；当集合为空或为 {@code null} 时返回空映射
 	 */
 	public static <T, V> Map<V, T> mapByField(final Collection<T> collection, final SFunction<T, V> sFunction) {
 		if (CollectionUtils.isEmpty(collection)) {
 			return Collections.emptyMap();
 		}
 		return collection.stream()
+			.filter(item -> Objects.nonNull(sFunction.apply(item)))
 			.collect(Collectors.toMap(sFunction, item -> item));
 	}
 
 	/**
-	 * 按字段值对实体进行分组
+	 * 按字段值对实体进行分组。
+	 * <p>
+	 * 行为说明：
+	 * </p>
+	 * <ul>
+	 *   <li>会过滤掉字段值为 {@code null} 的实体（不包含空分组）。</li>
+	 *   <li>分组内的列表保留原始相对顺序。</li>
+	 *   <li>当集合为空或为 {@code null} 时返回空映射。</li>
+	 * </ul>
 	 *
 	 * @param collection 实体集合，可为 {@code null}
-	 * @param sFunction  字段提取函数（方法引用）
+	 * @param sFunction  字段提取函数（方法引用），不可为 {@code null}
 	 * @param <T>        实体类型
 	 * @param <V>        分组键类型（字段值类型）
 	 * @return 非 {@code null} 的分组映射；当集合为空或为 {@code null} 时返回空映射
@@ -140,6 +153,7 @@ public class EntityUtils {
 			return Collections.emptyMap();
 		}
 		return collection.stream()
+			.filter(item -> Objects.nonNull(sFunction.apply(item)))
 			.collect(Collectors.groupingBy(sFunction, Collectors.mapping(
 				item -> item, Collectors.toList())));
 	}

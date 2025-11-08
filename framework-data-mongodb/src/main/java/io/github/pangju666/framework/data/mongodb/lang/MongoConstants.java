@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package io.github.pangju666.framework.data.mongodb.pool;
+package io.github.pangju666.framework.data.mongodb.lang;
 
 /**
  * MongoDB相关常量
