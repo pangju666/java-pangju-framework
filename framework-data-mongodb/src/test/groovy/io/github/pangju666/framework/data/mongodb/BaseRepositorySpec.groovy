@@ -4,7 +4,6 @@ import io.github.pangju666.framework.data.mongodb.model.TestDocument
 import io.github.pangju666.framework.data.mongodb.model.document.BaseDocument
 import io.github.pangju666.framework.data.mongodb.repository.TestRepository
 import io.github.pangju666.framework.data.mongodb.utils.QueryUtils
-import org.apache.commons.collections4.CollectionUtils
 import org.bson.types.ObjectId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootContextLoader
@@ -15,6 +14,8 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
 
+import java.util.regex.Pattern
+
 @ContextConfiguration(classes = TestApplication.class, loader = SpringBootContextLoader.class)
 class BaseRepositorySpec extends Specification {
 	@Autowired
@@ -24,18 +25,18 @@ class BaseRepositorySpec extends Specification {
 	TestDocument testDoc
 	TestDocument savedDoc
 
-	def setup() {
+/*	def setup() {
 		testDoc = new TestDocument(
 			id: new ObjectId().toHexString(),
 			name: "测试文档",
 			value: "测试值"
 		)
 		savedDoc = repository.insert(testDoc)
-	}
+	}*/
 
-	def cleanup() {
+/*	def cleanup() {
 		repository.removeById(savedDoc.id)
-	}
+	}*/
 
 	def "测试基本的CRUD操作"() {
 		expect: "文档应该已经保存"
@@ -237,7 +238,7 @@ class BaseRepositorySpec extends Specification {
 		}
 
 		when: "使用并行方式批量保存"
-		def savedDocs = repository.saveBatch(docs, true)
+		def savedDocs = repository.saveBatch(docs)
 
 		then: "所有文档应该被保存"
 		savedDocs.size() == 10
@@ -480,5 +481,13 @@ class BaseRepositorySpec extends Specification {
 
 		then: "应该抛出异常"
 		thrown(IllegalArgumentException)
+	}
+
+	def "aa"() {
+		setup:
+		Query query = QueryUtils.queryByRegex("name", Pattern.compile("^.+\$"))
+		def list = mongoOperations.find(query, TestDocument.class)
+		println list
+		println query.toString()
 	}
 }

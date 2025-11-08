@@ -18,7 +18,7 @@ package io.github.pangju666.framework.data.mongodb.utils;
 
 import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
-import io.github.pangju666.framework.data.mongodb.pool.MongoConstants;
+import io.github.pangju666.framework.data.mongodb.lang.MongoConstants;
 import org.bson.Document;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.query.*;
@@ -30,39 +30,56 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * MongoDB查询工具类
+ * MongoDB 查询构造工具。
+ *
  * <p>
- * 提供一系列静态方法用于构建{@link Query MongoDB查询对象}，主要功能包括：
- * <ul>
- *     <li>空查询构建</li>
- *     <li>ID查询构建</li>
- *     <li>字段值查询构建</li>
- *     <li>正则表达式查询构建</li>
- *     <li>空值和非空值查询构建</li>
- * </ul>
+ * 提供便捷的静态方法以构建 {@link Query}，覆盖以下常见场景：
  * </p>
+ * <ul>
+ *   <li>空查询占位（{@link #emptyQuery()} 与 {@link #EMPTY_QUERY}）</li>
+ *   <li>字段值为空/非空（{@link #queryByNullValue(String)}、{@link #queryByNotNullValue(String)}）</li>
+ *   <li>ID 等值、包含（{@code $in}）、排除（{@code $nin}）（{@link #queryById(String)}、{@link #queryByIds(Collection)}、{@link #queryByNotIds(Collection)}）</li>
+ *   <li>字段等值/不等值（{@link #queryByValue(String, Object)}、{@link #queryByNotValue(String, Object)}）</li>
+ *   <li>值集合包含/排除（{@link #queryByValues(String, Collection)}、{@link #queryByNotValues(String, Collection)}）</li>
+ *   <li>正则匹配/不匹配（支持 {@link String} 与 {@link Pattern}，{@link #queryByRegex(String, String)}、{@link #queryByRegex(String, Pattern)}、{@link #queryByNotRegex(String, String)}、{@link #queryByNotRegex(String, Pattern)}）</li>
+ * </ul>
+ *
+ * <p>
+ * 空值相关的构造说明：
+ * </p>
+ * <ul>
+ *   <li>“为空”使用 {@code $or} 组合：值为 {@code null} 或字段不存在（{@link #nullValueCriteria(String)}）。</li>
+ *   <li>“非空”使用 {@code $and} 组合：值不为 {@code null} 且字段存在（{@link #notNullValueCriteria(String)}）。</li>
+ * </ul>
  *
  * @author pangju666
  * @since 1.0.0
+ * @see Query
+ * @see Criteria
  */
 public class QueryUtils {
     /**
-     * 空查询对象常量
+	 * 空查询对象常量。
      * <p>
-     * 该查询对象的所有操作方法都返回自身，不会改变查询条件
+	 * 一个不可变的 {@link Query} 实例，其所有操作方法均返回自身且不改变查询条件。
+	 * 适用于需要占位但无需附带任何查询条件的场景。
      * </p>
      *
      * @since 1.0.0
      */
     public static final Query EMPTY_QUERY = new EmptyQuery();
 
+	/**
+	 * 工具类构造器。
+	 * <p>受保护以避免实例化。</p>
+	 */
     protected QueryUtils() {
     }
 
     /**
-     * 获取空查询对象
+	 * 获取空查询对象。
      *
-     * @return 空查询对象
+	 * @return 一个不可变的空查询对象，不携带任何条件
      * @since 1.0.0
      */
     public static Query emptyQuery() {
@@ -70,154 +87,148 @@ public class QueryUtils {
     }
 
     /**
-     * 构建字段值为null的查询
+	 * 构建“字段值为空”的查询。
      * <p>
-     * 使用$or操作符组合以下条件：
+	 * 使用 {@code $or} 操作符组合两类条件：
+	 * </p>
      * <ul>
-     *     <li>字段值为null</li>
-     *     <li>字段不存在</li>
+	 *   <li>字段值为 {@code null}</li>
+	 *   <li>字段不存在</li>
      * </ul>
-     * </p>
      *
-     * @param key 字段名
+	 * @param key 字段名，不可为空或空白
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByKeyNullValue(final String key) {
-        return Query.query(keyNullValueCriteria(key));
+	public static Query queryByNullValue(final String key) {
+		return Query.query(nullValueCriteria(key));
     }
 
     /**
-     * 构建字段值不为null的查询
+	 * 构建“字段值非空”的查询。
      * <p>
-     * 使用$and操作符组合以下条件：
+	 * 使用 {@code $and} 操作符组合两类条件：
+	 * </p>
      * <ul>
-     *     <li>字段值不为null</li>
-     *     <li>字段存在</li>
+	 *   <li>字段值不为 {@code null}</li>
+	 *   <li>字段存在</li>
      * </ul>
-     * </p>
      *
-     * @param key 字段名
+	 * @param key 字段名，不可为空或空白
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByKeyNotNullValue(final String key) {
-        return Query.query(keyNotNullValueCriteria(key));
+	public static Query queryByNotNullValue(final String key) {
+		return Query.query(notNullValueCriteria(key));
     }
 
     /**
-     * 根据ID构建查询
+	 * 根据 ID 构建等值查询。
      *
-     * @param id ID
+	 * @param id 文档 ID，不可为空或空白
      * @return 查询对象
-     * @throws IllegalArgumentException 当id为空时抛出
+	 * @throws IllegalArgumentException 当 {@code id} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryById(final Object id) {
-        Assert.notNull(id, "id 不可为null");
+	public static Query queryById(final String id) {
+		Assert.hasText(id, "id 不可为空");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).is(id));
     }
 
     /**
-     * 根据ID集合构建包含查询
+	 * 根据 ID 集合构建包含查询。
      * <p>
-     * 使用MongoDB的$in操作符查询ID在指定集合中的文档
+	 * 使用 {@code $in} 操作符查询 ID 属于指定集合的文档。
      * </p>
      *
-     * @param ids 文档ID集合
+	 * @param ids 文档 ID 集合，不可为 {@code null} 且至少包含一个元素
      * @return 查询对象
-     * @throws IllegalArgumentException 当ids为空时抛出
+	 * @throws IllegalArgumentException 当 {@code ids} 为空时抛出
      * @since 1.0.0
      */
-	public static Query queryByIds(final Collection<?> ids) {
-        Assert.notEmpty(ids, " ids 不可为空");
+	public static Query queryByIds(final Collection<String> ids) {
+		Assert.notEmpty(ids, "ids 不可为空");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).in(ids));
     }
 
     /**
-     * 根据ID集合构建排除查询
+	 * 根据 ID 集合构建排除查询。
      * <p>
-     * 使用MongoDB的$nin操作符查询ID不在指定集合中的文档
+	 * 使用 {@code $nin} 操作符查询 ID 不属于指定集合的文档。
      * </p>
      *
-     * @param ids ID集合
+	 * @param ids 文档 ID 集合，不可为 {@code null} 且至少包含一个元素
      * @return 查询对象
-     * @throws IllegalArgumentException 当ids为空时抛出
+	 * @throws IllegalArgumentException 当 {@code ids} 为空时抛出
      * @since 1.0.0
      */
-	public static Query queryByNotIds(final Collection<?> ids) {
+	public static Query queryByNotIds(final Collection<String> ids) {
         Assert.notEmpty(ids, "ids 不可为空");
 
         return Query.query(Criteria.where(MongoConstants.ID_FIELD_NAME).nin(ids));
     }
 
     /**
-     * 根据字段名和值构建等值查询
-     * <p>
+	 * 根据字段名和值构建等值查询。
      * <ul>
-     *     <li>当value为null时，查询字段值为null或字段不存在的文档</li>
-     *     <li>当value不为null时，查询字段值等于value的文档</li>
+	 *   <li>当 {@code value} 为 {@code null} 时：查询“字段值为 {@code null} 或字段不存在”的文档。</li>
+	 *   <li>当 {@code value} 非 {@code null} 时：查询“字段值等于 {@code value}”的文档。</li>
      * </ul>
-     * </p>
      *
-     * @param key   要查询的字段名
-     * @param value 要查询的字段值
+	 * @param key   要查询的字段名，不可为空或空白
+	 * @param value 要查询的字段值，可为 {@code null}
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByKeyValue(final String key, final Object value) {
-        if (Objects.isNull(value)) {
-            return Query.query(keyNullValueCriteria(key));
+	public static Query queryByValue(final String key, final Object value) {
+		if (Objects.isNull(value)) {
+			return Query.query(nullValueCriteria(key));
         }
 
-        Assert.hasText(key, "key 不可为空");
-
+		Assert.hasText(key, "key 不可为空");
         return Query.query(Criteria.where(key).is(value));
     }
 
     /**
-     * 根据字段名和值构建不等值查询
-     * <p>
+	 * 根据字段名和值构建不等值查询。
      * <ul>
-     *     <li>当value为null时，查询字段值不为null且字段存在的文档</li>
-     *     <li>当value不为null时，查询字段值不等于value的文档</li>
+	 *   <li>当 {@code value} 为 {@code null} 时：查询“字段值不为 {@code null} 且字段存在”的文档。</li>
+	 *   <li>当 {@code value} 非 {@code null} 时：查询“字段值不等于 {@code value}”的文档。</li>
      * </ul>
-     * </p>
      *
-     * @param key   要查询的字段名
-     * @param value 要排除的字段值
+	 * @param key   要查询的字段名，不可为空或空白
+	 * @param value 要排除的字段值，可为 {@code null}
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	public static Query queryByKeyNotValue(final String key, final Object value) {
+	public static Query queryByNotValue(final String key, final Object value) {
         if (Objects.isNull(value)) {
-            return Query.query(keyNotNullValueCriteria(key));
+			return Query.query(notNullValueCriteria(key));
         }
 
         Assert.hasText(key, "key 不可为空");
-
         return Query.query(Criteria.where(key).ne(value));
     }
 
     /**
-     * 根据字段名和值集合构建包含查询
+	 * 根据字段名和值集合构建包含查询。
      * <p>
-     * 使用MongoDB的$in操作符查询字段值在指定集合中的文档
+	 * 使用 {@code $in} 操作符查询字段值属于指定集合的文档。
      * </p>
      *
-     * @param key    要查询的字段名
-     * @param values 要匹配的值集合
+	 * @param key    要查询的字段名，不可为空或空白
+	 * @param values 要匹配的值集合，不可为 {@code null} 且至少包含一个元素
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空或values为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code values} 为空时抛出
      * @since 1.0.0
      */
-	public static Query queryByKeyValues(final String key, final Collection<?> values) {
+	public static Query queryByValues(final String key, final Collection<?> values) {
         Assert.hasText(key, "key 不可为空");
         Assert.notEmpty(values, "values 不可为空");
 
@@ -225,18 +236,18 @@ public class QueryUtils {
     }
 
     /**
-     * 根据字段名和值集合构建排除查询
+	 * 根据字段名和值集合构建排除查询。
      * <p>
-     * 使用MongoDB的$nin操作符查询字段值不在指定集合中的文档
+	 * 使用 {@code $nin} 操作符查询字段值不属于指定集合的文档。
      * </p>
      *
-     * @param key    要查询的字段名
-     * @param values 要排除的值集合
+	 * @param key    要查询的字段名，不可为空或空白
+	 * @param values 要排除的值集合，不可为 {@code null} 且至少包含一个元素
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空或values为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code values} 为空时抛出
      * @since 1.0.0
      */
-	public static Query queryByKeyNotValues(final String key, final Collection<?> values) {
+	public static Query queryByNotValues(final String key, final Collection<?> values) {
         Assert.hasText(key, "key 不可为空");
         Assert.notEmpty(values, "values 不可为空");
 
@@ -244,15 +255,16 @@ public class QueryUtils {
     }
 
     /**
-     * 根据字段名和正则表达式字符串构建匹配查询
+	 * 根据字段名和正则表达式字符串构建匹配查询。
      * <p>
-     * 使用MongoDB的正则表达式功能进行模式匹配查询
+	 * 使用 MongoDB 的正则表达式进行模式匹配查询，大小写敏感性与匹配选项由服务器端默认或索引配置决定。
+	 * 若需指定匹配选项，请使用 {@link #queryByRegex(String, Pattern)}。
      * </p>
      *
-     * @param key   要查询的字段名
-     * @param regex 正则表达式字符串
+	 * @param key   要查询的字段名，不可为空或空白
+	 * @param regex 正则表达式字符串，不可为空或空白
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空或regex为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 或 {@code regex} 为空或空白时抛出
      * @since 1.0.0
      */
 	public static Query queryByRegex(final String key, final String regex) {
@@ -263,15 +275,15 @@ public class QueryUtils {
     }
 
     /**
-     * 根据字段名和Pattern对象构建匹配查询
+	 * 根据字段名和 {@link Pattern} 构建匹配查询。
      * <p>
-     * 使用MongoDB的正则表达式功能进行模式匹配查询，支持更复杂的匹配选项
+	 * 使用 MongoDB 的正则表达式进行模式匹配查询，可通过 {@link Pattern} 指定大小写、单行/多行等更复杂的匹配选项。
      * </p>
      *
-     * @param key     要查询的字段名
-     * @param pattern Java正则表达式Pattern对象
+	 * @param key     要查询的字段名，不可为空或空白
+	 * @param pattern Java 正则表达式 {@link Pattern} 对象，不可为 {@code null}
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空或pattern为null时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code pattern} 为 {@code null} 时抛出
      * @since 1.0.0
      */
 	public static Query queryByRegex(final String key, final Pattern pattern) {
@@ -282,15 +294,15 @@ public class QueryUtils {
     }
 
     /**
-     * 根据字段名和正则表达式字符串构建不匹配查询
+	 * 根据字段名和正则表达式字符串构建“不匹配”查询。
      * <p>
-     * 使用MongoDB的正则表达式功能进行模式不匹配查询
+	 * 使用 MongoDB 的正则表达式进行模式不匹配查询；匹配选项说明参见 {@link #queryByRegex(String, String)}。
      * </p>
      *
-     * @param key   要查询的字段名
-     * @param regex 正则表达式字符串
+	 * @param key   要查询的字段名，不可为空或空白
+	 * @param regex 正则表达式字符串，不可为空或空白
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空或regex为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 或 {@code regex} 为空或空白时抛出
      * @since 1.0.0
      */
 	public static Query queryByNotRegex(final String key, final String regex) {
@@ -301,15 +313,15 @@ public class QueryUtils {
     }
 
     /**
-     * 根据字段名和Pattern对象构建不匹配查询
+	 * 根据字段名和 {@link Pattern} 构建“不匹配”查询。
      * <p>
-     * 使用MongoDB的正则表达式功能进行模式不匹配查询，支持更复杂的匹配选项
+	 * 使用 MongoDB 的正则表达式进行模式不匹配查询；可通过 {@link Pattern} 指定更丰富的匹配选项。
      * </p>
      *
-     * @param key     要查询的字段名
-     * @param pattern Java正则表达式Pattern对象
+	 * @param key     要查询的字段名，不可为空或空白
+	 * @param pattern Java 正则表达式 {@link Pattern} 对象，不可为 {@code null}
      * @return 查询对象
-     * @throws IllegalArgumentException 当key为空或pattern为null时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code pattern} 为 {@code null} 时抛出
      * @since 1.0.0
      */
 	public static Query queryByNotRegex(final String key, final Pattern pattern) {
@@ -320,17 +332,17 @@ public class QueryUtils {
     }
 
     /**
-     * 构建字段值为null的条件
+	 * 构建“字段值为空”的条件。
      * <p>
-     * 使用$or操作符组合"值为null"和"字段不存在"两个条件
+	 * 使用 {@code $or} 操作符组合：值为 {@code null} 与字段不存在两类条件。
      * </p>
      *
-     * @param key 字段名
+	 * @param key 字段名，不可为空或空白
      * @return 条件对象
-     * @throws IllegalArgumentException 当key为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	protected static Criteria keyNullValueCriteria(final String key) {
+	protected static Criteria nullValueCriteria(final String key) {
         Assert.hasText(key, "key 不可为空");
 
         Criteria nullValueCriteria = Criteria.where(key).isNullValue();
@@ -339,17 +351,17 @@ public class QueryUtils {
     }
 
     /**
-     * 构建字段值不为null的条件
+	 * 构建“字段值非空”的条件。
      * <p>
-     * 使用$and操作符组合"值不为null"和"字段存在"两个条件
+	 * 使用 {@code $and} 操作符组合：值不为 {@code null} 与字段存在两类条件。
      * </p>
      *
-     * @param key 字段名
+	 * @param key 字段名，不可为空或空白
      * @return 条件对象
-     * @throws IllegalArgumentException 当key为空时抛出
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
      * @since 1.0.0
      */
-	protected static Criteria keyNotNullValueCriteria(final String key) {
+	protected static Criteria notNullValueCriteria(final String key) {
         Assert.hasText(key, "key 不可为空");
 
         Criteria notNullValueValueCriteria = Criteria.where(key).not().isNullValue();
@@ -358,10 +370,9 @@ public class QueryUtils {
     }
 
     /**
-     * 空查询实现类
+	 * 空查询实现类。
      * <p>
-     * 继承自Query类，所有方法都返回this，不执行任何实际操作。
-     * 用于需要传入查询对象但不需要实际查询条件的场景。
+	 * 继承自 {@link Query}，所有方法均返回 {@code this} 并不改变查询条件；提供一个安全的“空对象”用于占位或默认参数。
      * </p>
      *
      * @since 1.0.0
