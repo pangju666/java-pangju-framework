@@ -353,11 +353,12 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 *
 	 * @param key    Hash 的键；不可为空或空白
 	 * @param suffix 哈希字段后缀；为空或空白时返回空映射
+	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无匹配或后缀为空白时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public Map<String, String> scanHashBySuffix(String key, String suffix) {
+	public <HV> Map<String, HV> scanHashBySuffix(String key, String suffix) {
 		if (StringUtils.isBlank(suffix)) {
 			return Collections.emptyMap();
 		}
@@ -372,11 +373,12 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 *
 	 * @param key    Hash 的键；不可为空或空白
 	 * @param prefix 哈希字段前缀；为空或空白时返回空映射
+	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无匹配或前缀为空白时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public Map<String, String> scanHashByPrefix(String key, String prefix) {
+	public <HV> Map<String, HV> scanHashByPrefix(String key, String prefix) {
 		if (StringUtils.isBlank(prefix)) {
 			return Collections.emptyMap();
 		}
@@ -391,11 +393,12 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 *
 	 * @param key     Hash 的键；不可为空或空白
 	 * @param keyword 关键字（字段名包含该关键字）；为空或空白时返回空映射
+	 * @param <HV> 哈希值类型
 	 * @return 键值映射；无匹配或关键字为空白时为空映射
 	 * @throws IllegalArgumentException 当 {@code key} 为空或空白
 	 * @since 1.0.0
 	 */
-	public Map<String, String> scanHashByKeyword(String key, String keyword) {
+	public <HV> Map<String, HV> scanHashByKeyword(String key, String keyword) {
 		if (StringUtils.isBlank(keyword)) {
 			return Collections.emptyMap();
 		}
