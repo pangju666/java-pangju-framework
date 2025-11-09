@@ -185,9 +185,9 @@ public class HttpExceptionInfoFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		String servletPath = request.getServletPath();
 		if (servletPath.equals(typesRequestPath)) {
-			HttpResponseBuilder.from(response).buffer(false).writeBean(this.httpExceptionTypeList);
+			HttpResponseBuilder.from(response).writeBean(this.httpExceptionTypeList);
 		} else if (servletPath.equals(listRequestPath)) {
-			HttpResponseBuilder.from(response).writeBean(this.httpExceptionList);
+			HttpResponseBuilder.from(response).buffer().writeBean(this.httpExceptionList);
 		} else {
 			filterChain.doFilter(request, response);
 		}

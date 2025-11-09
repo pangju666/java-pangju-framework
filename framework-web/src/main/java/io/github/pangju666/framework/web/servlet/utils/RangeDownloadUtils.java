@@ -191,7 +191,7 @@ public class RangeDownloadUtils {
 
 		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
 		if (StringUtils.isBlank(rangeHeader)) {
-			HttpResponseBuilder.from(response).write(bytes);
+			HttpResponseBuilder.from(response).buffer().write(bytes);
 		} else {
 			List<Range> ranges = getRanges(bytes.length, rangeHeader);
 
@@ -204,7 +204,7 @@ public class RangeDownloadUtils {
 
 			// 返回完整内容
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
-				HttpResponseBuilder.from(response).write(bytes);
+				HttpResponseBuilder.from(response).buffer().write(bytes);
 				return;
 			}
 
@@ -240,7 +240,7 @@ public class RangeDownloadUtils {
 
 		String rangeHeader = request.getHeader(HttpHeaders.RANGE);
 		if (StringUtils.isBlank(rangeHeader)) {
-			HttpResponseBuilder.from(response).writeFile(file);
+			HttpResponseBuilder.from(response).buffer().writeFile(file);
 		} else {
 			long fileLength = file.length();
 			List<Range> ranges = getRanges(fileLength, rangeHeader);
@@ -254,7 +254,7 @@ public class RangeDownloadUtils {
 
 			// 返回完整内容
 			if (ranges.size() == 1 && ranges.get(0).isComplete()) {
-				HttpResponseBuilder.from(response).writeFile(file);
+				HttpResponseBuilder.from(response).buffer().writeFile(file);
 				return;
 			}
 

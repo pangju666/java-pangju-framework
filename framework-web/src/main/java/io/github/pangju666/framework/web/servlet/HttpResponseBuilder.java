@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,23 +43,39 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Objects;
 
 /**
  * Http响应构建器
  * <p>
- * 提供了一套便捷的方法用于简化HttpServletResponse的操作，支持链式调用。
- * 主要功能包括：
+ * 对 {@link jakarta.servlet.http.HttpServletResponse} 的常用写出操作进行封装，提供更简洁一致的使用方式，支持链式调用。
+ * </p>
+ * <p>
+ * 功能概览：
  * <ul>
- *   <li>设置响应状态码和内容类型</li>
- *   <li>配置文件下载响应头</li>
- *   <li>写入各种类型的响应数据（流、字节数组、文件、JSON等）</li>
- *   <li>处理HTTP异常并生成统一的错误响应</li>
- *   <li>支持缓冲模式优化I/O性能</li>
+ *   <li>设置响应状态码与内容类型</li>
+ *   <li>配置下载相关的响应头（如 Content-Disposition）</li>
+ *   <li>写入多种数据源：输入流、字节数组、文件、JSON（统一封装为 {@link io.github.pangju666.framework.web.model.Result}）</li>
+ *   <li>处理带有 {@link io.github.pangju666.framework.web.annotation.HttpException} 的异常为标准错误响应</li>
+ *   <li>可选缓冲模式以优化 I/O 性能</li>
  * </ul>
  * </p>
  * <p>
- * 默认启用缓冲模式以提高性能。
+ * 默认行为：
+ * <ul>
+ *   <li>在实际写出前如未设置字符集，则默认使用 {@code UTF-8}</li>
+ *   <li>JSON 写出统一设置 {@code Content-Type: application/json}</li>
+ *   <li>写入方法不会主动关闭调用方提供的输入流，需要调用方自行管理</li>
+ * </ul>
+ * </p>
+ * <p>
+ * 使用建议：
+ * <ul>
+ *   <li>写二进制数据前如需明确类型，请先调用 {@link #contentType(String)}</li>
+ *   <li>下载文件建议显式设置文件名并确保兼容性字符集（默认 UTF-8）</li>
+ *   <li>缓存控制可优先使用 {@link org.springframework.http.CacheControl} 构建器以生成标准化头值</li>
+ * </ul>
  * </p>
  *
  * @author pangju666
@@ -93,6 +110,15 @@ public class HttpResponseBuilder {
 	 * @since 1.0.0
 	 */
 	private boolean buffer = true;
+	/**
+	 * 缓冲区大小
+	 * <p>
+	 * 默认值为{@link IOUtils#DEFAULT_BUFFER_SIZE}。
+	 * </p>
+	 *
+	 * @since 1.0.0
+	 */
+	private int bufferSize = IOUtils.DEFAULT_BUFFER_SIZE;
 
 	/**
 	 * 构造HTTP响应辅助类实例
@@ -112,8 +138,6 @@ public class HttpResponseBuilder {
 		Assert.notNull(response, "response 不可为null");
 
 		this.response = response;
-		response.setStatus(HttpStatus.OK.value());
-		response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 	}
 
 	/**
@@ -198,30 +222,119 @@ public class HttpResponseBuilder {
 	}
 
 	/**
-	 * 设置是否启用缓冲模式
+	 * 启用缓冲模式
 	 * <p>
-	 * 支持链式调用。缓冲模式可以提高I/O性能，但会占用额外的内存。
-	 * 在处理大文件时，可以考虑关闭缓冲模式以减少内存占用。
+	 * 开启后写出操作将使用缓冲输出，提高 I/O 性能。缓冲大小使用默认值。
 	 * </p>
 	 *
-	 * @param buffer 是否启用缓冲，true为启用，false为禁用
-	 * @return 当前HttpResponseBuilder实例，支持链式调用
+	 * @return 当前实例，用于链式调用
 	 * @since 1.0.0
 	 */
-	public HttpResponseBuilder buffer(final boolean buffer) {
-		this.buffer = buffer;
+	public HttpResponseBuilder buffer() {
+		this.buffer = true;
 
 		return this;
 	}
 
 	/**
-	 * 设置文件下载的Content-Disposition响应头
+	 * 启用缓冲模式并设置缓冲区大小
 	 * <p>
-	 * 支持链式调用。使用UTF-8字符集对文件名进行URL编码。
-	 * 如果filename为null或空白字符串，则不执行任何操作。
+	 * 适用于大文件或高并发场景下的 I/O 优化。
 	 * </p>
 	 *
-	 * @param filename 下载文件名，可以为null
+	 * @param bufferSize 缓冲区大小（字节），应为正值
+	 * @return 当前实例，用于链式调用
+	 * @since 1.0.0
+	 */
+	public HttpResponseBuilder buffer(final int bufferSize) {
+		this.buffer = true;
+		this.bufferSize = bufferSize;
+
+		return this;
+	}
+
+	/**
+	 * 设置响应字符编码（字符串形式）
+	 * <p>
+	 * 如果传入为空白则不生效。建议与 {@link #contentType(String)} 搭配设置明确的响应类型与编码。
+	 * </p>
+	 *
+	 * @param charset 字符集名称，例如 "UTF-8"
+	 * @return 当前实例，用于链式调用
+	 * @since 1.0.0
+	 */
+	public HttpResponseBuilder characterEncoding(final String charset) {
+		if (StringUtils.isNotBlank(charset)) {
+			this.response.setCharacterEncoding(charset);
+		}
+
+		return this;
+	}
+
+	/**
+	 * 设置响应字符编码（{@link java.nio.charset.Charset}）
+	 * <p>
+	 * 如果传入为 null 则不生效。
+	 * </p>
+	 *
+	 * @param charset 字符集对象，例如 {@link java.nio.charset.StandardCharsets#UTF_8}
+	 * @return 当前实例，用于链式调用
+	 * @since 1.0.0
+	 */
+	public HttpResponseBuilder characterEncoding(final Charset charset) {
+		if (Objects.nonNull(charset)) {
+			response.setCharacterEncoding(charset.name());
+		}
+
+		return this;
+	}
+
+	/**
+	 * 设置简易缓存控制头（秒级）
+	 * <p>
+	 * 将 {@code Cache-Control} 头值设置为传入时长的秒数字符串。若需标准化头值（如 {@code max-age=...}、{@code no-cache}），建议使用
+	 * {@link #cacheControl(CacheControl)}。
+	 * </p>
+	 *
+	 * @param maxAge 最大缓存时长
+	 * @return 当前实例，用于链式调用
+	 * @since 1.0.0
+	 */
+	public HttpResponseBuilder cacheControl(final Duration maxAge) {
+		if (Objects.nonNull(maxAge)) {
+			response.setHeader(HttpHeaders.CACHE_CONTROL, String.valueOf(maxAge.toSeconds()));
+		}
+
+		return this;
+	}
+
+	/**
+	 * 使用 {@link org.springframework.http.CacheControl} 设置标准缓存控制头
+	 * <p>
+	 * 通过 Spring 提供的构建器生成规范的 {@code Cache-Control} 头值，推荐在需要明确缓存策略时使用。
+	 * </p>
+	 *
+	 * @param cacheControl 缓存控制配置
+	 * @return 当前实例，用于链式调用
+	 * @since 1.0.0
+	 */
+	public HttpResponseBuilder cacheControl(final CacheControl cacheControl) {
+		if (Objects.nonNull(cacheControl)) {
+			response.setHeader(HttpHeaders.CACHE_CONTROL, cacheControl.getHeaderValue());
+		}
+
+		return this;
+	}
+
+	/**
+	 * 设置文件下载的 Content-Disposition 响应头
+	 * <p>
+	 * 采用简单的 {@code attachment;filename=<encoded>} 形式并对文件名进行 URL 编码（默认 UTF-8）。
+	 * 若文件名为空白则不设置该头。兼容性较好，若需 RFC 6266 完整支持（如 {@code filename*}），可在上层自行扩展。
+	 * </p>
+	 *
+	 * @param filename 下载文件名，可以为 null
+	 * @return 当前实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public HttpResponseBuilder contentDisposition(@Nullable final String filename) {
@@ -231,15 +344,14 @@ public class HttpResponseBuilder {
 	}
 
 	/**
-	 * 设置文件下载的Content-Disposition响应头
+	 * 设置文件下载的 Content-Disposition 响应头（自定义字符集）
 	 * <p>
-	 * 支持链式调用。使用指定的字符集对文件名进行URL编码。
-	 * 如果filename为null或空白字符串，则不执行任何操作。
-	 * 如果charsets为null，则使用UTF-8作为默认字符集。
+	 * 使用指定字符集对文件名进行 URL 编码；若字符集为 null，默认使用 UTF-8。文件名为空白时不设置该头。
 	 * </p>
 	 *
-	 * @param filename 下载文件名，可以为null
-	 * @param charsets 字符集，可以为null（默认使用UTF-8）
+	 * @param filename 下载文件名，可以为 null
+	 * @param charsets 字符集，可为 null（默认 UTF-8）
+	 * @return 当前实例，用于链式调用
 	 * @since 1.0.0
 	 */
 	public HttpResponseBuilder contentDisposition(@Nullable final String filename, @Nullable final Charset charsets) {
@@ -252,33 +364,41 @@ public class HttpResponseBuilder {
 	}
 
 	/**
-	 * 将输入流的内容写入响应输出流
+	 * 将输入流内容写入响应输出
 	 * <p>
-	 * 根据buffer标志决定是否使用缓冲模式：
+	 * 行为说明：
 	 * <ul>
-	 *   <li>启用缓冲时：如果输入流已经是缓冲流，则直接使用；否则包装为缓冲流</li>
-	 *   <li>禁用缓冲时：直接将输入流内容传输到输出流</li>
+	 *   <li>如未设置 {@code Content-Type}，默认使用 {@code application/octet-stream}</li>
+	 *   <li>如未设置字符编码，默认使用 {@code UTF-8}</li>
+	 *   <li>开启缓冲时，尽可能复用或包装为缓冲输入流，并使用缓冲输出提高性能</li>
+	 *   <li>禁用缓冲时，直接传输至响应输出流</li>
 	 * </ul>
-	 * 注意：此方法不会关闭传入的inputStream，需要调用者自行关闭。
+	 * 注意：该方法不会关闭调用方提供的 {@code inputStream}，请自行管理其生命周期。
 	 * </p>
 	 *
-	 * @param inputStream 输入流，不能为null
-	 * @throws IllegalArgumentException 如果inputStream为null
-	 * @throws UncheckedIOException     如果发生I/O错误
+	 * @param inputStream 输入流，不能为 null
+	 * @throws IllegalArgumentException 当 {@code inputStream} 为 null 时抛出
+	 * @throws UncheckedIOException     写出发生 I/O 错误时抛出
 	 * @since 1.0.0
 	 */
 	public void write(final InputStream inputStream) {
 		Assert.notNull(inputStream, "inputStream 不可为null");
 
+		if (StringUtils.isBlank(response.getContentType())) {
+			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+		}
+		if (StringUtils.isBlank(response.getCharacterEncoding())) {
+			response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+		}
 		if (buffer) {
-			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream())) {
+			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream(), bufferSize)) {
 				if (inputStream instanceof BufferedInputStream ||
 					inputStream instanceof UnsynchronizedByteArrayInputStream ||
 					inputStream instanceof UnsynchronizedBufferedInputStream ||
 					inputStream instanceof BufferedFileChannelInputStream) {
 					inputStream.transferTo(outputStream);
 				} else {
-					try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream)) {
+					try (InputStream bufferedInputStream = IOUtils.unsynchronizedBuffer(inputStream, bufferSize)) {
 						bufferedInputStream.transferTo(outputStream);
 					}
 				}
@@ -295,31 +415,31 @@ public class HttpResponseBuilder {
 	}
 
 	/**
-	 * 将字节数组写入响应输出流
+	 * 将字节数组写入响应输出
 	 * <p>
-	 * 自动设置Content-Length响应头。
-	 * 根据buffer标志和字节数组是否为空选择不同的写入策略：
+	 * 行为说明：
 	 * <ul>
-	 *   <li>字节数组为空：直接写入空字节数组</li>
-	 *   <li>启用缓冲且字节数组不为空：使用缓冲输出流写入</li>
-	 *   <li>禁用缓冲且字节数组不为空：直接写入输出流</li>
+	 *   <li>自动设置 {@code Content-Length}</li>
+	 *   <li>如未设置 {@code Content-Type}，默认使用 {@code application/octet-stream}</li>
+	 *   <li>如未设置字符编码，默认使用 {@code UTF-8}</li>
+	 *   <li>开启缓冲时使用缓冲输出；禁用缓冲时直接写出</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param bytes 字节数组，可以为null或空数组
-	 * @throws UncheckedIOException 如果发生I/O错误
+	 * @param bytes 字节数组，可为 null 或空数组
+	 * @throws UncheckedIOException 写出发生 I/O 错误时抛出
 	 * @since 1.0.0
 	 */
 	public void write(final byte[] bytes) {
+		if (StringUtils.isBlank(response.getContentType())) {
+			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+		}
+		if (StringUtils.isBlank(response.getCharacterEncoding())) {
+			response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+		}
 		response.setContentLength(ArrayUtils.getLength(bytes));
-		if (ArrayUtils.isEmpty(bytes)) {
-			try (OutputStream outputStream = response.getOutputStream()) {
-				outputStream.write(ArrayUtils.EMPTY_BYTE_ARRAY);
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-		} else {
-			try (OutputStream outputStream = buffer ? IOUtils.buffer(response.getOutputStream()) : response.getOutputStream()) {
+		if (ArrayUtils.isNotEmpty(bytes)) {
+			try (OutputStream outputStream = buffer ? IOUtils.buffer(response.getOutputStream(), bufferSize) : response.getOutputStream()) {
 				outputStream.write(bytes);
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
@@ -328,22 +448,24 @@ public class HttpResponseBuilder {
 	}
 
 	/**
-	 * 将文件内容写入响应输出流
+	 * 将文件内容写入响应
 	 * <p>
-	 * 自动执行以下操作：
+	 * 自动操作：
 	 * <ul>
-	 *   <li>根据文件扩展名检测并设置MIME类型</li>
-	 *   <li>设置文件下载响应头（使用原文件名）</li>
-	 *   <li>根据buffer标志选择是否使用缓冲流读取文件</li>
+	 *   <li>根据扩展名检测并设置 MIME 类型</li>
+	 *   <li>设置下载响应头（使用原文件名）</li>
+	 *   <li>设置 {@code Content-Length}</li>
+	 *   <li>按缓冲设置选择读取方式</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param file 要写入的文件对象，不能为null
-	 * @throws IOException 如果文件读取或写入失败
+	 * @param file 要写入的文件对象，不能为 null
+	 * @throws IOException 文件读取或写入失败时抛出
 	 * @since 1.0.0
 	 */
 	public void writeFile(final File file) throws IOException {
 		response.setContentType(FileUtils.getMimeType(file));
+		response.setContentLength((int) file.length());
 		contentDisposition(file.getName());
 		try (InputStream inputStream = buffer ? FileUtils.openUnsynchronizedBufferedInputStream(file) : FileUtils.openInputStream(file)) {
 			write(inputStream);
@@ -351,19 +473,20 @@ public class HttpResponseBuilder {
 	}
 
 	/**
-	 * 将文件内容写入响应输出流，并指定下载文件名
+	 * 将文件内容写入响应（指定下载文件名）
 	 * <p>
-	 * 自动执行以下操作：
+	 * 自动操作：
 	 * <ul>
-	 *   <li>根据文件扩展名检测并设置MIME类型</li>
-	 *   <li>设置文件下载响应头（使用指定的下载文件名，如果为空则使用原文件名）</li>
-	 *   <li>根据buffer标志选择是否使用缓冲流读取文件</li>
+	 *   <li>根据扩展名检测并设置 MIME 类型</li>
+	 *   <li>设置下载响应头（使用指定文件名，空白则使用原文件名）</li>
+	 *   <li>设置 {@code Content-Length}</li>
+	 *   <li>按缓冲设置选择读取方式</li>
 	 * </ul>
 	 * </p>
 	 *
-	 * @param file             要写入的文件对象，不能为null
-	 * @param downloadFilename 下载时显示的文件名，可以为null（使用原文件名）
-	 * @throws IOException 如果文件读取或写入失败
+	 * @param file             要写入的文件对象，不能为 null
+	 * @param downloadFilename 下载文件名，可为 null（使用原文件名）
+	 * @throws IOException 文件读取或写入失败时抛出
 	 * @since 1.0.0
 	 */
 	public void writeFile(final File file, @Nullable final String downloadFilename) throws IOException {
@@ -376,50 +499,19 @@ public class HttpResponseBuilder {
 	}
 
 	/**
-	 * 将Java对象以JSON格式写入响应输出流
+	 * 将 Java 对象以 JSON 写入响应
 	 * <p>
-	 * 该方法会智能处理传入的对象类型：
+	 * 行为说明：
 	 * <ul>
-	 *   <li>如果对象已经是{@link Result}类型：直接序列化为JSON并写入响应</li>
-	 *   <li>如果对象是其他类型：自动包装为{@code Result.ok(bean)}后再序列化写入</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * <p>
-	 * 自动执行以下操作：
-	 * <ul>
-	 *   <li>设置Content-Type为application/json</li>
-	 *   <li>使用UTF-8字符集编码</li>
-	 *   <li>将对象转换为JSON字符串并写入响应输出流</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * <p>
-	 * 使用示例：
-	 * <pre>{@code
-	 * // 示例1：写入普通对象，自动包装为Result.ok()
-	 * User user = new User("张三", 25);
-	 * responseHelper.writeBean(user);
-	 * // 响应: {"code": 200, "message": "success", "data": {"name": "张三", "age": 25}}
-	 *
-	 * // 示例2：写入Result对象，直接序列化
-	 * Result<User> result = Result.ok(user);
-	 * responseHelper.writeBean(result);
-	 * // 响应: {"code": 200, "message": "success", "data": {"name": "张三", "age": 25}}
-	 * }</pre>
-	 * </p>
-	 *
-	 * <p>
-	 * 注意事项：
-	 * <ul>
-	 *   <li>bean参数可以为null，会被包装为Result.ok()</li>
-	 *   <li>对象序列化依赖于Result类的toString()方法实现</li>
+	 *   <li>入参为 {@link Result} 时直接序列化；其他对象会包装为 {@code Result.ok(bean)}</li>
+	 *   <li>设置 {@code Content-Type: application/json}，编码使用 {@code UTF-8}</li>
+	 *   <li>序列化依赖 {@link Result#toString()} 的实现</li>
 	 * </ul>
 	 * </p>
 	 *
 	 * @param <T>  对象类型
-	 * @param bean 要写入的Java对象，可以是任意类型包括Result
-	 * @throws UncheckedIOException 如果写入响应流时发生I/O错误
+	 * @param bean Java 对象，可为 {@code null}
+	 * @throws UncheckedIOException 写出发生 I/O 错误时抛出
 	 * @see Result
 	 * @since 1.0.0
 	 */
@@ -433,37 +525,27 @@ public class HttpResponseBuilder {
 	}
 
 	/**
-	 * 处理HTTP异常并将错误信息以JSON格式写入响应输出流
+	 * 写出 HTTP 异常为统一错误响应（JSON）
 	 * <p>
-	 * 处理流程：
+	 * 处理逻辑：
 	 * <ol>
-	 *   <li>检查异常类是否有@HttpException注解</li>
-	 *   <li>如果有注解：
-	 *     <ul>
-	 *       <li>根据注解配置的错误码类型和错误码生成失败Result</li>
-	 *       <li>如果注解配置了需要记录日志，则按指定级别记录日志</li>
-	 *       <li>设置响应状态码为注解中配置的状态码</li>
-	 *     </ul>
-	 *   </li>
-	 *   <li>如果没有注解：
-	 *     <ul>
-	 *       <li>使用默认错误码生成失败Result</li>
-	 *       <li>记录ERROR级别日志</li>
-	 *     </ul>
-	 *   </li>
-	 *   <li>设置Content-Type为application/json</li>
-	 *   <li>将错误Result序列化为JSON并写入响应</li>
+	 *   <li>检测异常类上的 {@link io.github.pangju666.framework.web.annotation.HttpException} 注解</li>
+	 *   <li>存在注解时：根据注解计算业务错误码，按配置记录日志并设置 HTTP 状态码</li>
+	 *   <li>无注解时：使用通用基础错误码，记录 ERROR 级别日志</li>
+	 *   <li>统一设置 {@code Content-Type: application/json} 并写出序列化后的 {@link Result}</li>
 	 * </ol>
+	 * 该方法会禁用缓冲模式以尽快写出错误响应。
 	 * </p>
 	 *
-	 * @param <E>           HTTP异常类型，必须继承自BaseHttpException
-	 * @param httpException HTTP异常对象，不能为null
+	 * @param <E>           HTTP 异常类型，必须继承 {@link io.github.pangju666.framework.web.exception.base.BaseHttpException}
+	 * @param httpException HTTP 异常对象，不能为 null
 	 * @since 1.0.0
 	 */
 	public <E extends BaseHttpException> void writeHttpException(final E httpException) {
-		HttpException annotation = httpException.getClass().getAnnotation(HttpException.class);
-		Result<Void> result;
+        this.buffer = false;
+        Result<Void> result;
 
+		HttpException annotation = httpException.getClass().getAnnotation(HttpException.class);
 		if (Objects.nonNull(annotation)) {
 			result = Result.fail(annotation.type().computeCode(annotation.code()), httpException.getMessage());
 			if (annotation.log()) {
