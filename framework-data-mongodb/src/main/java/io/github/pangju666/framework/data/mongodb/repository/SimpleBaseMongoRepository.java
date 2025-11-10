@@ -16,7 +16,6 @@
 
 package io.github.pangju666.framework.data.mongodb.repository;
 
-import io.github.pangju666.framework.data.mongodb.utils.QueryUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -112,11 +111,14 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param key   字段名（不可为空）
 	 * @param value 字段值（可为 null）
 	 * @return 是否存在匹配文档
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
 	 */
 	@Override
 	public boolean existsByKeyValue(String key, @Nullable Object value) {
-		Query query = QueryUtils.queryByKeyValue(key, value);
-		return mongoOperations.exists(query, this.entityClass, this.collectionName);
+		Assert.hasText(key, "key 不可为空");
+
+		return mongoOperations.exists(Query.query(Criteria.where(key).is(value)), this.entityClass,
+			this.collectionName);
 	}
 
 	/**
@@ -139,11 +141,14 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param key   字段名（不可为空）
 	 * @param value 字段值（可为 null）
 	 * @return 匹配的文档，可能为空
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
 	 */
 	@Override
 	public Optional<T> findOneByKeyValue(String key, @Nullable Object value) {
-		Query query = QueryUtils.queryByKeyValue(key, value);
-		return Optional.ofNullable(mongoOperations.findOne(query, this.entityClass, this.collectionName));
+		Assert.hasText(key, "key 不可为空");
+
+		return Optional.ofNullable(mongoOperations.findOne(Query.query(Criteria.where(key).is(value)),
+			this.entityClass, this.collectionName));
 	}
 
 	/**
@@ -181,14 +186,15 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param valueClass 值类型（不可为 null）
 	 * @param <V>        返回值类型
 	 * @return 去重后的值列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code valueClass} 为 {@code null} 时抛出
 	 */
 	@Override
 	public <V> List<V> findDistinctKeyValues(String key, Class<V> valueClass) {
 		Assert.hasText(key, "key 不可为空");
 		Assert.notNull(valueClass, "valueClass 不可为null");
 
-		Query query = QueryUtils.queryByKeyNotNull(key);
-		return mongoOperations.findDistinct(query, key, this.collectionName, this.entityClass, valueClass);
+		return mongoOperations.findDistinct(Query.query(Criteria.where(key).ne(null)), key,
+			this.collectionName, this.entityClass, valueClass);
 	}
 
 	/**
@@ -199,6 +205,7 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param valueClass 值类型（不可为 null）
 	 * @param <V>        返回值类型
 	 * @return 去重后的值列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code valueClass} 为 {@code null} 时抛出
 	 */
 	@Override
 	public <V> List<V> findDistinctKeyValues(Query query, String key, Class<V> valueClass) {
@@ -231,10 +238,13 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param key   字段名（不可为空）
 	 * @param value 字段值（可为 null）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyValue(String key, @Nullable Object value) {
-		return findAll(QueryUtils.queryByKeyValue(key, value));
+		Assert.hasText(key, "key 不可为空");
+
+		return findAll(Query.query(Criteria.where(key).is(value)));
 	}
 
 	/**
@@ -243,10 +253,13 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param key   字段名（不可为空）
 	 * @param value 字段值（可为 null）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyNotValue(String key, @Nullable Object value) {
-		return findAll(QueryUtils.queryByKeyNotValue(key, value));
+		Assert.hasText(key, "key 不可为空");
+
+		return findAll(Query.query(Criteria.where(key).ne(value)));
 	}
 
 	/**
@@ -255,6 +268,7 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param key    字段名（不可为空）
 	 * @param values 值集合（空集合返回空列表）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyValues(String key, Iterable<?> values) {
@@ -267,7 +281,7 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 		if (collection.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return findAll(QueryUtils.queryByKeyValues(key, collection));
+		return findAll(Query.query(Criteria.where(key).in(collection)));
 	}
 
 	/**
@@ -276,6 +290,7 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param key    字段名（不可为空）
 	 * @param values 值集合（空集合返回空列表）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyNotValues(String key, Iterable<?> values) {
@@ -288,7 +303,7 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 		if (collection.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return findAll(QueryUtils.queryByKeyNotValues(key, collection));
+		return findAll(Query.query(Criteria.where(key).nin(collection)));
 	}
 
 	/**
@@ -296,10 +311,13 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 *
 	 * @param key 字段名（不可为空）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyNull(String key) {
-		return findAll(QueryUtils.queryByKeyNull(key));
+		Assert.hasText(key, "key 不可为空");
+
+		return findAll(Query.query(Criteria.where(key).isNullValue()));
 	}
 
 	/**
@@ -307,58 +325,77 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 *
 	 * @param key 字段名（不可为空）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyNotNull(String key) {
-		return findAll(QueryUtils.queryByKeyNotNull(key));
+		Assert.hasText(key, "key 不可为空");
+
+		return findAll(Query.query(Criteria.where(key).ne(null)));
 	}
 
 	/**
 	 * 查询字段不匹配指定正则表达式的所有文档。
 	 *
 	 * @param key   字段名（不可为空）
-	 * @param regex 正则表达式
+	 * @param regex 正则表达式（不可为空）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 或 {@code regex} 为空或空白时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyNotRegex(String key, String regex) {
-		return findAll(QueryUtils.queryByKeyNotRegex(key, regex));
+		Assert.hasText(key, "key 不可为空");
+		Assert.hasText(regex, "regex 不可为空");
+
+		return findAll(Query.query(Criteria.where(key).not().regex(regex)));
 	}
 
 	/**
 	 * 查询字段不匹配指定正则模式的所有文档。
 	 *
 	 * @param key     字段名（不可为空）
-	 * @param pattern 正则模式
+	 * @param pattern 正则模式（不可为{@code null}）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code pattern} 为 {@code null} 时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyNotRegex(String key, Pattern pattern) {
-		return findAll(QueryUtils.queryByKeyNotRegex(key, pattern));
+		Assert.hasText(key, "key 不可为空");
+		Assert.notNull(pattern, "pattern 不可为null");
+
+		return findAll(Query.query(Criteria.where(key).not().regex(pattern)));
 	}
 
 	/**
 	 * 查询字段匹配指定正则表达式的所有文档。
 	 *
 	 * @param key   字段名（不可为空）
-	 * @param regex 正则表达式
+	 * @param regex 正则表达式（不可为空）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 或 {@code regex} 为空或空白时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyRegex(String key, String regex) {
-		return findAll(QueryUtils.queryByKeyRegex(key, regex));
+		Assert.hasText(key, "key 不可为空");
+		Assert.hasText(regex, "regex 不可为空");
+
+		return findAll(Query.query(Criteria.where(key).regex(regex)));
 	}
 
 	/**
 	 * 查询字段匹配指定正则模式的所有文档。
 	 *
 	 * @param key     字段名（不可为空）
-	 * @param pattern 正则模式
+	 * @param pattern 正则模式（不可为{@code null}）
 	 * @return 匹配的文档列表
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白，或 {@code pattern} 为 {@code null} 时抛出
 	 */
 	@Override
 	public List<T> findAllByKeyRegex(String key, Pattern pattern) {
-		return findAll(QueryUtils.queryByKeyRegex(key, pattern));
+		Assert.hasText(key, "key 不可为空");
+		Assert.notNull(pattern, "pattern 不可为null");
+
+		return findAll(Query.query(Criteria.where(key).regex(pattern)));
 	}
 
 	/**
@@ -367,6 +404,7 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param pageable 分页参数（不可为 null）
 	 * @param query    查询条件（为 null 时返回空分页）
 	 * @return 分页结果
+	 * @throws IllegalArgumentException 当 {@code pageable} 为 {@code null} 时抛出
 	 */
 	@Override
 	public Page<T> findAll(Pageable pageable, Query query) {
@@ -385,6 +423,7 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 *
 	 * @param update 更新内容（不可为 null）
 	 * @param id     主键值（不可为 null）
+	 * @throws IllegalArgumentException 当 {@code update} 或 {@code id} 为 {@code null} 时抛出
 	 */
 	@Override
 	public void updateById(UpdateDefinition update, ID id) {
@@ -400,6 +439,7 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 *
 	 * @param update 更新内容（不可为 null）
 	 * @param ids    主键集合（为空时不执行）
+	 * @throws IllegalArgumentException 当 {@code update} 为 {@code null} 时抛出
 	 */
 	@Override
 	public void updateAllById(UpdateDefinition update, Iterable<ID> ids) {
@@ -409,10 +449,23 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 		if (collection.isEmpty()) {
 			return;
 		}
+		updateAll(update, Query.query(Criteria.where(entityInformation.getIdAttribute()).in(collection)));
+	}
 
-		Query query = new Query(new Criteria(entityInformation.getIdAttribute())
-			.in(collection));
-		mongoOperations.updateMulti(query, update, this.entityClass, this.collectionName);
+	/**
+	 * 根据“key 等于 value”条件批量更新文档。
+	 *
+	 * @param update 更新内容（不可为 null）
+	 * @param key    字段名（不可为空）
+	 * @param value  字段值（可为 null）
+	 * @throws IllegalArgumentException 当 {@code update} 为 {@code null}，或 {@code key} 为空或空白时抛出
+	 */
+	@Override
+	public void updateAllByKeyValue(UpdateDefinition update, String key, @Nullable Object value) {
+		Assert.notNull(update, "update 不可为null");
+		Assert.hasText(key, "key 不可为空");
+
+		updateAll(update, Query.query(Criteria.where(key).is(value)));
 	}
 
 	/**
@@ -420,15 +473,15 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 *
 	 * @param update 更新内容（不可为 null）
 	 * @param query  查询条件（为 null 时不执行）
+	 * @throws IllegalArgumentException 当 {@code update} 为 {@code null} 时抛出
 	 */
 	@Override
 	public void updateAll(UpdateDefinition update, Query query) {
 		Assert.notNull(update, "update 不可为null");
 
-		if (Objects.isNull(query)) {
-			return;
+		if (Objects.nonNull(query)) {
+			mongoOperations.updateMulti(query, update, this.entityClass, this.collectionName);
 		}
-		mongoOperations.updateMulti(query, update, this.entityClass, this.collectionName);
 	}
 
 	/**
@@ -438,13 +491,27 @@ public class SimpleBaseMongoRepository<T, ID> extends SimpleMongoRepository<T, I
 	 * @param newValue 新值（可为 null）
 	 * @param oldValue 旧值（可为 null）
 	 * @param <V>      字段值类型
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
 	 */
 	@Override
-	public <V> void updateAllByKeyValue(String key, @Nullable V newValue, @Nullable V oldValue) {
+	public <V> void replaceKeyValue(String key, @Nullable V oldValue, @Nullable V newValue) {
 		Assert.hasText(key, "key 不可为空");
 
-		mongoOperations.updateMulti(Query.query(Criteria.where(key).is(oldValue)),
-			new Update().set(key, newValue), this.entityClass, this.collectionName);
+		updateAll(new Update().set(key, newValue), Query.query(Criteria.where(key).is(oldValue)));
+	}
+
+	/**
+	 * 删除所有满足“key 等于 value”条件的文档。
+	 *
+	 * @param key   字段名（不可为空）
+	 * @param value 字段值（可为 null）
+	 * @throws IllegalArgumentException 当 {@code key} 为空或空白时抛出
+	 */
+	@Override
+	public void deleteAllByKeyValue(String key, @Nullable Object value) {
+		Assert.hasText(key, "key 不可为空");
+
+		deleteAll(Query.query(Criteria.where(key).is(value)));
 	}
 
 	/**

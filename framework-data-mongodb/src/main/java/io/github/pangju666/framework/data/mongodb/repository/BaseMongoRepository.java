@@ -51,47 +51,47 @@ import java.util.regex.Pattern;
 @NoRepositoryBean
 interface BaseMongoRepository<T, ID> extends MongoRepository<T, ID> {
 	/**
-	 * 判断是否存在满足“key 等于 value”条件的文档。
+	 * 判断是否存在满足{@code key}等于{@code value}条件的文档。
 	 *
-	 * @param key   字段名
-	 * @param value 字段值
+	 * @param key   字段名（不可为空或空白）
+	 * @param value 字段值（可为 null）
 	 * @return 是否存在匹配文档
 	 * @since 1.0.0
 	 */
 	boolean existsByKeyValue(String key, @Nullable Object value);
 
 	/**
-	 * 判断是否存在满足给定 {@link Query} 条件的文档。
+	 * 判断是否存在满足给定{@link Query}条件的文档。
 	 *
-	 * @param query 查询条件
+	 * @param query 查询条件（可为 null）
 	 * @return 是否存在匹配文档
 	 * @since 1.0.0
 	 */
 	boolean exists(Query query);
 
 	/**
-	 * 查找并返回一个满足“key 等于 value”的文档。
+	 * 查找并返回一个满足{@code key}等于{@code value}的文档。
 	 *
-	 * @param key   字段名
-	 * @param value 字段值
+	 * @param key   字段名（不可为空或空白）
+	 * @param value 字段值（可为 null）
 	 * @return 匹配文档的 {@link Optional}
 	 * @since 1.0.0
 	 */
 	Optional<T> findOneByKeyValue(String key, @Nullable Object value);
 
 	/**
-	 * 查找并返回一个满足给定 {@link Query} 条件的文档。
+	 * 查找并返回一个满足给定{@link Query}条件的文档。
 	 *
-	 * @param query 查询条件
+	 * @param query 查询条件（可为 null）
 	 * @return 匹配文档的 {@link Optional}
 	 * @since 1.0.0
 	 */
 	Optional<T> findOne(Query query);
 
 	/**
-	 * 统计满足给定 {@link Query} 条件的文档数量。
+	 * 统计满足给定{@link Query}条件的文档数量。
 	 *
-	 * @param query 查询条件
+	 * @param query 查询条件（可为 null）
 	 * @return 匹配文档数量
 	 * @since 1.0.0
 	 */
@@ -100,8 +100,8 @@ interface BaseMongoRepository<T, ID> extends MongoRepository<T, ID> {
 	/**
 	 * 提取指定字段的去重值列表。
 	 *
-	 * @param key        字段名
-	 * @param valueClass 结果值类型
+	 * @param key        字段名（不可为空或空白）
+	 * @param valueClass 结果值类型（不可为 null）
 	 * @param <V>        值类型
 	 * @return 去重后的字段值列表
 	 * @since 1.0.0
@@ -111,9 +111,9 @@ interface BaseMongoRepository<T, ID> extends MongoRepository<T, ID> {
 	/**
 	 * 在给定查询条件下，提取指定字段的去重值列表。
 	 *
-	 * @param query      查询条件
-	 * @param key        字段名
-	 * @param valueClass 结果值类型
+	 * @param query      查询条件（可为 null）
+	 * @param key        字段名（不可为空或空白）
+	 * @param valueClass 结果值类型（不可为 null）
 	 * @param <V>        值类型
 	 * @return 去重后的字段值列表
 	 * @since 1.0.0
@@ -121,164 +121,183 @@ interface BaseMongoRepository<T, ID> extends MongoRepository<T, ID> {
 	<V> List<V> findDistinctKeyValues(Query query, String key, Class<V> valueClass);
 
 	/**
-	 * 查询所有满足给定 {@link Query} 条件的文档列表。
+	 * 查询所有满足给定{@link Query}条件的文档列表。
 	 *
-	 * @param query 查询条件
+	 * @param query 查询条件（可为 null）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAll(Query query);
 
 	/**
-	 * 查询所有满足“key 等于 value”的文档列表。
+	 * 查询所有满足{@code key}等于{@code value}的文档列表。
 	 *
-	 * @param key   字段名
-	 * @param value 字段值
+	 * @param key   字段名（不可为空或空白）
+	 * @param value 字段值（可为 null）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyValue(String key, @Nullable Object value);
 
 	/**
-	 * 查询所有满足“key 不等于 value”的文档列表。
+	 * 查询所有满足{@code key}不等于{@code value}的文档列表。
 	 *
-	 * @param key   字段名
-	 * @param value 字段值
+	 * @param key   字段名（不可为空或空白）
+	 * @param value 字段值（可为 null）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyNotValue(String key, @Nullable Object value);
 
 	/**
-	 * 查询所有满足“key 在给定集合中”的文档列表。
+	 * 查询所有满足{@code key}在给定集合中的文档列表。
 	 *
-	 * @param key    字段名
-	 * @param values 值集合
+	 * @param key    字段名（不可为空或空白）
+	 * @param values 值集合（可为空或空集合）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyValues(String key, Iterable<?> values);
 
 	/**
-	 * 查询所有满足“key 不在给定集合中”的文档列表。
+	 * 查询所有满足{@code key}不在给定集合中的文档列表。
 	 *
-	 * @param key    字段名
-	 * @param values 值集合
+	 * @param key    字段名（不可为空或空白）
+	 * @param values 值集合（可为空或空集合）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyNotValues(String key, Iterable<?> values);
 
 	/**
-	 * 查询所有满足“key 为空”的文档列表。
+	 * 查询所有满足{@code key}为{@code null}的文档列表。
 	 *
-	 * @param key 字段名
+	 * @param key 字段名（不可为空或空白）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyNull(String key);
 
 	/**
-	 * 查询所有满足“key 非空”的文档列表。
+	 * 查询所有满足{@code key}非{@code null}的文档列表。
 	 *
-	 * @param key 字段名
+	 * @param key 字段名（不可为空或空白）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyNotNull(String key);
 
 	/**
-	 * 查询所有满足“key 不匹配指定正则表达式”的文档列表。
+	 * 查询所有满足{@code key}不匹配指定正则表达式的文档列表。
 	 *
-	 * @param key   字段名
-	 * @param regex 正则表达式字符串
+	 * @param key   字段名（不可为空或空白）
+	 * @param regex 正则表达式字符串（不可为空或空白）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyNotRegex(String key, String regex);
 
 	/**
-	 * 查询所有满足“key 不匹配指定正则表达式”的文档列表。
+	 * 查询所有满足{@code key}不匹配指定正则表达式的文档列表。
 	 *
-	 * @param key     字段名
-	 * @param pattern 正则表达式模式
+	 * @param key     字段名（不可为空或空白）
+	 * @param pattern 正则表达式模式（不可为 null）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyNotRegex(String key, Pattern pattern);
 
 	/**
-	 * 查询所有满足“key 匹配指定正则表达式”的文档列表。
+	 * 查询所有满足{@code key}匹配指定正则表达式的文档列表。
 	 *
-	 * @param key   字段名
-	 * @param regex 正则表达式字符串
+	 * @param key   字段名（不可为空或空白）
+	 * @param regex 正则表达式字符串（不可为空或空白）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyRegex(String key, String regex);
 
 	/**
-	 * 查询所有满足“key 匹配指定正则表达式”的文档列表。
+	 * 查询所有满足{@code key}匹配指定正则表达式的文档列表。
 	 *
-	 * @param key     字段名
-	 * @param pattern 正则表达式模式
+	 * @param key     字段名（不可为空或空白）
+	 * @param pattern 正则表达式模式（不可为 null）
 	 * @return 匹配文档列表
 	 * @since 1.0.0
 	 */
 	List<T> findAllByKeyRegex(String key, Pattern pattern);
 
 	/**
-	 * 在给定 {@link Query} 条件下执行分页查询。
+	 * 在给定{@link Query}条件下执行分页查询。
 	 *
-	 * @param pageable 分页与排序参数
-	 * @param query    查询条件
+	 * @param pageable 分页与排序参数（不可为 null）
+	 * @param query    查询条件（可为 null）
 	 * @return 分页结果
 	 * @since 1.0.0
 	 */
 	Page<T> findAll(Pageable pageable, Query query);
 
 	/**
-	 * 对指定 {@code id} 的文档执行更新。
+	 * 对指定{@code id}的文档执行更新。
 	 *
-	 * @param update 更新定义
-	 * @param id     文档标识
+	 * @param update 更新定义（不可为 null）
+	 * @param id     文档标识（不可为 null）
 	 * @since 1.0.0
 	 */
 	void updateById(UpdateDefinition update, ID id);
 
 	/**
-	 * 对给定 {@code ids} 集合中的文档批量执行更新。
+	 * 对给定{@code ids}集合中的文档批量执行更新。
 	 *
-	 * @param update 更新定义
-	 * @param ids    文档标识集合
+	 * @param update 更新定义（不可为 null）
+	 * @param ids    文档标识集合（可为空或空集合）
 	 * @since 1.0.0
 	 */
 	void updateAllById(UpdateDefinition update, Iterable<ID> ids);
 
 	/**
-	 * 对满足给定 {@link Query} 条件的文档批量执行更新。
+	 * 根据{@code key}等于{@code value}条件批量更新文档。
 	 *
-	 * @param update 更新定义
-	 * @param query  查询条件
+	 * @param update 更新定义（不可为 null）
+	 * @param key    字段名（不可为空或空白）
+	 * @param value  字段值（可为 null）
+	 * @since 1.0.0
+	 */
+	void updateAllByKeyValue(UpdateDefinition update, String key, @Nullable Object value);
+
+	/**
+	 * 对满足给定{@link Query}条件的文档批量执行更新。
+	 *
+	 * @param update 更新定义（不可为 null）
+	 * @param query  查询条件（可为 null）
 	 * @since 1.0.0
 	 */
 	void updateAll(UpdateDefinition update, Query query);
 
 	/**
-	 * 将满足“key 等于 oldValue”的文档的该字段更新为 {@code newValue}。
+	 * 将满足{@code key}等于{@code oldValue}的文档的该字段更新为{@code newValue}。
 	 *
-	 * @param key      字段名
-	 * @param newValue 新值
-	 * @param oldValue 旧值
+	 * @param key      字段名（不可为空或空白）
+	 * @param oldValue 旧值（可为 null）
+	 * @param newValue 新值（可为 null）
 	 * @param <V>      字段值类型
 	 * @since 1.0.0
 	 */
-	<V> void updateAllByKeyValue(String key, @Nullable V newValue, @Nullable V oldValue);
+	<V> void replaceKeyValue(String key, @Nullable V oldValue, @Nullable V newValue);
 
 	/**
-	 * 删除所有满足给定 {@link Query} 条件的文档。
+	 * 删除所有满足{@code key}等于{@code value}条件的文档。
 	 *
-	 * @param query 查询条件
+	 * @param key   字段名（不可为空或空白）
+	 * @param value 字段值（可为 null）
+	 * @since 1.0.0
+	 */
+	void deleteAllByKeyValue(String key, @Nullable Object value);
+
+	/**
+	 * 删除所有满足给定{@link Query} 条件的文档。
+	 *
+	 * @param query 查询条件（可为 null）
 	 * @since 1.0.0
 	 */
 	void deleteAll(Query query);

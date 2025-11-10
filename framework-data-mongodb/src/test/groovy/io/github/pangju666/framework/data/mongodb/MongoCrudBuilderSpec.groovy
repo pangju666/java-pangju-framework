@@ -1,6 +1,5 @@
 package io.github.pangju666.framework.data.mongodb
 
-
 import io.github.pangju666.framework.data.mongodb.model.TestDocument
 import io.github.pangju666.framework.data.mongodb.model.document.BaseDocument
 import io.github.pangju666.framework.data.mongodb.repository.TestRepository
@@ -484,7 +483,8 @@ class MongoCrudBuilderSpec extends Specification {
 
 	def "aa"() {
 		setup:
-		def list = repository.findById("690f1ebbe2035cd08e0c4231")
+
+		def list = repository.findOneByKeyValue("name", "test")
 		println list
 		//println query.toString()
 	}
