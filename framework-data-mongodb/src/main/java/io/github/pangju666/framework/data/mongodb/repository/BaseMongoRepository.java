@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
  * @since 1.0.0
  */
 @NoRepositoryBean
-interface BaseMongoRepository<T, ID> extends MongoRepository<T, ID> {
+public interface BaseMongoRepository<T, ID> extends MongoRepository<T, ID> {
 	/**
 	 * 判断是否存在满足{@code key}等于{@code value}条件的文档。
 	 *
