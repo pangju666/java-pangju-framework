@@ -1,5 +1,6 @@
 package io.github.pangju666.framework.data.mongodb
 
+
 import io.github.pangju666.framework.data.mongodb.model.TestDocument
 import io.github.pangju666.framework.data.mongodb.model.document.BaseDocument
 import io.github.pangju666.framework.data.mongodb.repository.TestRepository
@@ -14,10 +15,8 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
 
-import java.util.regex.Pattern
-
 @ContextConfiguration(classes = TestApplication.class, loader = SpringBootContextLoader.class)
-class BaseRepositorySpec extends Specification {
+class MongoCrudBuilderSpec extends Specification {
 	@Autowired
 	MongoOperations mongoOperations
 	@Autowired
@@ -485,9 +484,8 @@ class BaseRepositorySpec extends Specification {
 
 	def "aa"() {
 		setup:
-		Query query = QueryUtils.queryByRegex("name", Pattern.compile("^.+\$"))
-		def list = mongoOperations.find(query, TestDocument.class)
+		def list = repository.findById("690f1ebbe2035cd08e0c4231")
 		println list
-		println query.toString()
+		//println query.toString()
 	}
 }
