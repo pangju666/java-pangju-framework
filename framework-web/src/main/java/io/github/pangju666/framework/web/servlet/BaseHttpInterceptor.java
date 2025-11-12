@@ -63,6 +63,22 @@ public abstract class BaseHttpInterceptor implements HandlerInterceptor {
 	protected final int order;
 
 	/**
+	 * 创建拦截器实例（仅指定排除路径）
+	 * <p>
+	 * 使用默认拦截路径模式 {@link WebConstants#ANT_ANY_PATH_PATTERN 拦截所有路径}，
+	 * 并设置排除路径集合为入参；拦截器优先级默认为 {@link Ordered#LOWEST_PRECEDENCE}。
+	 * 当 {@code excludePathPatterns} 为 {@code null} 时，不排除任何路径（等同空集合）。
+	 * </p>
+	 *
+	 * @param excludePathPatterns 排除路径模式集合（可为 {@code null} 或空集合）
+	 * @see #BaseHttpInterceptor(Set, Set, int)
+	 * @since 1.0.0
+	 */
+	protected BaseHttpInterceptor(Set<String> excludePathPatterns) {
+		this(Set.of(WebConstants.ANT_ANY_PATH_PATTERN), excludePathPatterns, Ordered.LOWEST_PRECEDENCE);
+	}
+
+	/**
 	 * 创建拦截器实例
 	 * <p>
 	 * 使用指定的拦截路径和排除路径初始化拦截器，默认使用{@link Ordered#LOWEST_PRECEDENCE 最低优先级}。
