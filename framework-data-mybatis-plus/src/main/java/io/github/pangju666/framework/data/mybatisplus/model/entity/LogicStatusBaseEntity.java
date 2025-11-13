@@ -38,7 +38,7 @@ public abstract class LogicStatusBaseEntity<ID> extends BaseEntity {
 	 */
 	@TableField("delete_status")
 	@TableLogic(value = "null", delval = "id")
-	protected ID deleteStatus;
+	private ID deleteStatus;
 
 	public ID getDeleteStatus() {
 		return deleteStatus;

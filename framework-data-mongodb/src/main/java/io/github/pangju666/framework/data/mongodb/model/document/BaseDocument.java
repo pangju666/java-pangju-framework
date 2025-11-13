@@ -52,7 +52,7 @@ public abstract class BaseDocument implements Serializable {
 	 */
 	@MongoId(value = FieldType.STRING)
 	@Field(name = MongoConstants.ID_FIELD_NAME)
-	protected String id;
+	private String id;
 
 	/**
 	 * 以文档 ID 为键构建映射。

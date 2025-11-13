@@ -40,14 +40,14 @@ public abstract class BaseEntity implements Serializable {
 	 * @since 1.0.0
 	 */
 	@TableField(value = "create_time", update = "CURRENT_TIMESTAMP", fill = FieldFill.INSERT)
-	protected Date createTime = DateUtils.nowDate();
+	private Date createTime = DateUtils.nowDate();
 	/**
 	 * 更新时间，数据更新时自动设置为当前时间
 	 *
 	 * @since 1.0.0
 	 */
 	@TableField(value = "update_time", update = "CURRENT_TIMESTAMP", fill = FieldFill.INSERT_UPDATE)
-	protected Date updateTime;
+	private Date updateTime;
 
 	public Date getCreateTime() {
 		return createTime;

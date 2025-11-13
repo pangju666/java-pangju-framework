@@ -39,7 +39,7 @@ public abstract class LogicTimeBaseEntity extends BaseEntity {
 	 */
 	@TableField("delete_time")
 	@TableLogic(value = "null", delval = "CURRENT_TIMESTAMP")
-	protected Date deleteTime;
+	private Date deleteTime;
 
 	public Date getDeleteTime() {
 		return deleteTime;
