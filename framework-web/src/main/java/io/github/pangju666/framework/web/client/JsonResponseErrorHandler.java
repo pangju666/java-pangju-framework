@@ -147,7 +147,7 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 	 * @since 1.0.0
 	 */
 	public JsonResponseErrorHandler(Predicate<JsonObject> successPredicate) {
-		Assert.notNull(successPredicate, "successPredicate 不可为空");
+		Assert.notNull(successPredicate, "successPredicate 不可为 null");
 		this.successPredicate = successPredicate;
 	}
 
@@ -169,7 +169,7 @@ public class JsonResponseErrorHandler implements ResponseErrorHandler {
 	 * @since 1.0.0
 	 */
 	public JsonResponseErrorHandler(Object successCode) {
-		Assert.notNull(successCode, "successCode 不可为空");
+		Assert.notNull(successCode, "successCode 不可为 null");
 		if (successCode instanceof Boolean bool) {
 			this.successCode = BooleanUtils.toStringTrueFalse(bool);
 		} else if (successCode instanceof Number number) {
