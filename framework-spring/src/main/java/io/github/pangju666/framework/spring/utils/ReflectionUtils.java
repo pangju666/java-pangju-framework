@@ -16,8 +16,10 @@
 
 package io.github.pangju666.framework.spring.utils;
 
+import io.github.pangju666.framework.spring.lang.SpringConstants;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 import java.lang.reflect.*;
 import java.util.Objects;
@@ -25,13 +27,36 @@ import java.util.Objects;
 /**
  * 反射操作工具类，继承并扩展了 {@link org.springframework.util.ReflectionUtils} 的功能。
  *
- * <p>
- * 提供更加便捷的字段访问、方法调用、类信息提取、泛型类型解析等反射辅助操作，
- * </p>
+ * <p>封装了字段读取/写入（支持不可访问字段的 getter/setter 回退）、类信息提取、父类泛型解析、
+ * 成员可访问性调整等常见反射操作。</p>
  *
- * <p>
- * 设计灵感来自开源框架 <strong>RuoYi</strong>，并遵循线程安全、简洁可复用的原则。
- * </p>
+ * <h3>使用示例</h3>
+ * <pre>{@code
+ * // 读取/写入实例字段（不可访问时自动回退到 getter/setter）
+ * User user = new User();
+ * ReflectionUtils.setField(user, "name", "张三");
+ * Object name = ReflectionUtils.getField(user, "name");
+ *
+ * // 按类型读取/写入字段
+ * Integer age = ReflectionUtils.getField(user, "age", Integer.class);
+ * ReflectionUtils.setField(user, "age", 30, Integer.class);
+ *
+ * // 获取简单类名
+ * String simple = ReflectionUtils.getSimpleClassName(UserRepo.class); // => "UserRepo"
+ *
+ * // 解析父类泛型类型（支持默认第一个与指定索引）
+ * class BaseRepo<T> {}
+ * class UserRepo extends BaseRepo<User> {}
+ * Class<?> generic0 = ReflectionUtils.getClassGenericType(UserRepo.class);    // => User.class
+ * Class<?> genericN = ReflectionUtils.getClassGenericType(UserRepo.class, 0); // => User.class
+ *
+ * // 尝试设置成员可访问性（非 public 或 final）
+ * Field f = User.class.getDeclaredField("name");
+ * boolean fieldAccessible = ReflectionUtils.canMakeAccessible(f);  // 可能返回 true 并设置为可访问
+ *
+ * Method m = User.class.getDeclaredMethod("getName");
+ * boolean methodAccessible = ReflectionUtils.canMakeAccessible(m); // 可能返回 true 并设置为可访问
+ * }</pre>
  *
  * @author pangju666
  * @since 1.0.0
@@ -42,104 +67,163 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	}
 
 	/**
-	 * 获取指定对象中某字段的值。
+	 * 获取实例字段值
 	 *
-	 * <p>该方法会递归查找父类中定义的字段。</p>
+	 * <p>
+	 * 当字段可访问时，直接读取字段值；当字段不可直接访问时，尝试调用字段的 getter 方法并返回其结果。
+	 * </p>
 	 *
-	 * @param obj       目标对象实例
-	 * @param fieldName 字段名称
-	 * @param <E>       返回值类型
-	 * @return 字段的值；若字段不存在或访问失败则返回 {@code null}
+	 * @param target    目标实例（不可为 {@code null}）
+	 * @param fieldName 字段名（不可为空或空白）
+	 * @return 字段值，可能为 {@code null}
+	 * @throws IllegalArgumentException 当 {@code target} 为 {@code null} 或 {@code fieldName} 为空/空白时抛出
+	 * @throws IllegalStateException    当目标类中未找到对应字段、无法访问字段且不存在可访问的 getter 方法或反射调用失败时抛出
+	 * @see #getField(Field, Object)
+	 * @see #findField(Class, String)
+	 * @see #findMethod(Class, String)
 	 * @since 1.0.0
-	 * @see #getFieldValue(Object, Field)
 	 */
-	public static <E> E getFieldValue(final Object obj, final String fieldName) {
-		Field field = findField(obj.getClass(), fieldName);
+	@Nullable
+	public static Object getField(final Object target, final String fieldName) {
+		Assert.notNull(target, "target 不可为 null");
+		Assert.hasText(fieldName, "fieldName 不可为空");
+
+		Field field = findField(target.getClass(), fieldName);
 		if (Objects.isNull(field)) {
-			return null;
+			throw new IllegalStateException("字段：" + fieldName + " 未找到");
 		}
-		return getFieldValue(obj, field);
+		if (field.canAccess(target)) {
+			return getField(field, target);
+		}
+
+		String methodName = SpringConstants.GETTER_PREFIX + StringUtils.capitalize(fieldName);
+		Method method = findMethod(target.getClass(), methodName);
+		if (Objects.isNull(method) || !method.canAccess(target)) {
+			throw new IllegalStateException("无法访问字段：" + fieldName);
+		}
+		try {
+			return method.invoke(target);
+		} catch (Exception ex) {
+			handleReflectionException(ex);
+		}
+		throw new IllegalStateException("Should never get here");
 	}
 
 	/**
-	 * 获取对象指定字段的值。
+	 * 获取指定类型的实例字段值
 	 *
-	 * <p>在访问私有字段时，会尝试修改可访问性。</p>
+	 * <p>
+	 * 当字段可访问时，直接读取字段值；当字段不可直接访问时，尝试调用字段的 getter 方法并返回其结果。
+	 * </p>
 	 *
-	 * @param obj   目标对象实例
-	 * @param field 字段对象
-	 * @param <E>   返回值类型
-	 * @return 字段值；访问失败时返回 {@code null}
+	 * @param target    目标实例（不可为 {@code null}）
+	 * @param fieldName 字段名（不可为空或空白）
+	 * @param type      字段类型（不可为 {@code null}）
+	 * @param <T>       字段值类型
+	 * @return 字段值，可能为 {@code null}
+	 * @throws IllegalArgumentException 当 {@code target} 或 {@code type} 为 {@code null}，或 {@code fieldName} 为空/空白时抛出
+	 * @throws IllegalStateException    当目标类中未找到对应字段，或字段不可访问且不存在可访问的 getter 方法，或反射调用失败时抛出
+	 * @see #getField(Field, Object)
+	 * @see #findField(Class, String, Class)
+	 * @see #findMethod(Class, String)
 	 * @since 1.0.0
 	 */
 	@SuppressWarnings("unchecked")
-	public static <E> E getFieldValue(final Object obj, final Field field) {
-		boolean accessible = field.canAccess(obj);
-		if (!accessible && !canMakeAccessible(field)) {
-			return null;
-		}
-		try {
-			E value = (E) field.get(obj);
-			if (!accessible) {
-				field.setAccessible(false);
-			}
-			return value;
-		} catch (IllegalAccessException e) {
-			ExceptionUtils.asRuntimeException(e);
-			return null;
-		}
-	}
+	@Nullable
+	public static <T> T getField(final Object target, final String fieldName, final Class<T> type) {
+		Assert.notNull(target, "target 不可为 null");
+		Assert.notNull(type, "type 不可为 null");
+		Assert.hasText(fieldName, "fieldName 不可为空");
 
-	/**
-	 * 设置对象中指定字段的值。
-	 *
-	 * <p>该方法会递归查找字段定义于父类中的情况。</p>
-	 *
-	 * @param obj       目标对象实例
-	 * @param fieldName 字段名称
-	 * @param value     要设置的值
-	 * @see #setFieldValue(Object, Field, Object)    
-	 * @since 1.0.0
-	 */
-	public static void setFieldValue(final Object obj, final String fieldName, final Object value) {
-		Field field = findField(obj.getClass(), fieldName);
+		Field field = findField(target.getClass(), fieldName, type);
 		if (Objects.isNull(field)) {
-			return;
+			throw new IllegalStateException("字段：" + fieldName + " 未找到");
 		}
-		setFieldValue(obj, field, value);
+		if (field.canAccess(target)) {
+			return (T) getField(field, target);
+		}
+
+		String methodName = SpringConstants.GETTER_PREFIX + StringUtils.capitalize(fieldName);
+		Method method = findMethod(target.getClass(), methodName);
+		if (Objects.isNull(method) || !method.canAccess(target)) {
+			throw new IllegalStateException("无法访问字段：" + fieldName);
+		}
+		try {
+			return (T) method.invoke(target);
+		} catch (Exception ex) {
+			handleReflectionException(ex);
+		}
+		throw new IllegalStateException("Should never get here");
 	}
 
 	/**
-	 * 设置字段的值。
+	 * 设置实例字段值
 	 *
-	 * <p>该方法会在必要时强制修改可访问性。</p>
+	 * <p>
+	 * 基于字段名设置实例字段值；当字段不可直接访问时，尝试调用字段的 setter 方法进行赋值。
+	 * </p>
 	 *
-	 * @param obj   目标对象实例
-	 * @param field 字段对象
-	 * @param value 要设置的值
+	 * @param target    目标实例（不可为 {@code null}）
+	 * @param fieldName 字段名（不可为空或空白）
+	 * @param value     字段值（可为 {@code null}）
+	 * @throws IllegalArgumentException 当 {@code target} 为 {@code null} 或 {@code fieldName} 为空/空白时抛出
+	 * @throws IllegalStateException    当目标类中未找到对应字段，或字段不可访问且不存在可访问的 setter 方法，或反射调用失败时抛出
+	 * @see #setField(Object, String, Object, Class)
 	 * @since 1.0.0
 	 */
-	public static void setFieldValue(final Object obj, final Field field, final Object value) {
-		boolean accessible = field.canAccess(obj);
-		if (!accessible && !canMakeAccessible(field)) {
-			return;
+	public static void setField(final Object target, final String fieldName, @Nullable final Object value) {
+		setField(target, fieldName, value, null);
+	}
+
+	/**
+	 * 设置指定类型的实例字段值
+	 *
+	 * <p>
+	 * 当字段可访问时，直接写入字段值；当字段不可直接访问时，尝试调用字段的 setter 方法进行赋值。
+	 * </p>
+	 *
+	 * @param target    目标实例（不可为 {@code null}）
+	 * @param fieldName 字段名（不可为空或空白）
+	 * @param value     字段值（可为 {@code null}）
+	 * @param type      字段类型（可为 {@code null}，为 {@code null} 时按名称匹配）
+	 * @throws IllegalArgumentException 当 {@code target} 为 {@code null} 或 {@code fieldName} 为空/空白时抛出
+	 * @throws IllegalStateException    当目标类中未找到对应字段，或字段不可访问且不存在可访问的 setter 方法，或反射调用失败时抛出
+	 * @see #setField(Field, Object, Object)
+	 * @see #findField(Class, String, Class)
+	 * @see #findMethod(Class, String)
+	 * @since 1.0.0
+	 */
+	public static <T> void setField(final Object target, final String fieldName, @Nullable final T value, @Nullable Class<T> type) {
+		Assert.notNull(target, "target 不可为 null");
+		Assert.hasText(fieldName, "fieldName 不可为空");
+
+		Field field = findField(target.getClass(), fieldName, type);
+		if (Objects.isNull(field)) {
+			throw new IllegalStateException("字段：" + fieldName + " 未找到");
 		}
-		try {
-			field.set(obj, value);
-			if (!accessible) {
-				field.setAccessible(false);
+		if (field.canAccess(target)) {
+			setField(field, target, value);
+		} else {
+			String methodName = SpringConstants.SETTER_PREFIX + StringUtils.capitalize(fieldName);
+			Method method = findMethod(target.getClass(), methodName);
+			if (Objects.nonNull(method) && method.canAccess(target)) {
+				try {
+					method.invoke(target, value);
+				} catch (Exception ex) {
+					handleReflectionException(ex);
+				}
+			} else {
+				throw new IllegalStateException("无法访问字段：" + fieldName);
 			}
-		} catch (IllegalAccessException e) {
-			ExceptionUtils.asRuntimeException(e);
 		}
 	}
 
 	/**
 	 * 获取对象所属类的简单名称（不含包路径）。
 	 *
-	 * @param obj   对象实例
+	 * @param obj 对象实例
 	 * @return 类的简单名称
-	 * @see #getSimpleClassName(Class) 
+	 * @see #getSimpleClassName(Class)
 	 * @since 1.0.0
 	 */
 	public static String getSimpleClassName(final Object obj) {
@@ -180,13 +264,13 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	 *   <li>当目标类未声明泛型参数、索引越界或类型擦除为非 Class 类型时，将返回 {@code null}。</li>
 	 * </ul>
 	 *
-	 * @param clazz  目标类对象，不能为空
+	 * @param clazz 目标类对象，不能为空
 	 * @param <T>   泛型类型
 	 * @return 泛型参数对应的 {@link Class} 对象；无法确定类型时返回 {@code null}
-	 * @since 1.0.0
-	 * @see #getClassGenericType(Class, int) 
+	 * @see #getClassGenericType(Class, int)
 	 * @see Class#getGenericSuperclass()
 	 * @see ParameterizedType#getActualTypeArguments()
+	 * @since 1.0.0
 	 */
 	public static <T> Class<T> getClassGenericType(final Class<?> clazz) {
 		return getClassGenericType(clazz, 0);
@@ -215,13 +299,13 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	 *   <li>当目标类未声明泛型参数、索引越界或类型擦除为非 Class 类型时，将返回 {@code null}。</li>
 	 * </ul>
 	 *
-	 * @param clazz  目标类对象，不能为空
-	 * @param index  泛型参数索引（从 0 开始）
+	 * @param clazz 目标类对象，不能为空
+	 * @param index 泛型参数索引（从 0 开始）
 	 * @param <T>   泛型类型
 	 * @return 泛型参数对应的 {@link Class} 对象；无法确定类型时返回 {@code null}
-	 * @since 1.0.0
 	 * @see Class#getGenericSuperclass()
 	 * @see ParameterizedType#getActualTypeArguments()
+	 * @since 1.0.0
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Class<T> getClassGenericType(final Class<?> clazz, final int index) {
@@ -263,8 +347,8 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 	 *
 	 * @param method 方法对象
 	 * @return 成功设置可访问性时返回 {@code true}
-	 * @since 1.0.0
 	 * @see #makeAccessible(Method)
+	 * @since 1.0.0
 	 */
 	@SuppressWarnings("deprecation")
 	public static boolean canMakeAccessible(final Method method) {
@@ -274,5 +358,5 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 			return true;
 		}
 		return false;
-	}
+    }
 }

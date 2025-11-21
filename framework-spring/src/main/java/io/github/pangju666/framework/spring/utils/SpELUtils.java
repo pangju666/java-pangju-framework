@@ -21,6 +21,7 @@ import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -108,15 +109,20 @@ public class SpELUtils {
 	 * }</pre>
 	 * </p>
 	 *
-	 * @param method     目标方法
-	 * @param args       方法参数值数组
-	 * @param discoverer 参数名称发现器，用于获取方法参数名
+	 * @param method     目标方法（不可为 {@code null}）
+	 * @param args       方法参数值数组（不可为 {@code null}，可为空数组）
+	 * @param discoverer 参数名称发现器，用于获取方法参数名（不可为 {@code null}）
 	 * @return 初始化后的表达式计算上下文
-	 * @throws NullPointerException 如果参数名称发现器无法获取参数名
+	 * @throws IllegalArgumentException 当 {@code method}、{@code args} 或 {@code discoverer} 为 {@code null} 时抛出
+	 * @throws NullPointerException     如果参数名称发现器无法获取参数名（返回 {@code null}）
 	 * @since 1.0.0
 	 */
 	public static MethodBasedEvaluationContext initEvaluationContext(final Method method, final Object[] args,
-														  final ParameterNameDiscoverer discoverer) {
+																	 final ParameterNameDiscoverer discoverer) {
+		Assert.notNull(method, "method 不可为null");
+		Assert.notNull(args, "args 不可为null");
+		Assert.notNull(discoverer, "discoverer 不可为null");
+
 		MethodBasedEvaluationContext context = new MethodBasedEvaluationContext(method, method, args, discoverer);
 		String[] parametersName = discoverer.getParameterNames(method);
 		for (int i = 0; i < args.length; i++) {
