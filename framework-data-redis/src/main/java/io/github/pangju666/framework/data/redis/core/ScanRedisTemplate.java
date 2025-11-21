@@ -71,6 +71,7 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 */
 	public ScanRedisTemplate(RedisTemplate<?, V> redisTemplate) {
 		this();
+		Assert.notNull(redisTemplate, "redisTemplate 不可为null");
 		setValueSerializer(redisTemplate.getValueSerializer());
 		setHashValueSerializer(redisTemplate.getHashValueSerializer());
 		setConnectionFactory(redisTemplate.getConnectionFactory());

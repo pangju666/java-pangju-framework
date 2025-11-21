@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -99,11 +100,14 @@ public class BufferingResponseInterceptor implements ClientHttpRequestIntercepto
 	 * </p>
 	 *
 	 * @param acceptableMediaTypes 自定义媒体类型字符串集合，不可为 {@code null}
-	 * @throws NullPointerException 当 {@code acceptableMediaTypes} 为 {@code null} 时抛出
 	 * @since 1.0.0
 	 */
 	public BufferingResponseInterceptor(Set<String> acceptableMediaTypes) {
-		this.acceptableMediaTypes = Collections.unmodifiableSet(acceptableMediaTypes);
+		if (CollectionUtils.isEmpty(acceptableMediaTypes)) {
+			this.acceptableMediaTypes = Collections.emptySet();
+		} else {
+			this.acceptableMediaTypes = Collections.unmodifiableSet(acceptableMediaTypes);
+		}
 	}
 
 	/**

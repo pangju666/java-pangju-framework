@@ -32,6 +32,7 @@ import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -149,7 +150,7 @@ public class HttpExceptionInfoFilter extends OncePerRequestFilter {
 			.toList();
 
 		String[] packagesArray = new String[]{};
-		if (packages != null && !packages.isEmpty()) {
+		if (!CollectionUtils.isEmpty(packages)) {
 			packagesArray = packages.stream()
 				.filter(StringUtils::isNotBlank)
 				.map(String::strip)

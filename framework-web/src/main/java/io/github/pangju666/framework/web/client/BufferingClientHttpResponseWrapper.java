@@ -20,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 
 import java.io.ByteArrayInputStream;
@@ -42,6 +43,7 @@ public class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
 	private byte[] body;
 
 	public BufferingClientHttpResponseWrapper(ClientHttpResponse response) {
+		Assert.notNull(response, "response 不可为 null");
 		this.response = response;
 	}
 

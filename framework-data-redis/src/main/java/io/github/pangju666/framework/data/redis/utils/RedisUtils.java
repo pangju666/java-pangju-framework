@@ -94,11 +94,12 @@ public class RedisUtils {
 	 * @param redisTemplate RedisTemplate 实例
 	 * @param keys          待删除的键集合；为空集合时直接返回
 	 * @param retryTimes    最大额外尝试次数
-	 * @throws IllegalArgumentException 当 {@code retryTimes} 小于等于 0
+	 * @throws IllegalArgumentException 当 redisTemplate 为 {@code null} 或 {@code retryTimes} 小于等于 0 时抛出
 	 * @since 1.0.0
 	 */
 	public static <K> void deleteKeys(final RedisTemplate<K, ?> redisTemplate, final Collection<K> keys, final int retryTimes) {
 		Assert.isTrue(retryTimes > 0, "retryTimes 必须大于0");
+		Assert.notNull(redisTemplate, "redisTemplate 不可为null");
 
 		if (CollectionUtils.isEmpty(keys)) {
 			return;
