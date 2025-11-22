@@ -27,6 +27,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -42,7 +43,41 @@ import java.util.concurrent.ConcurrentHashMap;
 @MappedTypes({Object.class})
 @MappedJdbcTypes({JdbcType.VARCHAR})
 public final class ClassTypeHandler extends BaseTypeHandler<Class<?>> {
-	private static final Map<String, Class<?>> CLASS_NAME_MAP = new ConcurrentHashMap<>(10);
+	/**
+	 * 类名到类型的缓存映射
+	 *
+	 * <p>缓存 Class 全限定名到 {@link Class} 的映射，用于减少重复的类型解析/加载开销。</p>
+	 *
+	 * <h3>线程安全</h3>
+	 * <ul>
+	 *   <li>使用 {@link java.util.concurrent.ConcurrentHashMap}，支持高并发读写。</li>
+	 * </ul>
+	 *
+	 * <h3>注意</h3>
+	 * <ul>
+	 *   <li>当类名解析失败时，使用 {@link #NOT_FOUND} 作为哨兵值进行缓存，避免重复查找。</li>
+	 * </ul>
+	 */
+	private static final Map<String, Class<?>> CLASS_NAME_MAP = new ConcurrentHashMap<>(16);
+
+	/**
+	 * 类查找失败的哨兵类型
+	 *
+	 * <p>用于在 {@link #CLASS_NAME_MAP} 中缓存「未命中」结果，避免对同一类名进行重复解析。</p>
+	 *
+	 * <h3>实现说明</h3>
+	 * <ul>
+	 *   <li>使用匿名对象的 {@link Class} 作为占位类型，确保与任何业务类型不相等。</li>
+	 * </ul>
+	 *
+	 * <h3>使用约定</h3>
+	 * <ul>
+	 *   <li>仅作为内部标记使用，不应对外暴露。</li>
+	 *   <li>判定哨兵请使用引用相等（`==`），避免与真实类型混淆。</li>
+	 * </ul>
+	 */
+	private static final Class<?> NOT_FOUND = new Object() {
+	}.getClass();
 
 	/**
 	 * 设置非空参数
@@ -128,17 +163,21 @@ public final class ClassTypeHandler extends BaseTypeHandler<Class<?>> {
 		if (StringUtils.isBlank(className)) {
 			return null;
 		}
-		if (CLASS_NAME_MAP.containsKey(className)) {
-			return CLASS_NAME_MAP.get(className);
+		Class<?> clz = CLASS_NAME_MAP.get(className);
+		if (Objects.nonNull(clz)) {
+			if (clz == NOT_FOUND) {
+				throw new SQLException("类未找到: " + className);
+			}
+			return clz;
 		}
 
 		try {
-			Class<?> clz = Class.forName(className);
-			CLASS_NAME_MAP.put(className, clz);
-			return clz;
+			clz = Class.forName(className);
+			Class<?> existing = CLASS_NAME_MAP.putIfAbsent(className, clz);
+			return Objects.nonNull(existing) ? existing : clz;
 		} catch (ClassNotFoundException e) {
-			CLASS_NAME_MAP.put(className, null);
-			throw new SQLException("无法将值" + className + "转换为Class对象");
+			CLASS_NAME_MAP.putIfAbsent(className, NOT_FOUND);
+			throw new SQLException("类未找到: " + className);
 		}
 	}
 }
