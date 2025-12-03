@@ -63,6 +63,11 @@
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>p6spy</groupId>
+			<artifactId>p6spy</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

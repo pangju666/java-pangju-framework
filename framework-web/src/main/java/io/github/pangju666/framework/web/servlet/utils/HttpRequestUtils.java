@@ -249,9 +249,9 @@ public class HttpRequestUtils extends org.springframework.web.bind.ServletReques
 			ip = request.getRemoteAddr();
 		}
 
-		return Strings.CS.equalsAny(ip, WebConstants.LOCALHOST_IPV4_ADDRESS,
-			WebConstants.LOCALHOST_IPV6_ADDRESS) ? WebConstants.LOCALHOST_IPV4_ADDRESS :
-			IpUtils.getMultistageReverseProxyIp(ip);
+		return Strings.CS.equalsAny(ip, WebConstants.LOCAL_HOST_IPV4_ADDRESS,
+			WebConstants.LOCAL_HOST_IPV6_ADDRESS, WebConstants.LOCAL_HOST_SIMPLE_IPV6_ADDRESS)
+			? WebConstants.LOCAL_HOST_IPV4_ADDRESS : IpUtils.getMultistageReverseProxyIp(ip);
 	}
 
 	/**

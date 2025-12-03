@@ -77,7 +77,6 @@ import java.util.stream.Collectors;
  * <ul>
  *   <li>JSON 函数通常难以命中常规索引，建议结合虚拟列/函数索引或业务分段方案。</li>
  *   <li>LIKE 前缀模糊（likeLeft）相对更易利用索引，全模糊与后缀模糊开销较大。</li>
- *   <li>{@link #getJsonValue(Object)} 对 {@link String} 返回原值，请在 SQL/参数化层面确保转义与安全。</li>
  * </ul>
  *
  * <p><b>线程安全：</b>仓储本身不持有共享可变业务状态；列缓存按实体类懒加载一次，常规 Spring 单例场景下可安全复用。</p>
@@ -183,7 +182,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 *
 	 * @param column JSON 列的 Lambda 引用
 	 * @param key    目标键
-	 * @param value  目标值（通过 {@link #getJsonValue(Object)} 转为 SQL 文本）
+	 * @param value  目标值
 	 * @return 键值匹配的实体列表
 	 * @throws IllegalArgumentException 当 {@code column} 为 null 或 {@code key} 为空白
 	 * @since 1.0.0
@@ -200,7 +199,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * <p>依赖 MySQL 5.7.8+ 的 {@code JSON_CONTAINS(column, 'jsonValue')}。</p>
 	 *
 	 * @param column JSON 数组列的 Lambda 引用
-	 * @param value  目标值（通过 {@link #getJsonValue(Object)} 转为 JSON/SQL 字面量）
+	 * @param value  目标值
 	 * @return 包含该值的实体列表
 	 * @throws IllegalArgumentException 当 {@code column} 为 null
 	 * @since 1.0.0
@@ -249,7 +248,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 *
 	 * @param column 列名（物理列名）
 	 * @param key    目标键
-	 * @param value  目标值（通过 {@link #getJsonValue(Object)} 转为 SQL 文本）
+	 * @param value  目标值
 	 * @return 键值匹配的实体列表
 	 * @throws IllegalArgumentException 当 {@code column} 或 {@code key} 为空白
 	 * @since 1.0.0
@@ -258,8 +257,20 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 		Assert.hasText(column, "column 不可为空");
 		Assert.hasText(key, "key 不可为空");
 
+		String sqlValue;
+		if (Objects.isNull(value)) {
+			sqlValue = "null";
+		} else if (value instanceof Number number) {
+			sqlValue = number.toString();
+		} else if (value instanceof String string) {
+			sqlValue = string;
+		} else if (value instanceof Boolean bool) {
+			sqlValue = bool.toString();
+		} else {
+			sqlValue = JsonUtils.toString(value);
+		}
 		return lambdaQuery()
-			.apply(JSON_KEY_VALUE_SQL_FORMAT.formatted(column, key, getJsonValue(value)))
+			.apply(JSON_KEY_VALUE_SQL_FORMAT.formatted(column, key, sqlValue))
 			.list();
 	}
 
@@ -267,7 +278,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * 检查指定列（JSON 数组）是否包含某个值。
 	 *
 	 * @param column 列名（物理列名）
-	 * @param value  目标值（通过 {@link #getJsonValue(Object)} 转为 JSON/SQL 字面量）
+	 * @param value  目标值
 	 * @return 包含该值的实体列表
 	 * @throws IllegalArgumentException 当 {@code column} 为空白
 	 * @since 1.0.0
@@ -275,8 +286,20 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	public List<T> listByColumnJsonArrayValue(String column, Object value) {
 		Assert.hasText(column, "column 不可为空");
 
+		String sqlValue;
+		if (Objects.isNull(value)) {
+			sqlValue = "null";
+		} else if (value instanceof Number number) {
+			sqlValue = number.toString();
+		} else if (value instanceof String string) {
+			sqlValue = "\"" + string + "\"";
+		} else if (value instanceof Boolean bool) {
+			sqlValue = bool.toString();
+		} else {
+			sqlValue = JsonUtils.toString(value);
+		}
 		return lambdaQuery()
-			.apply(JSON_ARRAY_VALUE_SQL_FORMAT.formatted(column, getJsonValue(value)))
+			.apply(JSON_ARRAY_VALUE_SQL_FORMAT.formatted(column, sqlValue))
 			.list();
 	}
 
@@ -297,7 +320,7 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 		}
 
 		return lambdaQuery()
-			.apply(JSON_ARRAY_VALUES_SQL_FORMAT.formatted(column, JsonUtils.toJson(values)))
+			.apply(JSON_ARRAY_VALUES_SQL_FORMAT.formatted(column, JsonUtils.toString(values)))
 			.list();
 	}
 
@@ -937,35 +960,6 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 		return lambdaUpdate()
 			.notLikeRight(column, value)
 			.remove();
-	}
-
-	/**
-	 * 将 Java 值序列化为用于 SQL 拼接的 JSON/文本字面量。
-	 *
-	 * <p>规则：</p>
-	 * - {@code null} 返回字符串 {@code "null"}（不含引号）。
-	 * - {@link Number} 返回其 {@code toString()}。
-	 * - {@link String} 原样返回（请确保已正确转义或安全处理）。
-	 * - {@link Boolean} 返回 {@code true}/{@code false}。
-	 * - 其他对象通过 {@link JsonUtils#toString(Object)} 转为 JSON 字符串。
-	 *
-	 * @param value 待序列化的值
-	 * @param <V>   值类型
-	 * @return 可安全用于 JSON 函数比较的字面量字符串
-	 * @since 1.0.0
-	 */
-	protected <V> String getJsonValue(V value) {
-		if (Objects.isNull(value)) {
-			return "null";
-		} else if (value instanceof Number number) {
-			return number.toString();
-		} else if (value instanceof String string) {
-			return string;
-		} else if (value instanceof Boolean bool) {
-			return bool.toString();
-		} else {
-			return JsonUtils.toString(value);
-		}
 	}
 
 	/**

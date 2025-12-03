@@ -186,7 +186,7 @@ public class IpUtils {
 			}
 		} catch (SocketException ignored) {
 		}
-		return WebConstants.LOCALHOST_IPV4_ADDRESS;
+		return WebConstants.LOCAL_HOST_IPV4_ADDRESS;
 	}
 
 	/**

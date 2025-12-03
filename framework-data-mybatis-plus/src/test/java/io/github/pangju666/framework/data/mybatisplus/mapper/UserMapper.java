@@ -1,9 +1,9 @@
 package io.github.pangju666.framework.data.mybatisplus.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import io.github.pangju666.framework.data.mybatisplus.entity.TestDO;
+import io.github.pangju666.framework.data.mybatisplus.entity.UserDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface TestMapper extends BaseMapper<TestDO> {
+public interface UserMapper extends BaseMapper<UserDO> {
 }
