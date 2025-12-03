@@ -18,7 +18,7 @@ package io.github.pangju666.framework.data.redis.utils;
 
 import io.github.pangju666.framework.data.redis.lang.RedisConstants;
 import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -31,8 +31,8 @@ import java.util.Collection;
  * <p><b>提供能力：</b></p>
  * <ul>
  *   <li>键拼接：通过路径分隔符将多个片段组合为一个 Redis 键（{@link #computeKey(Object...)}）。</li>
- *   <li>批量删除：支持批量删除键，并在未完全删除时进行重试（{@link #deleteKeys(RedisTemplate, Collection)}、
- *   {@link #deleteKeys(RedisTemplate, Collection, int)}）。</li>
+ *   <li>批量删除：支持批量删除键，并在未完全删除时进行重试（{@link #deleteKeys(RedisOperations, Collection)}、
+ *   {@link #deleteKeys(RedisOperations, Collection, int)}）。</li>
  * </ul>
  *
  * <p><b>线程安全：</b>类本身无状态，所有方法为静态方法，可在并发环境下安全调用。</p>
@@ -77,12 +77,12 @@ public class RedisUtils {
 	/**
 	 * 批量删除键（{@link #DEFAULT_DELETE_RETRY_TIMES 使用默认重试次数}）。
 	 *
-	 * @param redisTemplate RedisTemplate 实例
+	 * @param operations RedisOperations 实例
 	 * @param keys          待删除的键集合；为空集合时直接返回
 	 * @since 1.0.0
 	 */
-	public static <K> void deleteKeys(final RedisTemplate<K, ?> redisTemplate, final Collection<K> keys) {
-		deleteKeys(redisTemplate, keys, DEFAULT_DELETE_RETRY_TIMES);
+	public static <K> void deleteKeys(final RedisOperations<K, ?> operations, final Collection<K> keys) {
+		deleteKeys(operations, keys, DEFAULT_DELETE_RETRY_TIMES);
 	}
 
 	/**
@@ -91,26 +91,26 @@ public class RedisUtils {
 	 * <p>先执行一次批量删除；若未全部删除成功，则在不超过 {@code retryTimes} 次的条件下进行额外删除尝试，
 	 * 直到全部删除或达到重试上限（最多额外重试 {@code retryTimes} 次）。</p>
 	 *
-	 * @param redisTemplate RedisTemplate 实例
+	 * @param operations RedisOperations 实例
 	 * @param keys          待删除的键集合；为空集合时直接返回
 	 * @param retryTimes    最大额外尝试次数
 	 * @throws IllegalArgumentException 当 redisTemplate 为 {@code null} 或 {@code retryTimes} 小于等于 0 时抛出
 	 * @since 1.0.0
 	 */
-	public static <K> void deleteKeys(final RedisTemplate<K, ?> redisTemplate, final Collection<K> keys, final int retryTimes) {
+	public static <K> void deleteKeys(final RedisOperations<K, ?> operations, final Collection<K> keys, final int retryTimes) {
 		Assert.isTrue(retryTimes > 0, "retryTimes 必须大于0");
-		Assert.notNull(redisTemplate, "redisTemplate 不可为null");
+		Assert.notNull(operations, "redisTemplate 不可为null");
 
 		if (CollectionUtils.isEmpty(keys)) {
 			return;
 		}
-		long deleteCount = ObjectUtils.getIfNull(redisTemplate.delete(keys), 0L);
+		long deleteCount = ObjectUtils.getIfNull(operations.delete(keys), 0L);
 		if (deleteCount < keys.size()) {
 			long count = keys.size() - deleteCount;
 			long times = 0;
 			while (times < retryTimes && count > 0) {
 				++times;
-				count -= ObjectUtils.getIfNull(redisTemplate.delete(keys), 0L);
+				count -= ObjectUtils.getIfNull(operations.delete(keys), 0L);
 			}
 		}
 	}
