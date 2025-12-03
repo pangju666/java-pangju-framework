@@ -41,9 +41,6 @@ import java.util.Objects;
  * Integer age = ReflectionUtils.getField(user, "age", Integer.class);
  * ReflectionUtils.setField(user, "age", 30, Integer.class);
  *
- * // 获取简单类名
- * String simple = ReflectionUtils.getSimpleClassName(UserRepo.class); // => "UserRepo"
- *
  * // 解析父类泛型类型（支持默认第一个与指定索引）
  * class BaseRepo<T> {}
  * class UserRepo extends BaseRepo<User> {}
@@ -216,29 +213,6 @@ public class ReflectionUtils extends org.springframework.util.ReflectionUtils {
 				throw new IllegalStateException("无法访问字段：" + fieldName);
 			}
 		}
-	}
-
-	/**
-	 * 获取对象所属类的简单名称（不含包路径）。
-	 *
-	 * @param obj 对象实例
-	 * @return 类的简单名称
-	 * @see #getSimpleClassName(Class)
-	 * @since 1.0.0
-	 */
-	public static String getSimpleClassName(final Object obj) {
-		return getSimpleClassName(obj.getClass());
-	}
-
-	/**
-	 * 获取类的简单名称（不含包路径）。
-	 *
-	 * @param clz 类对象
-	 * @return 简单类名
-	 * @since 1.0.0
-	 */
-	public static String getSimpleClassName(final Class<?> clz) {
-		return StringUtils.substringAfterLast(clz.getName(), ".");
 	}
 
 	/**

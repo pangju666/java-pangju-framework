@@ -171,7 +171,7 @@ public class HttpExceptionInfoFilter extends OncePerRequestFilter {
 	 * </ul>
 	 * </p>
 	 * <p>
-	 * 响应构建：使用 {@link io.github.pangju666.framework.web.servlet.HttpResponseBuilder} 输出 JSON。
+	 * 响应构建：使用 {@link HttpResponseBuilder} 输出 JSON。
 	 * 类型列表端点禁用响应缓冲（{@code buffer(false)}) 以减少开销；异常信息端点直接写入缓存结果。
 	 * </p>
 	 *
