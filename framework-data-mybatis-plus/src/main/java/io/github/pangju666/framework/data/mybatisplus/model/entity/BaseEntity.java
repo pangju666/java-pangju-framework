@@ -39,7 +39,7 @@ public abstract class BaseEntity implements Serializable {
 	 *
 	 * @since 1.0.0
 	 */
-	@TableField(value = "create_time", update = "CURRENT_TIMESTAMP", fill = FieldFill.INSERT)
+	@TableField(value = "create_time", fill = FieldFill.INSERT)
 	private Date createTime = DateUtils.nowDate();
 	/**
 	 * 更新时间，数据更新时自动设置为当前时间
@@ -47,7 +47,7 @@ public abstract class BaseEntity implements Serializable {
 	 * @since 1.0.0
 	 */
 	@TableField(value = "update_time", update = "CURRENT_TIMESTAMP", fill = FieldFill.INSERT_UPDATE)
-	private Date updateTime;
+	private Date updateTime = DateUtils.nowDate();
 
 	public Date getCreateTime() {
 		return createTime;
