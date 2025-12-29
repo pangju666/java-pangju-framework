@@ -1,6 +1,6 @@
-package io.github.pangju666.framework.web
+package io.github.pangju666.framework.web.client
 
-import io.github.pangju666.framework.web.client.RestRequestBuilder
+
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration

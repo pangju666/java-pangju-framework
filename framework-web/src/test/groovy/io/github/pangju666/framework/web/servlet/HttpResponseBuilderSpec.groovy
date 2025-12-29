@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.web
+package io.github.pangju666.framework.web.servlet
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -8,7 +8,6 @@ import io.github.pangju666.framework.web.exception.base.BaseHttpException
 import io.github.pangju666.framework.web.exception.base.ServiceException
 import io.github.pangju666.framework.web.lang.WebConstants
 import io.github.pangju666.framework.web.model.Result
-import io.github.pangju666.framework.web.servlet.HttpResponseBuilder
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest

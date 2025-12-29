@@ -1,7 +1,6 @@
-package io.github.pangju666.framework.web
+package io.github.pangju666.framework.web.utils
 
 import io.github.pangju666.framework.web.lang.WebConstants
-import io.github.pangju666.framework.web.utils.IpUtils
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest

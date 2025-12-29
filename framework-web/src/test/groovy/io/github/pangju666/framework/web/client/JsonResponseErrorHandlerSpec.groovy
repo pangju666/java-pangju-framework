@@ -1,7 +1,6 @@
-package io.github.pangju666.framework.web
+package io.github.pangju666.framework.web.client
 
 import com.google.gson.JsonObject
-import io.github.pangju666.framework.web.client.JsonResponseErrorHandler
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException
 import io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException
 import io.github.pangju666.framework.web.model.error.HttpRemoteServiceError

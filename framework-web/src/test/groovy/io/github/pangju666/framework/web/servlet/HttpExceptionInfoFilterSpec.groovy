@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.web
+package io.github.pangju666.framework.web.servlet
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper

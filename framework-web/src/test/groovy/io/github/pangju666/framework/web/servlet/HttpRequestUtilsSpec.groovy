@@ -1,4 +1,4 @@
-package io.github.pangju666.framework.web
+package io.github.pangju666.framework.web.servlet
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonNull
