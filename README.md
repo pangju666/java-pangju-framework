@@ -19,6 +19,8 @@
 Pangju Framework 是基于 Spring Framework 拓展的模块化 Java 开发框架，提供 Web、MyBatis Plus、Redis、MongoDB
 等常用组件的增强集成，旨在简化开发流程，提高开发效率。
 
+## [文档](https://pangju666.github.io/pangju-java-doc/framework/getting-started.html)
+
 ## 快速开始
 
 1. 引入 BOM（推荐）
