@@ -90,7 +90,7 @@ public class BufferingResponseInterceptor implements ClientHttpRequestIntercepto
 	 * @since 1.0.0
 	 */
 	public BufferingResponseInterceptor() {
-		this.acceptableMediaTypes = Set.of(MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+		this.acceptableMediaTypes = Collections.singleton(MediaType.APPLICATION_JSON_VALUE);
 	}
 
 	/**

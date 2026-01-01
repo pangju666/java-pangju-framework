@@ -646,11 +646,11 @@ public class RestRequestBuilder {
 	 *
 	 * @param headers 请求头映射，例如：{@code new HttpHeaders()}
 	 * @return 当前实例
-	 * @see HttpHeaders#addAll(MultiValueMap)
+	 * @see HttpHeaders#addAll(HttpHeaders)
 	 * @since 1.0.0
 	 */
-	public RestRequestBuilder headers(@Nullable MultiValueMap<String, String> headers) {
-		if (!CollectionUtils.isEmpty(headers)) {
+	public RestRequestBuilder headers(@Nullable HttpHeaders headers) {
+		if (Objects.nonNull(headers) && !headers.isEmpty()) {
 			this.headers.addAll(headers);
 		}
 		return this;
