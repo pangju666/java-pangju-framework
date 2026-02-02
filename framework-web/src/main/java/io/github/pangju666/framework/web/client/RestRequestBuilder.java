@@ -24,6 +24,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -31,7 +32,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -560,8 +560,8 @@ public class RestRequestBuilder {
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder query(@Nullable String query) {
-		this.uriComponentsBuilder.query(Strings.CS.startsWith(query, "?") ?
-			StringUtils.substring(query, 1) : query);
+		String queryString = Strings.CS.startsWith(query, "?") ? StringUtils.substring(query, 1) : query;
+		this.uriComponentsBuilder.query(StringUtils.defaultString(queryString));
 		return this;
 	}
 
@@ -737,7 +737,6 @@ public class RestRequestBuilder {
 	 *
 	 * @param body 请求体对象，例如：{@code new User("admin", "password")}
 	 * @return 当前实例
-	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder jsonBody(@Nullable Object body) {
@@ -750,7 +749,6 @@ public class RestRequestBuilder {
 	 * @param body        请求体对象，例如：{@code new User("admin", "password")}
 	 * @param emptyIfNull 当body为null时是否使用空JSON对象，例如：{@code true}
 	 * @return 当前实例
-	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder jsonBody(@Nullable Object body, boolean emptyIfNull) {
@@ -808,7 +806,7 @@ public class RestRequestBuilder {
 	 * @see org.springframework.http.converter.ByteArrayHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestRequestBuilder bytesBody(@Nullable byte[] body) {
+	public RestRequestBuilder bytesBody(byte @Nullable [] body) {
 		return bytesBody(body, true);
 	}
 
@@ -821,7 +819,7 @@ public class RestRequestBuilder {
 	 * @see org.springframework.http.converter.ByteArrayHttpMessageConverter
 	 * @since 1.0.0
 	 */
-	public RestRequestBuilder bytesBody(@Nullable byte[] body, boolean emptyIfNull) {
+	public RestRequestBuilder bytesBody(byte @Nullable [] body, boolean emptyIfNull) {
 		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
 		this.body = ObjectUtils.getIfNull(body, emptyIfNull ? ArrayUtils.EMPTY_BYTE_ARRAY : null);
 		return this;
@@ -924,7 +922,6 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
-	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
@@ -946,7 +943,6 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceException        当配置了错误处理器且判定为业务错误时抛出
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
-	 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 	 * @see JsonResponseErrorHandler
 	 * @since 1.0.0
 	 */
