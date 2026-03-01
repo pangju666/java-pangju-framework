@@ -104,13 +104,13 @@ public class RedisUtils {
 		if (CollectionUtils.isEmpty(keys)) {
 			return;
 		}
-		long deleteCount = ObjectUtils.getIfNull(operations.delete(keys), 0L);
+		long deleteCount = ObjectUtils.defaultIfNull(operations.delete(keys), 0L);
 		if (deleteCount < keys.size()) {
 			long count = keys.size() - deleteCount;
 			long times = 0;
 			while (times < retryTimes && count > 0) {
 				++times;
-				count -= ObjectUtils.getIfNull(operations.delete(keys), 0L);
+				count -= ObjectUtils.defaultIfNull(operations.delete(keys), 0L);
 			}
 		}
 	}

@@ -98,7 +98,7 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 	 * @since 1.0.0
 	 */
 	public Set<String> scanKeys(DataType dataType) {
-		return scanKeys(scanOptions(null, ObjectUtils.getIfNull(dataType,
+		return scanKeys(scanOptions(null, ObjectUtils.defaultIfNull(dataType,
 			DataType.NONE), null));
 	}
 
@@ -161,7 +161,7 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 			return Collections.emptySet();
 		}
 		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + suffix,
-			ObjectUtils.getIfNull(dataType, DataType.NONE), null));
+			ObjectUtils.defaultIfNull(dataType, DataType.NONE), null));
 	}
 
 	/**
@@ -197,7 +197,7 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 			return Collections.emptySet();
 		}
 		return scanKeys(scanOptions(prefix + RedisConstants.CURSOR_PATTERN_SYMBOL,
-			ObjectUtils.getIfNull(dataType, DataType.NONE), null));
+			ObjectUtils.defaultIfNull(dataType, DataType.NONE), null));
 	}
 
 	/**
@@ -234,7 +234,7 @@ public class ScanRedisTemplate<V> extends RedisTemplate<String, V> {
 			return Collections.emptySet();
 		}
 		return scanKeys(scanOptions(RedisConstants.CURSOR_PATTERN_SYMBOL + keyword +
-			RedisConstants.CURSOR_PATTERN_SYMBOL, ObjectUtils.getIfNull(dataType,
+			RedisConstants.CURSOR_PATTERN_SYMBOL, ObjectUtils.defaultIfNull(dataType,
 			DataType.NONE), null));
 	}
 

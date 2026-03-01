@@ -23,7 +23,6 @@ import io.github.pangju666.framework.web.lang.WebConstants;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -560,7 +559,7 @@ public class RestRequestBuilder {
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder query(@Nullable String query) {
-		this.uriComponentsBuilder.query(Strings.CS.startsWith(query, "?") ?
+		this.uriComponentsBuilder.query(StringUtils.startsWith(query, "?") ?
 			StringUtils.substring(query, 1) : query);
 		return this;
 	}
@@ -793,7 +792,7 @@ public class RestRequestBuilder {
 	 */
 	public RestRequestBuilder textBody(@Nullable String body, boolean emptyIfNull) {
 		this.contentType = MediaType.TEXT_PLAIN;
-		this.body = ObjectUtils.getIfNull(body, emptyIfNull ? StringUtils.EMPTY : null);
+		this.body = ObjectUtils.defaultIfNull(body, emptyIfNull ? StringUtils.EMPTY : null);
 		return this;
 	}
 
@@ -823,7 +822,7 @@ public class RestRequestBuilder {
 	 */
 	public RestRequestBuilder bytesBody(@Nullable byte[] body, boolean emptyIfNull) {
 		this.contentType = MediaType.APPLICATION_OCTET_STREAM;
-		this.body = ObjectUtils.getIfNull(body, emptyIfNull ? ArrayUtils.EMPTY_BYTE_ARRAY : null);
+		this.body = ObjectUtils.defaultIfNull(body, emptyIfNull ? ArrayUtils.EMPTY_BYTE_ARRAY : null);
 		return this;
 	}
 
