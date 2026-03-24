@@ -9,6 +9,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>framework-all</artifactId>
+	<name>framework-all</name>
 	<description>框架集成模块</description>
 
 	<licenses>

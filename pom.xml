@@ -12,9 +12,8 @@
 	<artifactId>framework-parent</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
-
-	<name>pangju-framework</name>
-	<description>胖橘框架（基于spring framework拓展）</description>
+	<name>framework-parent</name>
+	<description>胖橘框架（基于 Spring Framework 拓展）</description>
 	<url>https://github.com/pangju666/java-pangju-framework</url>
 
 	<modules>
@@ -109,17 +108,23 @@
 					<generateBackupPoms>false</generateBackupPoms>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>${central-publishing-maven-plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>central</publishingServerId>
+					<!--<waitUntil>published</waitUntil>-->
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
 	<distributionManagement>
 		<snapshotRepository>
-			<id>sonatype-nexus</id>
-			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+			<id>central</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots/</url>
 		</snapshotRepository>
-		<repository>
-			<id>sonatype-nexus</id>
-			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
 	</distributionManagement>
 </project>

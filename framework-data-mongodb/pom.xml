@@ -9,7 +9,8 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>framework-data-mongodb</artifactId>
-	<description>框架MongoDB模块</description>
+	<name>framework-data-mongodb</name>
+	<description>框架 MongoDB 模块</description>
 
 	<licenses>
 		<license>

@@ -9,7 +9,8 @@
 		<version>1.0.0</version>
 	</parent>
 	<artifactId>framework-spring</artifactId>
-	<description>框架Web模块</description>
+	<name>framework-spring</name>
+	<description>框架 Spring 模块</description>
 
 	<licenses>
 		<license>
