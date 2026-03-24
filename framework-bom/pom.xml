@@ -9,8 +9,9 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>framework-bom</artifactId>
-	<description>框架模块依赖管理</description>
 	<packaging>pom</packaging>
+	<name>framework-bom</name>
+	<description>框架 BOM 模块</description>
 
 	<licenses>
 		<license>

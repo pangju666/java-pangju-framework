@@ -17,6 +17,7 @@
 package io.github.pangju666.framework.data.mongodb.repository;
 
 import org.apache.commons.collections4.IterableUtils;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +29,6 @@ import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
 import org.springframework.data.util.StreamUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.util.*;

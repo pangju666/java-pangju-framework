@@ -16,10 +16,10 @@
 
 package io.github.pangju666.framework.web.client;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 
@@ -39,8 +39,8 @@ import java.io.InputStream;
  */
 public class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
 	private final ClientHttpResponse response;
-	@Nullable
-	private byte[] body;
+
+	private volatile byte @Nullable [] body;
 
 	public BufferingClientHttpResponseWrapper(ClientHttpResponse response) {
 		Assert.notNull(response, "response 不可为 null");
@@ -64,10 +64,17 @@ public class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
 
 	@Override
 	public InputStream getBody() throws IOException {
-		if (this.body == null) {
-			this.body = StreamUtils.copyToByteArray(this.response.getBody());
+		byte[] body = this.body;
+		if (body == null) {
+			synchronized (this) {
+				body = this.body;
+				if (body == null) {
+					body = StreamUtils.copyToByteArray(this.response.getBody());
+					this.body = body;
+				}
+			}
 		}
-		return new ByteArrayInputStream(this.body);
+		return new ByteArrayInputStream(body);
 	}
 
 	@Override

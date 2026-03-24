@@ -9,7 +9,8 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>framework-data-mybatis-plus</artifactId>
-	<description>框架Mybatis Plus模块</description>
+	<name>framework-data-mybatis-plus</name>
+	<description>框架 MyBatis Plus 模块</description>
 
 	<licenses>
 		<license>

@@ -12,9 +12,8 @@
 	<artifactId>framework-parent</artifactId>
 	<version>2.0.0</version>
 	<packaging>pom</packaging>
-
-	<name>pangju-framework</name>
-	<description>胖橘框架（基于spring framework拓展）</description>
+	<name>framework-parent</name>
+	<description>胖橘框架（基于 Spring Framework 拓展）</description>
 	<url>https://github.com/pangju666/java-pangju-framework</url>
 
 	<modules>

@@ -16,7 +16,7 @@
 
 package io.github.pangju666.framework.spring.utils;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;

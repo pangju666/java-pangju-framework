@@ -16,6 +16,7 @@
 
 package io.github.pangju666.framework.data.mongodb.repository;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Query;
@@ -23,7 +24,6 @@ import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.lang.Nullable;
 
 import java.util.List;
 import java.util.Optional;

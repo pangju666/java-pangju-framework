@@ -19,10 +19,10 @@ package io.github.pangju666.framework.data.redis.core;
 import io.github.pangju666.framework.data.redis.lang.RedisConstants;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.util.*;

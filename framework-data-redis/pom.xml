@@ -9,7 +9,8 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>framework-data-redis</artifactId>
-	<description>框架Redis模块</description>
+	<name>framework-data-redis</name>
+	<description>框架 Redis 模块</description>
 
 	<licenses>
 		<license>

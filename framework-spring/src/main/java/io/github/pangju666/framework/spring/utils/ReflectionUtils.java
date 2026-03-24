@@ -18,7 +18,7 @@ package io.github.pangju666.framework.spring.utils;
 
 import io.github.pangju666.framework.spring.lang.SpringConstants;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.*;

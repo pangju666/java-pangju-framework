@@ -16,9 +16,9 @@
 
 package io.github.pangju666.framework.data.mongodb.utils;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.util.Collection;

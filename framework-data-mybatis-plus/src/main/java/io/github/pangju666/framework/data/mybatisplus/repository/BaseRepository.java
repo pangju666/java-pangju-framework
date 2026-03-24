@@ -31,7 +31,7 @@ import io.github.pangju666.framework.data.mybatisplus.uitls.EntityUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.ibatis.reflection.property.PropertyNamer;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 import java.io.Serializable;
@@ -970,12 +970,11 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 	 * - 将方法名解析为属性名，并从实体类的列缓存中获取 {@link ColumnCache}。
 	 * - 首次调用时会初始化并缓存当前实体类的列映射。
 	 *
-	 * <p>从Mybatis Plus 源码拷贝过来的。</p>
+	 * <p>代码来自 com.baomidou.mybatisplus.core.conditions.AbstractLambdaWrapper.getColumnCache</p>
 	 *
 	 * @param column 列的 Lambda 引用（如 {@code Entity::getField}）
 	 * @return 对应的数据库物理列名（如 {@code field_name}）
 	 * @throws IllegalArgumentException 当无法解析列缓存或属性映射不存在时（内部断言抛出）
-	 * @see com.baomidou.mybatisplus.core.conditions.AbstractLambdaWrapper
 	 * @since 1.0.0
 	 */
 	protected String columnToString(SFunction<T, ?> column) {
@@ -984,19 +983,18 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 		Class<?> instantiatedClass = meta.getInstantiatedClass();
 
 		if (!initColumnMap) {
-			Class<T> entityClass = getEntityClass();
+			final Class<T> entityClass = getEntityClass();
 			if (entityClass != null) {
 				instantiatedClass = entityClass;
 			}
 			columnMap = LambdaUtils.getColumnMap(instantiatedClass);
-			com.baomidou.mybatisplus.core.toolkit.Assert.notNull(columnMap,
-				"can not find lambda cache for this entity [%s]", entityClass.getName());
+			com.baomidou.mybatisplus.core.toolkit.Assert.notNull(columnMap, "can not find lambda cache for this entity [%s]", instantiatedClass.getName());
 			initColumnMap = true;
 		}
 
 		ColumnCache columnCache = columnMap.get(LambdaUtils.formatKey(fieldName));
-		com.baomidou.mybatisplus.core.toolkit.Assert.notNull(columnCache,
-			"can not find lambda cache for this property [%s] of entity [%s]", fieldName, instantiatedClass.getName());
+		com.baomidou.mybatisplus.core.toolkit.Assert.notNull(columnCache, "can not find lambda cache for this property [%s] of entity [%s]",
+			fieldName, instantiatedClass.getName());
 		return columnCache.getColumn();
 	}
 }

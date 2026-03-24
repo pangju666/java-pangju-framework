@@ -22,7 +22,7 @@ import inet.ipaddr.IPAddressStringParameters;
 import io.github.pangju666.framework.web.lang.WebConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 

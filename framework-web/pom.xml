@@ -9,7 +9,8 @@
 		<version>2.0.0</version>
 	</parent>
 	<artifactId>framework-web</artifactId>
-	<description>框架Web模块</description>
+	<name>framework-web</name>
+	<description>框架 Web 模块</description>
 
 	<licenses>
 		<license>
