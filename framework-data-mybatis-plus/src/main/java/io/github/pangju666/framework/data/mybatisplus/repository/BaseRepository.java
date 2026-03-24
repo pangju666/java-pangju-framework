@@ -984,19 +984,18 @@ public abstract class BaseRepository<M extends BaseMapper<T>, T> extends CrudRep
 		Class<?> instantiatedClass = meta.getInstantiatedClass();
 
 		if (!initColumnMap) {
-			Class<T> entityClass = getEntityClass();
+			final Class<T> entityClass = getEntityClass();
 			if (entityClass != null) {
 				instantiatedClass = entityClass;
 			}
 			columnMap = LambdaUtils.getColumnMap(instantiatedClass);
-			com.baomidou.mybatisplus.core.toolkit.Assert.notNull(columnMap,
-				"can not find lambda cache for this entity [%s]", entityClass.getName());
+			com.baomidou.mybatisplus.core.toolkit.Assert.notNull(columnMap, "can not find lambda cache for this entity [%s]", instantiatedClass.getName());
 			initColumnMap = true;
 		}
 
 		ColumnCache columnCache = columnMap.get(LambdaUtils.formatKey(fieldName));
-		com.baomidou.mybatisplus.core.toolkit.Assert.notNull(columnCache,
-			"can not find lambda cache for this property [%s] of entity [%s]", fieldName, instantiatedClass.getName());
+		com.baomidou.mybatisplus.core.toolkit.Assert.notNull(columnCache, "can not find lambda cache for this property [%s] of entity [%s]",
+			fieldName, instantiatedClass.getName());
 		return columnCache.getColumn();
 	}
 }
