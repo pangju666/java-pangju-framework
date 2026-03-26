@@ -32,6 +32,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -737,6 +738,7 @@ public class RestRequestBuilder {
 	 *
 	 * @param body 请求体对象，例如：{@code new User("admin", "password")}
 	 * @return 当前实例
+	 * @see JacksonJsonHttpMessageConverter
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder jsonBody(@Nullable Object body) {
@@ -749,6 +751,7 @@ public class RestRequestBuilder {
 	 * @param body        请求体对象，例如：{@code new User("admin", "password")}
 	 * @param emptyIfNull 当body为null时是否使用空JSON对象，例如：{@code true}
 	 * @return 当前实例
+	 * @see JacksonJsonHttpMessageConverter
 	 * @since 1.0.0
 	 */
 	public RestRequestBuilder jsonBody(@Nullable Object body, boolean emptyIfNull) {
@@ -923,6 +926,7 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
 	 * @see JsonResponseErrorHandler
+	 * @see JacksonJsonHttpMessageConverter
 	 * @since 1.0.0
 	 */
 	public <T> T toJson(Class<T> bodyType) throws RestClientResponseException {
@@ -944,6 +948,7 @@ public class RestRequestBuilder {
 	 * @throws io.github.pangju666.framework.web.exception.remote.HttpRemoteServiceTimeoutException 当配置了错误处理器且判定为超时错误时抛出
 	 * @throws IllegalArgumentException                                                             当bodyType为null时抛出
 	 * @see JsonResponseErrorHandler
+	 * @see JacksonJsonHttpMessageConverter
 	 * @since 1.0.0
 	 */
 	public <T> T toJson(ParameterizedTypeReference<T> bodyType) throws RestClientResponseException {
