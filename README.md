@@ -92,7 +92,7 @@ Web、持久层（MyBatis Plus/MongoDB/Redis）等常用组件的增强功能，
 
 ## 📖 文档
 
-更多详细说明请参考：[在线文档](https://pangju666.github.io/pangju-java-doc/framework/getting-started.html)
+更多详细说明请参考：[在线文档](https://pangju666.github.io/pangju-java-doc/v2/framework/getting-started.html)
 
 ## 📄 许可证
 
