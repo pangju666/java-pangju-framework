@@ -25,27 +25,27 @@
 			<dependency>
 				<groupId>io.github.pangju666.framework</groupId>
 				<artifactId>framework-web</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.1</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666.framework</groupId>
 				<artifactId>framework-spring</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.1</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666.framework</groupId>
 				<artifactId>framework-data-mybatis-plus</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.1</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666.framework</groupId>
 				<artifactId>framework-data-mongodb</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.1</version>
 			</dependency>
 			<dependency>
 				<groupId>io.github.pangju666.framework</groupId>
 				<artifactId>framework-data-redis</artifactId>
-				<version>1.0.0</version>
+				<version>1.0.1</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
