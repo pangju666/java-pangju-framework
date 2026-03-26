@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>io.github.pangju666.framework</groupId>
 		<artifactId>framework-parent</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1</version>
 	</parent>
 	<artifactId>framework-data-redis</artifactId>
 	<name>framework-data-redis</name>
