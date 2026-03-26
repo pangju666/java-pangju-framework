@@ -40,7 +40,7 @@ import java.io.InputStream;
 public class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
 	private final ClientHttpResponse response;
 	@Nullable
-	private byte[] body;
+	private volatile byte[] body;
 
 	public BufferingClientHttpResponseWrapper(ClientHttpResponse response) {
 		Assert.notNull(response, "response 不可为 null");
@@ -64,10 +64,17 @@ public class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
 
 	@Override
 	public InputStream getBody() throws IOException {
-		if (this.body == null) {
-			this.body = StreamUtils.copyToByteArray(this.response.getBody());
+		byte[] body = this.body;
+		if (body == null) {
+			synchronized (this) {
+				body = this.body;
+				if (body == null) {
+					body = StreamUtils.copyToByteArray(this.response.getBody());
+					this.body = body;
+				}
+			}
 		}
-		return new ByteArrayInputStream(this.body);
+		return new ByteArrayInputStream(body);
 	}
 
 	@Override
