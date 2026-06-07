@@ -49,7 +49,7 @@ Web、持久层（MyBatis Plus/MongoDB/Redis）等常用组件的增强功能，
         <dependency>
             <groupId>io.github.pangju666.framework</groupId>
             <artifactId>framework-bom</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -86,7 +86,7 @@ Web、持久层（MyBatis Plus/MongoDB/Redis）等常用组件的增强功能，
 <dependency>
     <groupId>io.github.pangju666.framework</groupId>
     <artifactId>framework-all</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
