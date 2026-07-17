@@ -342,7 +342,7 @@ public class RangeDownloadUtils {
 			response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
 			try (OutputStream outputStream = IOUtils.buffer(response.getOutputStream());
-				 InputStream inputStream = FileUtils.openUnsynchronizedBufferedInputStream(file)) {
+			     InputStream inputStream = FileUtils.newUnsynchronizedBufferedInputStream(file)) {
 				long skipBytes = 0;
 				while (skipBytes != range.getStart()) {
 					skipBytes += inputStream.skip(range.getStart() - skipBytes);
