@@ -467,7 +467,8 @@ public class HttpResponseBuilder {
 		response.setContentType(FileUtils.getMimeType(file));
 		response.setContentLength((int) file.length());
 		contentDisposition(file.getName());
-		try (InputStream inputStream = buffer ? FileUtils.openUnsynchronizedBufferedInputStream(file) : FileUtils.openInputStream(file)) {
+		try (InputStream inputStream = buffer ? FileUtils.newUnsynchronizedBufferedInputStream(file) :
+			FileUtils.openInputStream(file)) {
 			write(inputStream);
 		}
 	}
@@ -493,7 +494,8 @@ public class HttpResponseBuilder {
 		response.setContentType(FileUtils.getMimeType(file));
 		response.setContentLength((int) file.length());
 		contentDisposition(StringUtils.defaultIfBlank(downloadFilename, file.getName()));
-		try (InputStream inputStream = buffer ? FileUtils.openUnsynchronizedBufferedInputStream(file) : FileUtils.openInputStream(file)) {
+		try (InputStream inputStream = buffer ? FileUtils.newUnsynchronizedBufferedInputStream(file) :
+			FileUtils.openInputStream(file)) {
 			write(inputStream);
 		}
 	}
